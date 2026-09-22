@@ -61,3 +61,6 @@ fee-reports/scans/
 # addresses ever seen per chain, never balances, fully reproducible by
 # re-walking OrderFilled history. A cold cache degrades to a full scan.
 .cache/
+
+# Local assistant tooling settings.
+.claude/settings.local.json

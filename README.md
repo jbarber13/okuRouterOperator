@@ -27,7 +27,7 @@ minimum, `MAINNET_PRIVATE_KEY` (the hot deployer/executor/relayer key — see
 [Roles](#roles); it never holds Safe-owner authority) and whichever `<NET>_URL`
 overrides you need (see the RPC gotcha notes under
 [Swap-target whitelisting](#swap-target-whitelisting) and
-[Log endpoints](#log-endpoints---net_logs_url)).
+[Log endpoints](#log-endpoints--net_logs_url)).
 
 ## Relationship to okuRouter
 

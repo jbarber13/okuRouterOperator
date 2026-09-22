@@ -80,8 +80,7 @@ const CHAINS = ["op", "base", "arbitrum", "bsc", "gnosis"];
 /**
  * Fallback RPCs for chains whose configured public endpoint is unreliable
  * from a fork harness (1rpc.io returns 410, publicnode 403s on some hosts).
- * Mirrors the FALLBACK_RPC pattern in scripts/testForkDeployV2.ts. This only
- * affects the local harness's RPC choice, never production config.
+ * This only affects the local harness's RPC choice, never production config.
  */
 const FALLBACK_RPC: Record<string, string> = {
   base: process.env.ALCHEMY_API_KEY

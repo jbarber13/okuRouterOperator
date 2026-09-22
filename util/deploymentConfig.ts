@@ -22,6 +22,16 @@
  *
  * This module replaces `util/networkConfig.ts` (deprecated, see that file).
  *
+ * VENDORED, NOT SHARED: this file is a duplicate of okuRouter's copy of the
+ * same name, kept here because this repo has no build dependency on that
+ * one (see typechain-types/README.md for the same pattern applied to the
+ * ABI). Any edit to `DEPLOYMENT_OVERRIDES`, `knownSwapTargets`/
+ * `extraSwapTargets`, or anything else here that the two need to agree on
+ * (they do) must be applied to both copies by hand. There is currently no
+ * shared package enforcing that; a stale copy here degrades to a stale
+ * whitelist/config for `whitelist-swap-targets` and `safe:build --intent
+ * swap-targets`, not a build failure, so it will not announce itself.
+ *
  * `@gfxlabs/oku-chains` is installed from the published npm registry, range
  * pinned in `package.json` (currently `^1.12.42`; installed 1.12.42 as of
  * this writing) for reproducible-enough deploys while still picking up

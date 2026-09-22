@@ -1,0 +1,44 @@
+---
+name: CI
+
+# Lint + offline tests.
+#
+# Unlike okuRouter, this repo's tests (test/base/*.ts) are fully offline --
+# FeeAssetCache and SafeConfig exercise pure logic against fixtures and a
+# pinned expected Safe address, never a live or forked chain -- so `npm test`
+# is safe to run in CI with no RPC endpoints or secrets configured. Nothing
+# here compiles Solidity, so there is no metadata-hash/CREATE2 concern
+# gating what can run, unlike okuRouter's contracts/.
+#
+# Everything that DOES touch a live chain (safe:*, fees:*, the fork
+# rehearsal scripts) is excluded on purpose: it needs real RPC endpoints, and
+# several tasks are capable of broadcasting -- not something to run
+# unattended on every push.
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: ESLint
+        run: npx eslint .
+
+      - name: Test
+        run: npm test

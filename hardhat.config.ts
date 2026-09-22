@@ -137,10 +137,15 @@ const config: HardhatUserConfig = {
             },
           }
         : {},
-      forking: {
-        url: process.env.MAINNET_URL ? process.env.MAINNET_URL : zaddr,
-        blockNumber: 14546835,
-      },
+      // No static `forking` block here, unlike okuRouter's config. Nothing in
+      // this repo needs one: both fork rehearsal scripts (testForkSafeMigration,
+      // testForkSweepWorldchain) call `hardhat_reset` with their own RPC URL
+      // before touching the provider, and neither depends on a starting block.
+      // A static fork here would only add a hard failure mode on a bare
+      // clone -- with no `.env`, hardhat/EDR rejects an invalid `forking.url`
+      // at network-init time, before any task or test gets a chance to run,
+      // which is exactly the "offline, no RPC needed" case `npm test` needs
+      // to support.
       mining: {
         auto: true,
       },
