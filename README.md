@@ -10,6 +10,43 @@ It does not compile, deploy, or redeploy OkuRouter contracts — that lives in
 okuRouter. See ["Relationship to okuRouter"](#relationship-to-okurouter)
 below for exactly what is vendored from there and why.
 
+## Runbook: collecting fees
+
+The commands for a regular fee-collection ceremony, once a bundle already
+exists (see [The regular cycle](#the-regular-cycle--feescycle) for building
+one). Only the last step touches a live chain.
+
+```bash
+# 1. Each signer pulls, starts the local signing server, signs in the browser
+git pull
+npm run sign-page
+# open http://127.0.0.1:8547/<bundle>/sign.html, connect hardware wallet, sign all chains
+
+# 2. Signer sends their signature file back to the coordinator
+#    safe-bundles/<bundle>/signatures-0x<signer>.json
+
+# 3. Coordinator folds each signer's signatures into the bundle
+npx hardhat safe:sign --name <bundle> --import safe-bundles/<bundle>/signatures-0x<signer1>.json
+npx hardhat safe:sign --name <bundle> --import safe-bundles/<bundle>/signatures-0x<signer2>.json
+
+# 4. Check readiness (2-of-3 reached on every chain)
+npx hardhat safe:status
+
+# 5. Dry run -- no broadcast, re-verifies hashes/signatures/nonces and simulates
+npx hardhat safe:exec --name <bundle>
+
+# 6. Broadcast for real
+npx hardhat safe:exec --name <bundle> --broadcast
+
+# 7. Roll up the accounting artifacts safe:exec wrote automatically
+npx hardhat fees:report --rebuild
+```
+
+Needs 2 of the 3 hardware-wallet signers (see
+[Production multisig](#production-multisig-safe) for addresses). Full detail,
+including the sweep-specific signer checklist, safety properties, and how a
+bundle gets built in the first place: [Fee collection](#fee-collection).
+
 ## Development
 
 ```bash
