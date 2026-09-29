@@ -214,15 +214,21 @@ export const OKU_DEPLOYER_EOA = "0x3CB68a6762041aA05E762814A8791CA9d98E79A0";
  * it for one-off recoveries.
  *
  * Verified at the time it was adopted: valid EIP-55 checksum, and no contract
- * code, zero nonce and zero balance on all 13 chains probed -- i.e. a fresh,
+ * code, zero nonce and zero balance on all chains probed -- i.e. a fresh,
  * unused address. Note that this proves the string is well-formed, NOT that
  * anyone holds the key; that can only be established by a signature from it.
  *
  * If this address ever becomes a contract, `sweepAll(..., includeEth = true)`
  * will revert on any chain where it lacks a payable fallback. `safe:build`'s
  * pre-sign simulation catches that before signatures are collected.
+ *
+ * Changed 2026-09-29 from 0xd637f2A36c1a3b37d57ef4C7022cB183D8922f2c to this
+ * address (team-provided). Re-verified against the same bar as the original:
+ * valid EIP-55 checksum, no contract code / zero nonce / zero balance on
+ * mainnet, arbitrum, op. Any bundle built against the old recipient has the
+ * old address baked into its calldata and must be rebuilt, not resigned.
  */
-export const OKU_FEE_RECIPIENT = "0xd637f2A36c1a3b37d57ef4C7022cB183D8922f2c";
+export const OKU_FEE_RECIPIENT = "0x8288Ba381e07EA5E9Fc4053a97545161D7d4683C";
 
 // ---------------------------------------------------------------------------
 // Safe Transaction Service coverage
