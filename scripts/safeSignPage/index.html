@@ -481,10 +481,11 @@ function discoverProviders() {
       var d = ev.detail;
       if (!d || !d.provider) return;
       var name = (d.info && d.info.name) || "unknown";
+      var rdns = (d.info && d.info.rdns) || "";
       var key = (d.info && d.info.uuid) || name;
       if (seen[key]) return;
       seen[key] = 1;
-      found.push({ label: name, provider: d.provider });
+      found.push({ label: name, provider: d.provider, isMetaMask: rdns === "io.metamask" });
     }
 
     window.addEventListener("eip6963:announceProvider", onAnnounce);
@@ -504,9 +505,16 @@ function discoverProviders() {
           var label = p.isMetaMask ? "MetaMask (legacy)"
                     : p.isRabby ? "Rabby (legacy)"
                     : "Injected wallet " + (i + 1);
-          found.push({ label: label, provider: p });
+          found.push({ label: label, provider: p, isMetaMask: !!p.isMetaMask });
         });
       }
+      // MetaMask first, so it -- not whichever extension happened to
+      // announce first over EIP-6963 (Keplr and other non-EVM-primary
+      // wallets often inject and can win the race) -- is the default
+      // selection. Order otherwise unchanged (stable sort); the signer can
+      // still pick a different one from the dropdown when more than one
+      // wallet is present.
+      found.sort(function (a, b) { return (b.isMetaMask ? 1 : 0) - (a.isMetaMask ? 1 : 0); });
       resolve(found);
     }, 350);
   });

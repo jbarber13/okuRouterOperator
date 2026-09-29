@@ -157,6 +157,13 @@ check("never references a private key or mnemonic",
 check("uses eth_signTypedData_v4", /eth_signTypedData_v4/.test(codeBare));
 check("verifies active chain before signing", /eth_chainId/.test(codeBare));
 check("supports EIP-6963 wallet discovery", /eip6963:requestProvider/.test(codeBare));
+// Multiple installed extensions (Keplr and other non-EVM-primary wallets
+// commonly inject an EIP-1193 provider too) can announce over EIP-6963 in
+// any order, and the first entry becomes the default selection. Without
+// this, "the default wallet" is whichever extension's announce listener
+// happened to fire first -- not a choice anyone made.
+check("defaults wallet selection to MetaMask when present, not announce order",
+  /isMetaMask/.test(codeBare) && /found\.sort/.test(codeBare));
 
 // --- 6. value-transferring bundles are disclosed, not buried in a label ---
 // A sweep authorizes moving every asset on a chain. Describing that to a
