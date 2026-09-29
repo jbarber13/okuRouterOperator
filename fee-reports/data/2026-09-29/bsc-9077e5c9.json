@@ -1,0 +1,113 @@
+{
+  "kind": "oku-fee-sweep",
+  "schemaVersion": 1,
+  "mode": "execution",
+  "bundle": "sweep-2026-09-29",
+  "network": "bsc",
+  "chainId": 56,
+  "router": "0xb1f3a7B816B0681188F54dFa400991B93ADf00ed",
+  "safe": "0xdC91978e0617CcA2EE1E658d0A1CA3F63CF10f1F",
+  "recipient": "0x8288Ba381e07EA5E9Fc4053a97545161D7d4683C",
+  "date": "2026-09-29",
+  "isoWeek": "2026-W40",
+  "generatedAt": "2026-09-29T19:41:19.873Z",
+  "execution": {
+    "txHash": "0x9077e5c9cb2902179bb815e328e2f6274737949146936af4a2f92c31f17c8e48",
+    "blockNumber": 124773167,
+    "blockTimestamp": "2026-09-29T19:32:24.000Z",
+    "relayer": "0x3CB68a6762041aA05E762814A8791CA9d98E79A0",
+    "safeNonce": "1",
+    "safeTxHash": "0xf68ba987d0f491f7927f7a7e26f139a57f1bc4272764f4f19919fb35c2e11fbb",
+    "signers": [
+      "0x43A9beCdC1323c1dFcfA776cE9bF57F9F8Ce8200",
+      "0x9B68c14e936104e9a7a24c712BEecdc220002984"
+    ],
+    "gasUsed": "245532",
+    "effectiveGasPrice": "50000000",
+    "gasCostWei": "12276600000000",
+    "gasCostNative": "0.0000122766",
+    "gasCostUsd": 0.00926187253445772,
+    "status": "success"
+  },
+  "assets": [
+    {
+      "token": "0x7130d2A12B9BCbFAe4f2634d864A1Ee1Ce3Ead9c",
+      "symbol": "BTCB",
+      "decimals": 18,
+      "amountRaw": "852010145297984",
+      "amount": "0.000852010145297984",
+      "eventAmountRaw": "852010145297984",
+      "usdPrice": 83428.31116724388,
+      "usdValue": 71.08176751956888,
+      "poolDepthUsd": 2968206.1559202927,
+      "realizableUsd": 71.08176751956888,
+      "priceSource": "univ3:0x28dF0835942396B7a1b7aE1cd068728E6ddBbAfD@500"
+    },
+    {
+      "token": "0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d",
+      "symbol": "USDC",
+      "decimals": 18,
+      "amountRaw": "5232678777336313175",
+      "amount": "5.232678777336313175",
+      "eventAmountRaw": "5232678777336313175",
+      "usdPrice": 1,
+      "usdValue": 5.2326787773363135,
+      "realizableUsd": 5.2326787773363135,
+      "priceSource": "stable:usdc"
+    },
+    {
+      "token": "0x2170Ed0880ac9A755fd29B2688956BD959F933F8",
+      "symbol": "ETH",
+      "decimals": 18,
+      "amountRaw": "655966060652345",
+      "amount": "0.000655966060652345",
+      "eventAmountRaw": "655966060652345",
+      "usdPrice": 2691.3355843641775,
+      "usdValue": 1.7654248011688465,
+      "poolDepthUsd": 4368391.415367902,
+      "realizableUsd": 1.7654248011688465,
+      "priceSource": "univ3:0x0f338Ec12d3f7C3D77A4B9fcC1f95F3FB6AD0EA6@500"
+    },
+    {
+      "token": "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+      "symbol": "WBNB",
+      "decimals": 18,
+      "amountRaw": "1286818613886550",
+      "amount": "0.00128681861388655",
+      "eventAmountRaw": "1286818613886550",
+      "usdPrice": 754.4330298663897,
+      "usdValue": 0.9708184657628978,
+      "poolDepthUsd": 5560.124379379859,
+      "realizableUsd": 0.9708184657628978,
+      "priceSource": "univ3:0x4141325bAc36aFFe9Db165e854982230a14e6d48@100"
+    },
+    {
+      "token": "native",
+      "symbol": "BNB",
+      "decimals": 18,
+      "amountRaw": "23225318719407112",
+      "amount": "0.023225318719407112",
+      "eventAmountRaw": "23225318719407112",
+      "usdPrice": 754.4330298663897,
+      "usdValue": 17.521947571094884,
+      "poolDepthUsd": 5560.124379379859,
+      "realizableUsd": 17.521947571094884,
+      "priceSource": "univ3:0x4141325bAc36aFFe9Db165e854982230a14e6d48@100"
+    }
+  ],
+  "totals": {
+    "assetCount": 5,
+    "usdNotional": 96.57263713493184,
+    "usdRealizable": 96.57263713493184,
+    "nativeUsdPrice": 754.4330298663897
+  },
+  "reconciliation": {
+    "allRouterBalancesZero": true,
+    "eventsMatchBalanceDeltas": true,
+    "residuals": [],
+    "discrepancies": []
+  },
+  "warnings": [
+    "RPC would not serve historical state; amounts are taken from events only and a fee-on-transfer token could therefore be overstated"
+  ]
+}

@@ -1,0 +1,93 @@
+{
+  "kind": "oku-fee-sweep",
+  "schemaVersion": 1,
+  "mode": "execution",
+  "bundle": "sweep-2026-09-29",
+  "network": "rootstock",
+  "chainId": 30,
+  "router": "0x0906896E8564c61F40778E2B7A46E1269Aaa681e",
+  "safe": "0xdC91978e0617CcA2EE1E658d0A1CA3F63CF10f1F",
+  "recipient": "0x8288Ba381e07EA5E9Fc4053a97545161D7d4683C",
+  "date": "2026-09-29",
+  "isoWeek": "2026-W40",
+  "generatedAt": "2026-09-29T19:29:46.824Z",
+  "execution": {
+    "txHash": "0x126185684389d853036738899d4e50fcb28e63aba9324f89dedbbb8f4dfa364a",
+    "blockNumber": 9282663,
+    "blockTimestamp": "2026-09-29T19:29:12.000Z",
+    "relayer": "0x3CB68a6762041aA05E762814A8791CA9d98E79A0",
+    "safeNonce": "1",
+    "safeTxHash": "0x1bf18943b52a1a1734b7b870c62ff5970d39fcdb889f1997801df5468d30b4de",
+    "signers": [
+      "0x43A9beCdC1323c1dFcfA776cE9bF57F9F8Ce8200",
+      "0x9B68c14e936104e9a7a24c712BEecdc220002984"
+    ],
+    "gasUsed": "136024",
+    "effectiveGasPrice": "26065600",
+    "gasCostWei": "3545547174400",
+    "gasCostNative": "0.0000035455471744",
+    "status": "success"
+  },
+  "assets": [
+    {
+      "token": "0x3A15461d8aE0F0Fb5Fa2629e9DA7D66A794a6e37",
+      "symbol": "USDRIF",
+      "decimals": 18,
+      "amountRaw": "9706738919329279850",
+      "amount": "9.70673891932927985",
+      "eventAmountRaw": "9706738919329279850",
+      "routerBalanceBefore": "9706738919329279850",
+      "routerBalanceAfter": "0",
+      "recipientBalanceBefore": "0",
+      "recipientBalanceAfter": "9706738919329279850",
+      "recipientDeltaRaw": "9706738919329279850",
+      "deltaMatchesEvent": true,
+      "usdPrice": 1,
+      "usdValue": 9.706738919329279,
+      "realizableUsd": 9.706738919329279,
+      "priceSource": "stable:usdc"
+    },
+    {
+      "token": "0x542fDA317318eBF1d3DEAf76E0b632741A7e677d",
+      "symbol": "WRBTC",
+      "decimals": 18,
+      "amountRaw": "4847636526990",
+      "amount": "0.00000484763652699",
+      "eventAmountRaw": "4847636526990",
+      "routerBalanceBefore": "4847636526990",
+      "routerBalanceAfter": "0",
+      "recipientBalanceBefore": "0",
+      "recipientBalanceAfter": "4847636526990",
+      "recipientDeltaRaw": "4847636526990",
+      "deltaMatchesEvent": true
+    },
+    {
+      "token": "native",
+      "symbol": "RBTC",
+      "decimals": 18,
+      "amountRaw": "1608494717210819",
+      "amount": "0.001608494717210819",
+      "eventAmountRaw": "1608494717210819",
+      "routerBalanceBefore": "1608494717210819",
+      "routerBalanceAfter": "0",
+      "recipientBalanceBefore": "0",
+      "recipientBalanceAfter": "1608494717210819",
+      "recipientDeltaRaw": "1608494717210819",
+      "deltaMatchesEvent": true
+    }
+  ],
+  "totals": {
+    "assetCount": 3,
+    "usdNotional": 9.706738919329279,
+    "usdRealizable": 9.706738919329279
+  },
+  "reconciliation": {
+    "allRouterBalancesZero": true,
+    "eventsMatchBalanceDeltas": true,
+    "residuals": [],
+    "discrepancies": []
+  },
+  "warnings": [
+    "rootstock: no WETH/USDC pool with usable liquidity; native and WETH-quoted assets are unpriced"
+  ]
+}

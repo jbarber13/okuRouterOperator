@@ -1,0 +1,75 @@
+{
+  "kind": "oku-fee-sweep",
+  "schemaVersion": 1,
+  "mode": "execution",
+  "bundle": "sweep-2026-09-29",
+  "network": "pharos",
+  "chainId": 1672,
+  "router": "0xb1f3a7B816B0681188F54dFa400991B93ADf00ed",
+  "safe": "0xdC91978e0617CcA2EE1E658d0A1CA3F63CF10f1F",
+  "recipient": "0x8288Ba381e07EA5E9Fc4053a97545161D7d4683C",
+  "date": "2026-09-29",
+  "isoWeek": "2026-W40",
+  "generatedAt": "2026-09-29T19:36:18.143Z",
+  "execution": {
+    "txHash": "0x764c87a1f5ee1b016c3ad236ff5676586becb0adc41634c3e40dd796c50eb4bb",
+    "blockNumber": 18932259,
+    "blockTimestamp": "2026-09-29T19:36:11.000Z",
+    "relayer": "0x3CB68a6762041aA05E762814A8791CA9d98E79A0",
+    "safeNonce": "2",
+    "safeTxHash": "0x3e845935f6d4b61f9a267c591a65e3042b935fcb30d3ed108131192091e8f9ee",
+    "signers": [
+      "0x43A9beCdC1323c1dFcfA776cE9bF57F9F8Ce8200",
+      "0x9B68c14e936104e9a7a24c712BEecdc220002984"
+    ],
+    "gasUsed": "140768",
+    "effectiveGasPrice": "10000000000",
+    "gasCostWei": "1407680000000000",
+    "gasCostNative": "0.00140768",
+    "status": "success"
+  },
+  "assets": [
+    {
+      "token": "0x52C48d4213107b20bC583832b0d951FB9CA8F0B0",
+      "symbol": "WPROS",
+      "decimals": 18,
+      "amountRaw": "994902260509266514",
+      "amount": "0.994902260509266514",
+      "eventAmountRaw": "994902260509266514",
+      "routerBalanceBefore": "994902260509266514",
+      "routerBalanceAfter": "0",
+      "recipientBalanceBefore": "0",
+      "recipientBalanceAfter": "994902260509266514",
+      "recipientDeltaRaw": "994902260509266514",
+      "deltaMatchesEvent": true
+    },
+    {
+      "token": "native",
+      "symbol": "PROS",
+      "decimals": 18,
+      "amountRaw": "60000000000000000",
+      "amount": "0.06",
+      "eventAmountRaw": "60000000000000000",
+      "routerBalanceBefore": "60000000000000000",
+      "routerBalanceAfter": "0",
+      "recipientBalanceBefore": "0",
+      "recipientBalanceAfter": "60000000000000000",
+      "recipientDeltaRaw": "60000000000000000",
+      "deltaMatchesEvent": true
+    }
+  ],
+  "totals": {
+    "assetCount": 2,
+    "usdNotional": 0,
+    "usdRealizable": 0
+  },
+  "reconciliation": {
+    "allRouterBalancesZero": true,
+    "eventsMatchBalanceDeltas": true,
+    "residuals": [],
+    "discrepancies": []
+  },
+  "warnings": [
+    "no V3 factory/USDC/WETH for pharos; valuations unavailable"
+  ]
+}

@@ -1,0 +1,79 @@
+{
+  "kind": "oku-fee-sweep",
+  "schemaVersion": 1,
+  "mode": "execution",
+  "bundle": "sweep-2026-09-29",
+  "network": "nibiru",
+  "chainId": 6900,
+  "router": "0x7B060A98BA242Ae42D6027a60937787eBe33DEBe",
+  "safe": "0xdC91978e0617CcA2EE1E658d0A1CA3F63CF10f1F",
+  "recipient": "0x8288Ba381e07EA5E9Fc4053a97545161D7d4683C",
+  "date": "2026-09-29",
+  "isoWeek": "2026-W40",
+  "generatedAt": "2026-09-29T19:37:08.713Z",
+  "execution": {
+    "txHash": "0x498c66dcb6f961b13ca97fae307953bca71cb88b91db2f24512764fcb2ae8c40",
+    "blockNumber": 47020650,
+    "blockTimestamp": "2026-09-29T19:37:05.000Z",
+    "relayer": "0x3CB68a6762041aA05E762814A8791CA9d98E79A0",
+    "safeNonce": "1",
+    "safeTxHash": "0x7937018b2f57fe0090f102320981288813279dd0290bc7005a5ebc44d834baae",
+    "signers": [
+      "0x43A9beCdC1323c1dFcfA776cE9bF57F9F8Ce8200",
+      "0x9B68c14e936104e9a7a24c712BEecdc220002984"
+    ],
+    "gasUsed": "152198",
+    "effectiveGasPrice": "0",
+    "gasCostWei": "0",
+    "gasCostNative": "0.0",
+    "status": "success"
+  },
+  "assets": [
+    {
+      "token": "0x0829F361A05D993d5CEb035cA6DF3446b060970b",
+      "symbol": "USDC.e",
+      "decimals": 6,
+      "amountRaw": "499819",
+      "amount": "0.499819",
+      "eventAmountRaw": "499819",
+      "routerBalanceBefore": "499819",
+      "routerBalanceAfter": "0",
+      "recipientBalanceBefore": "0",
+      "recipientBalanceAfter": "499819",
+      "recipientDeltaRaw": "499819",
+      "deltaMatchesEvent": true,
+      "usdPrice": 1,
+      "usdValue": 0.499819,
+      "realizableUsd": 0.499819,
+      "priceSource": "stable:usdc"
+    },
+    {
+      "token": "native",
+      "symbol": "NIBI",
+      "decimals": 18,
+      "amountRaw": "5472057120694029924230",
+      "amount": "5472.05712069402992423",
+      "eventAmountRaw": "5472057120694029924230",
+      "routerBalanceBefore": "5472057120694029924230",
+      "routerBalanceAfter": "0",
+      "recipientBalanceBefore": "0",
+      "recipientBalanceAfter": "5472057120694029924230",
+      "recipientDeltaRaw": "5472057120694029924230",
+      "deltaMatchesEvent": true
+    }
+  ],
+  "totals": {
+    "assetCount": 2,
+    "usdNotional": 0.499819,
+    "usdRealizable": 0.499819
+  },
+  "reconciliation": {
+    "allRouterBalancesZero": true,
+    "eventsMatchBalanceDeltas": true,
+    "residuals": [],
+    "discrepancies": []
+  },
+  "warnings": [
+    "nibiru: no WETH/USDC pool with usable liquidity; native and WETH-quoted assets are unpriced"
+  ]
+}

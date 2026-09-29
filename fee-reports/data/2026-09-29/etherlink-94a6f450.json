@@ -1,0 +1,65 @@
+{
+  "kind": "oku-fee-sweep",
+  "schemaVersion": 1,
+  "mode": "execution",
+  "bundle": "sweep-2026-09-29",
+  "network": "etherlink",
+  "chainId": 42793,
+  "router": "0x7B060A98BA242Ae42D6027a60937787eBe33DEBe",
+  "safe": "0xdC91978e0617CcA2EE1E658d0A1CA3F63CF10f1F",
+  "recipient": "0x8288Ba381e07EA5E9Fc4053a97545161D7d4683C",
+  "date": "2026-09-29",
+  "isoWeek": "2026-W40",
+  "generatedAt": "2026-09-29T19:38:01.924Z",
+  "execution": {
+    "txHash": "0x94a6f450462dfb7218b59e070a023c62a4fd4c683a50efe7100206535e370cce",
+    "blockNumber": 54534255,
+    "blockTimestamp": "2026-09-29T19:37:58.000Z",
+    "relayer": "0x3CB68a6762041aA05E762814A8791CA9d98E79A0",
+    "safeNonce": "1",
+    "safeTxHash": "0xb8357a26bf3ae877e5d02fab17a019046ff1d87c85b52b7b3588b86db8c9daf9",
+    "signers": [
+      "0x43A9beCdC1323c1dFcfA776cE9bF57F9F8Ce8200",
+      "0x9B68c14e936104e9a7a24c712BEecdc220002984"
+    ],
+    "gasUsed": "3676903",
+    "effectiveGasPrice": "1000000000",
+    "gasCostWei": "3676903000000000",
+    "gasCostNative": "0.003676903",
+    "gasCostUsd": 0.0011491852329328935,
+    "status": "success"
+  },
+  "assets": [
+    {
+      "token": "0x796Ea11Fa2dD751eD01b53C372fFDB4AAa8f00F9",
+      "symbol": "USDC",
+      "decimals": 6,
+      "amountRaw": "99306",
+      "amount": "0.099306",
+      "eventAmountRaw": "99306",
+      "routerBalanceBefore": "99306",
+      "routerBalanceAfter": "0",
+      "recipientBalanceBefore": "0",
+      "recipientBalanceAfter": "99306",
+      "recipientDeltaRaw": "99306",
+      "deltaMatchesEvent": true,
+      "usdPrice": 1,
+      "usdValue": 0.099306,
+      "realizableUsd": 0.099306,
+      "priceSource": "stable:usdc"
+    }
+  ],
+  "totals": {
+    "assetCount": 1,
+    "usdNotional": 0.099306,
+    "usdRealizable": 0.099306,
+    "nativeUsdPrice": 0.3125416234621619
+  },
+  "reconciliation": {
+    "allRouterBalancesZero": true,
+    "eventsMatchBalanceDeltas": true,
+    "residuals": [],
+    "discrepancies": []
+  },
+  "warnings": []
+}

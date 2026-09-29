@@ -1,0 +1,103 @@
+{
+  "kind": "oku-fee-sweep",
+  "schemaVersion": 1,
+  "mode": "execution",
+  "bundle": "sweep-2026-09-29",
+  "network": "mantle",
+  "chainId": 5000,
+  "router": "0x86d61277970685075a0BF66023c219dc4A6e3F6d",
+  "safe": "0xdC91978e0617CcA2EE1E658d0A1CA3F63CF10f1F",
+  "recipient": "0x8288Ba381e07EA5E9Fc4053a97545161D7d4683C",
+  "date": "2026-09-29",
+  "isoWeek": "2026-W40",
+  "generatedAt": "2026-09-29T19:36:52.585Z",
+  "execution": {
+    "txHash": "0x9957412df505b9f99158ef55606832aa803d9888c11fba01be2ae7a393c163ec",
+    "blockNumber": 101290150,
+    "blockTimestamp": "2026-09-29T19:36:52.000Z",
+    "relayer": "0x3CB68a6762041aA05E762814A8791CA9d98E79A0",
+    "safeNonce": "1",
+    "safeTxHash": "0x45dbb62f56b46a0cce8fbcebb018bfe96d68977f8a09e5dd7b5a53de6164e64f",
+    "signers": [
+      "0x43A9beCdC1323c1dFcfA776cE9bF57F9F8Ce8200",
+      "0x9B68c14e936104e9a7a24c712BEecdc220002984"
+    ],
+    "gasUsed": "187746",
+    "effectiveGasPrice": "50000100000",
+    "gasCostWei": "9387318774600000",
+    "gasCostNative": "0.0093873187746",
+    "gasCostUsd": 0.006206272602792845,
+    "status": "success"
+  },
+  "assets": [
+    {
+      "token": "0x09Bc4E0D864854c6aFB6eB9A9cdF58aC190D0dF9",
+      "symbol": "USDC",
+      "decimals": 6,
+      "amountRaw": "10612822",
+      "amount": "10.612822",
+      "eventAmountRaw": "10612822",
+      "routerBalanceBefore": "10612822",
+      "routerBalanceAfter": "0",
+      "recipientBalanceBefore": "0",
+      "recipientBalanceAfter": "10612822",
+      "recipientDeltaRaw": "10612822",
+      "deltaMatchesEvent": true,
+      "usdPrice": 1,
+      "usdValue": 10.612822,
+      "realizableUsd": 10.612822,
+      "priceSource": "stable:usdc"
+    },
+    {
+      "token": "0x78c1b0C915c4FAA5FffA6CAbf0219DA63d7f4cb8",
+      "symbol": "WMNT",
+      "decimals": 18,
+      "amountRaw": "12916534887359986830",
+      "amount": "12.91653488735998683",
+      "eventAmountRaw": "12916534887359986830",
+      "routerBalanceBefore": "12916534887359986830",
+      "routerBalanceAfter": "0",
+      "recipientBalanceBefore": "0",
+      "recipientBalanceAfter": "12916534887359986830",
+      "recipientDeltaRaw": "12916534887359986830",
+      "deltaMatchesEvent": true,
+      "usdPrice": 0.661133679574794,
+      "usdValue": 8.539556237436505,
+      "poolDepthUsd": 2.09764,
+      "realizableUsd": 8.539556237436505,
+      "priceSource": "univ3:0x086F766b336DFB0f705Dc030dB01993b22D81266@3000"
+    },
+    {
+      "token": "native",
+      "symbol": "MNT",
+      "decimals": 18,
+      "amountRaw": "156996488036042985968",
+      "amount": "156.996488036042985968",
+      "eventAmountRaw": "156996488036042985968",
+      "routerBalanceBefore": "156996488036042985968",
+      "routerBalanceAfter": "0",
+      "recipientBalanceBefore": "0",
+      "recipientBalanceAfter": "156996488036042985968",
+      "recipientDeltaRaw": "156996488036042985968",
+      "deltaMatchesEvent": true,
+      "usdPrice": 0.661133679574794,
+      "usdValue": 103.79566581558922,
+      "poolDepthUsd": 2.09764,
+      "realizableUsd": 103.79566581558922,
+      "priceSource": "univ3:0x086F766b336DFB0f705Dc030dB01993b22D81266@3000"
+    }
+  ],
+  "totals": {
+    "assetCount": 3,
+    "usdNotional": 122.94804405302573,
+    "usdRealizable": 122.94804405302573,
+    "nativeUsdPrice": 0.661133679574794
+  },
+  "reconciliation": {
+    "allRouterBalancesZero": true,
+    "eventsMatchBalanceDeltas": true,
+    "residuals": [],
+    "discrepancies": []
+  },
+  "warnings": []
+}

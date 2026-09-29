@@ -1,0 +1,131 @@
+{
+  "kind": "oku-fee-sweep",
+  "schemaVersion": 1,
+  "mode": "execution",
+  "bundle": "sweep-2026-09-29",
+  "network": "zerog",
+  "chainId": 16661,
+  "router": "0xb1f3a7B816B0681188F54dFa400991B93ADf00ed",
+  "safe": "0xdC91978e0617CcA2EE1E658d0A1CA3F63CF10f1F",
+  "recipient": "0x8288Ba381e07EA5E9Fc4053a97545161D7d4683C",
+  "date": "2026-09-29",
+  "isoWeek": "2026-W40",
+  "generatedAt": "2026-09-29T19:37:41.522Z",
+  "execution": {
+    "txHash": "0x0cd6187b435d595053b41f52595079bd162a2a77c4de2119e628a118c7115f61",
+    "blockNumber": 45685732,
+    "blockTimestamp": "2026-09-29T19:37:39.000Z",
+    "relayer": "0x3CB68a6762041aA05E762814A8791CA9d98E79A0",
+    "safeNonce": "1",
+    "safeTxHash": "0x33f26a708dfa45b8738dfd5bea1dfc151b904a75cfba3cd4fddb91617f632456",
+    "signers": [
+      "0x43A9beCdC1323c1dFcfA776cE9bF57F9F8Ce8200",
+      "0x9B68c14e936104e9a7a24c712BEecdc220002984"
+    ],
+    "gasUsed": "368064",
+    "effectiveGasPrice": "2000000007",
+    "gasCostWei": "736128002576448",
+    "gasCostNative": "0.000736128002576448",
+    "status": "success"
+  },
+  "assets": [
+    {
+      "token": "0x0555E30da8f98308EdB960aa94C0Db47230d2B9c",
+      "symbol": "WBTC",
+      "decimals": 8,
+      "amountRaw": "1841",
+      "amount": "0.00001841",
+      "eventAmountRaw": "1841",
+      "routerBalanceBefore": "1841",
+      "routerBalanceAfter": "0",
+      "recipientBalanceBefore": "0",
+      "recipientBalanceAfter": "1841",
+      "recipientDeltaRaw": "1841",
+      "deltaMatchesEvent": true
+    },
+    {
+      "token": "0x1f3AA82227281cA364bFb3d253B0f1af1Da6473E",
+      "symbol": "USDC.e",
+      "decimals": 6,
+      "amountRaw": "15777126",
+      "amount": "15.777126",
+      "eventAmountRaw": "15777126",
+      "routerBalanceBefore": "15777126",
+      "routerBalanceAfter": "0",
+      "recipientBalanceBefore": "0",
+      "recipientBalanceAfter": "15777126",
+      "recipientDeltaRaw": "15777126",
+      "deltaMatchesEvent": true
+    },
+    {
+      "token": "0x4B3c2f55fa67679b382c979A082Df1B32079B4cB",
+      "symbol": "a0G",
+      "decimals": 18,
+      "amountRaw": "868754744991474518",
+      "amount": "0.868754744991474518",
+      "eventAmountRaw": "868754744991474518",
+      "routerBalanceBefore": "868754744991474518",
+      "routerBalanceAfter": "0",
+      "recipientBalanceBefore": "0",
+      "recipientBalanceAfter": "868754744991474518",
+      "recipientDeltaRaw": "868754744991474518",
+      "deltaMatchesEvent": true
+    },
+    {
+      "token": "0x76159c2b43ff6F630193e37EC68452169914C1Bb",
+      "symbol": "LINK",
+      "decimals": 18,
+      "amountRaw": "100000000000000000",
+      "amount": "0.1",
+      "eventAmountRaw": "100000000000000000",
+      "routerBalanceBefore": "100000000000000000",
+      "routerBalanceAfter": "0",
+      "recipientBalanceBefore": "0",
+      "recipientBalanceAfter": "100000000000000000",
+      "recipientDeltaRaw": "100000000000000000",
+      "deltaMatchesEvent": true
+    },
+    {
+      "token": "0xa5613ac7f1E83a68719b1398c8F6aAA25581db82",
+      "symbol": "cbBTC",
+      "decimals": 8,
+      "amountRaw": "3120",
+      "amount": "0.0000312",
+      "eventAmountRaw": "3120",
+      "routerBalanceBefore": "3120",
+      "routerBalanceAfter": "0",
+      "recipientBalanceBefore": "0",
+      "recipientBalanceAfter": "3120",
+      "recipientDeltaRaw": "3120",
+      "deltaMatchesEvent": true
+    },
+    {
+      "token": "native",
+      "symbol": "0G",
+      "decimals": 18,
+      "amountRaw": "15569621726544640316",
+      "amount": "15.569621726544640316",
+      "eventAmountRaw": "15569621726544640316",
+      "routerBalanceBefore": "15569621726544640316",
+      "routerBalanceAfter": "0",
+      "recipientBalanceBefore": "0",
+      "recipientBalanceAfter": "15569621726544640316",
+      "recipientDeltaRaw": "15569621726544640316",
+      "deltaMatchesEvent": true
+    }
+  ],
+  "totals": {
+    "assetCount": 6,
+    "usdNotional": 0,
+    "usdRealizable": 0
+  },
+  "reconciliation": {
+    "allRouterBalancesZero": true,
+    "eventsMatchBalanceDeltas": true,
+    "residuals": [],
+    "discrepancies": []
+  },
+  "warnings": [
+    "no V3 factory/USDC/WETH for zerog; valuations unavailable"
+  ]
+}

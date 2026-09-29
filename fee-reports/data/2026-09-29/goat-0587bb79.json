@@ -1,0 +1,126 @@
+{
+  "kind": "oku-fee-sweep",
+  "schemaVersion": 1,
+  "mode": "execution",
+  "bundle": "sweep-2026-09-29",
+  "network": "goat",
+  "chainId": 2345,
+  "router": "0x7B060A98BA242Ae42D6027a60937787eBe33DEBe",
+  "safe": "0xdC91978e0617CcA2EE1E658d0A1CA3F63CF10f1F",
+  "recipient": "0x8288Ba381e07EA5E9Fc4053a97545161D7d4683C",
+  "date": "2026-09-29",
+  "isoWeek": "2026-W40",
+  "generatedAt": "2026-09-29T19:36:24.622Z",
+  "execution": {
+    "txHash": "0x0587bb79c71046df51556cd27c4634700fd41efdf326fc67cb861db4954656d3",
+    "blockNumber": 15720872,
+    "blockTimestamp": "2026-09-29T19:36:22.000Z",
+    "relayer": "0x3CB68a6762041aA05E762814A8791CA9d98E79A0",
+    "safeNonce": "1",
+    "safeTxHash": "0x07b9732cea9135e5e217c9eaa4d92f07988498647b795b81ad0d22b02ea84472",
+    "signers": [
+      "0x43A9beCdC1323c1dFcfA776cE9bF57F9F8Ce8200",
+      "0x9B68c14e936104e9a7a24c712BEecdc220002984"
+    ],
+    "gasUsed": "259036",
+    "effectiveGasPrice": "130007",
+    "gasCostWei": "33676493252",
+    "gasCostNative": "0.000000033676493252",
+    "status": "success"
+  },
+  "assets": [
+    {
+      "token": "0xbC10000000000000000000000000000000000001",
+      "symbol": "GOATED",
+      "decimals": 18,
+      "amountRaw": "22817160000000000000",
+      "amount": "22.81716",
+      "eventAmountRaw": "22817160000000000000",
+      "routerBalanceBefore": "22817160000000000000",
+      "routerBalanceAfter": "0",
+      "recipientBalanceBefore": "0",
+      "recipientBalanceAfter": "22817160000000000000",
+      "recipientDeltaRaw": "22817160000000000000",
+      "deltaMatchesEvent": true,
+      "usdPrice": 0.015355133524365773,
+      "usdValue": 0.35036053844681775,
+      "poolDepthUsd": 24781.191849,
+      "realizableUsd": 0.35036053844681775,
+      "priceSource": "univ3:0x79e62a1eCE0aa6c44faFFD847864f123f5CeA632@100"
+    },
+    {
+      "token": "0x3022b87ac063DE95b1570F46f5e470F8B53112D8",
+      "symbol": "USDC.e",
+      "decimals": 6,
+      "amountRaw": "300000",
+      "amount": "0.3",
+      "eventAmountRaw": "300000",
+      "routerBalanceBefore": "300000",
+      "routerBalanceAfter": "0",
+      "recipientBalanceBefore": "0",
+      "recipientBalanceAfter": "300000",
+      "recipientDeltaRaw": "300000",
+      "deltaMatchesEvent": true,
+      "usdPrice": 1,
+      "usdValue": 0.3,
+      "realizableUsd": 0.3,
+      "priceSource": "stable:usdc"
+    },
+    {
+      "token": "0x326153ad128C97D502f88c8b0Da177C405c19AC0",
+      "symbol": "BANG",
+      "decimals": 18,
+      "amountRaw": "9085360552000000000000",
+      "amount": "9085.360552",
+      "eventAmountRaw": "9085360552000000000000",
+      "routerBalanceBefore": "9085360552000000000000",
+      "routerBalanceAfter": "0",
+      "recipientBalanceBefore": "0",
+      "recipientBalanceAfter": "9085360552000000000000",
+      "recipientDeltaRaw": "9085360552000000000000",
+      "deltaMatchesEvent": true
+    },
+    {
+      "token": "0xfe41e7e5cB3460c483AB2A38eb605Cda9e2d248E",
+      "symbol": "BTCB",
+      "decimals": 18,
+      "amountRaw": "3078699667073",
+      "amount": "0.000003078699667073",
+      "eventAmountRaw": "3078699667073",
+      "routerBalanceBefore": "3078699667073",
+      "routerBalanceAfter": "0",
+      "recipientBalanceBefore": "0",
+      "recipientBalanceAfter": "3078699667073",
+      "recipientDeltaRaw": "3078699667073",
+      "deltaMatchesEvent": true
+    },
+    {
+      "token": "native",
+      "symbol": "BTC",
+      "decimals": 18,
+      "amountRaw": "33908909781956",
+      "amount": "0.000033908909781956",
+      "eventAmountRaw": "33908909781956",
+      "routerBalanceBefore": "33908909781956",
+      "routerBalanceAfter": "0",
+      "recipientBalanceBefore": "0",
+      "recipientBalanceAfter": "33908909781956",
+      "recipientDeltaRaw": "33908909781956",
+      "deltaMatchesEvent": true
+    }
+  ],
+  "totals": {
+    "assetCount": 5,
+    "usdNotional": 0.6503605384468177,
+    "usdRealizable": 0.6503605384468177
+  },
+  "reconciliation": {
+    "allRouterBalancesZero": true,
+    "eventsMatchBalanceDeltas": true,
+    "residuals": [],
+    "discrepancies": []
+  },
+  "warnings": [
+    "goat: the configured WETH is not the wrapped form of BTC, so the native balance is left unpriced rather than valued as ether."
+  ]
+}

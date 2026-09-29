@@ -1,0 +1,75 @@
+{
+  "kind": "oku-fee-sweep",
+  "schemaVersion": 1,
+  "mode": "execution",
+  "bundle": "sweep-2026-09-29",
+  "network": "unichain",
+  "chainId": 130,
+  "router": "0xb1f3a7B816B0681188F54dFa400991B93ADf00ed",
+  "safe": "0xdC91978e0617CcA2EE1E658d0A1CA3F63CF10f1F",
+  "recipient": "0x8288Ba381e07EA5E9Fc4053a97545161D7d4683C",
+  "date": "2026-09-29",
+  "isoWeek": "2026-W40",
+  "generatedAt": "2026-09-29T19:33:06.649Z",
+  "execution": {
+    "txHash": "0xd6c1a170765c1d39fada8510ce7a1a5e8e296f5a1c7112696017d4b96580f40f",
+    "blockNumber": 59962024,
+    "blockTimestamp": "2026-09-29T19:33:03.000Z",
+    "relayer": "0x3CB68a6762041aA05E762814A8791CA9d98E79A0",
+    "safeNonce": "1",
+    "safeTxHash": "0x9664033c23884f676879638d43526b7f14b36ea70091444be0bdcd0a1fb490ff",
+    "signers": [
+      "0x43A9beCdC1323c1dFcfA776cE9bF57F9F8Ce8200",
+      "0x9B68c14e936104e9a7a24c712BEecdc220002984"
+    ],
+    "gasUsed": "140682",
+    "effectiveGasPrice": "1500000",
+    "gasCostWei": "211023000000",
+    "gasCostNative": "0.000000211023",
+    "status": "success"
+  },
+  "assets": [
+    {
+      "token": "0x4200000000000000000000000000000000000006",
+      "symbol": "WETH",
+      "decimals": 18,
+      "amountRaw": "28950317675382",
+      "amount": "0.000028950317675382",
+      "eventAmountRaw": "28950317675382",
+      "routerBalanceBefore": "28950317675382",
+      "routerBalanceAfter": "0",
+      "recipientBalanceBefore": "0",
+      "recipientBalanceAfter": "28950317675382",
+      "recipientDeltaRaw": "28950317675382",
+      "deltaMatchesEvent": true
+    },
+    {
+      "token": "native",
+      "symbol": "ETH",
+      "decimals": 18,
+      "amountRaw": "573271130577506",
+      "amount": "0.000573271130577506",
+      "eventAmountRaw": "573271130577506",
+      "routerBalanceBefore": "573271130577506",
+      "routerBalanceAfter": "0",
+      "recipientBalanceBefore": "0",
+      "recipientBalanceAfter": "573271130577506",
+      "recipientDeltaRaw": "573271130577506",
+      "deltaMatchesEvent": true
+    }
+  ],
+  "totals": {
+    "assetCount": 2,
+    "usdNotional": 0,
+    "usdRealizable": 0
+  },
+  "reconciliation": {
+    "allRouterBalancesZero": true,
+    "eventsMatchBalanceDeltas": true,
+    "residuals": [],
+    "discrepancies": []
+  },
+  "warnings": [
+    "no V3 factory/USDC/WETH for unichain; valuations unavailable"
+  ]
+}
