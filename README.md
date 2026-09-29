@@ -591,8 +591,8 @@ npx hardhat fees:cycle
 
 # Then: collect 2 of 3 signatures, dry-run, broadcast.
 npm run sign-page                                   # http://127.0.0.1:8547/<name>/sign.html
-npx hardhat safe:exec --name sweep-2026-09-22
-npx hardhat safe:exec --name sweep-2026-09-22 --broadcast
+npx hardhat safe:exec --name sweep-2026-09-29
+npx hardhat safe:exec --name sweep-2026-09-29 --broadcast
 ```
 
 The scan and the build are a single pass on purpose. Discovery — working out
