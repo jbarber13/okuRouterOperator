@@ -17,10 +17,24 @@ import { NETWORK_CONFIGS } from "./deploymentConfig";
 import { coverageFraction, discoveryQuality, scanChainFees, totalUsd } from "./feeScan";
 import { discoverFeeAssets } from "./feeAssetCache";
 import { toSnapshotAsset, type SnapshotChain } from "./feeSnapshot";
+import { buildTokenUniverse, type TokenUniverse } from "./tokenUniverse";
+import { multicallAddressFor, probeBalances } from "./balanceProbe";
 
 export interface ChainScanOptions {
   /** Per-chain eth_getLogs request budget. */
   maxRequests?: number;
+  /** Cap on the backfill half of that budget. */
+  maxBackfillRequests?: number;
+  /**
+   * Per-chain candidate token set for the Multicall3 balance probe, indexed
+   * by chainId. Built once by the caller and shared, because the published
+   * token list is 8 MB and parsing it per chain would dominate the run.
+   *
+   * Omit to skip the probe entirely and rely on log discovery alone.
+   */
+  tokenListByChain?: Map<number, Set<string>>;
+  /** Use DefiLlama to fill pricing gaps. Default true. */
+  llama?: boolean;
   /**
    * Resume from the cached block interval. Default true. When false the scan
    * re-walks history from scratch; already-known token addresses are retained
@@ -57,7 +71,13 @@ export async function scanChainForSnapshot(
     usedLogsRpc: false,
     warnings: [],
     assets: [],
-    totals: { assetCount: 0, usdNotional: 0, usdRealizable: 0 },
+    totals: {
+      assetCount: 0,
+      usdNotional: 0,
+      usdRealizable: 0,
+      unpricedCount: 0,
+      noDepthCount: 0,
+    },
   };
 
   const rpc = opts.rpcOverride ?? chain.logsRpcUrl ?? chain.rpcUrl;
@@ -70,22 +90,47 @@ export async function scanChainForSnapshot(
   const usedLogsRpc = !opts.rpcOverride && Boolean(chain.logsRpcUrl);
   const provider = makeProvider(rpc, chain.chainId);
   try {
+    // ---- cheap pass first: who actually holds a balance right now ----
+    //
+    // Ordered before log discovery deliberately. It costs a handful of
+    // eth_calls, it is immune to whatever eth_getLogs range this endpoint
+    // allows, and on a chain that serves no logs at all it is the only
+    // source there is. Its results are then fed INTO discovery so they are
+    // persisted and survive a future run where multicall is unavailable.
+    const probeWarnings: string[] = [];
+    let universe: TokenUniverse | undefined;
+    let probed: string[] = [];
+    let probeCalls = 0;
+    if (opts.tokenListByChain) {
+      universe = buildTokenUniverse(chain, opts.tokenListByChain, cfg);
+      probeWarnings.push(...universe.warnings);
+      const probe = await probeBalances(provider, chain.router, universe.tokens, {
+        multicall: multicallAddressFor(cfg),
+      });
+      probeWarnings.push(...probe.warnings);
+      probed = [...probe.balances.keys()];
+      probeCalls = probe.calls;
+    }
+
     const discovery = await discoverFeeAssets(
       provider,
       { network: chain.network, chainId: chain.chainId, router: chain.router },
       {
         maxRequests: opts.maxRequests,
+        maxBackfillRequests: opts.maxBackfillRequests,
         useCache: opts.useCache,
         write: opts.writeCache,
+        extraTokens: probed,
       },
     );
 
     const res = await scanChainFees(provider, cfg, chain.router, {
       price: opts.price !== false,
+      llama: opts.llama,
       discovery: { tokens: discovery.tokens, coverage: discovery.coverage },
     });
 
-    const { notional, realizable } = totalUsd(res.assets);
+    const { notional, realizable, unpriced, noDepth } = totalUsd(res.assets);
 
     // Judge how much of history we actually saw. `historySpan` uses the chain
     // head as the denominator: we do not know the router's deploy block here,
@@ -104,12 +149,22 @@ export async function scanChainForSnapshot(
       coverageFraction: fraction,
       cacheHit: discovery.cacheHit,
       usedLogsRpc,
-      warnings: res.warnings,
+      probe: opts.tokenListByChain
+        ? {
+            candidates: universe?.tokens.size ?? 0,
+            calls: probeCalls,
+            found: probed.length,
+            newToDiscovery: discovery.fromProbe,
+          }
+        : undefined,
+      warnings: [...probeWarnings, ...res.warnings],
       assets: res.assets.map(toSnapshotAsset),
       totals: {
         assetCount: res.assets.length,
         usdNotional: notional,
         usdRealizable: realizable,
+        unpricedCount: unpriced,
+        noDepthCount: noDepth,
       },
     };
   } catch (e) {

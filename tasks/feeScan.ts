@@ -36,6 +36,7 @@ import { listSafeChains, logsEnvVar, mapLimit, pad } from "../util/safeChains";
 import { NATIVE_SENTINEL } from "../util/feeScan";
 import { scanChainForSnapshot } from "../util/feeSweepScan";
 import { buildSnapshot } from "../util/feeSnapshot";
+import { indexByChain, loadOkuTokenList } from "../util/tokenUniverse";
 
 function usd(n: number | undefined): string {
   if (n === undefined) return "     -";
@@ -53,6 +54,7 @@ task("fees:scan", "Report idle protocol fees held by each OkuRouter")
   )
   .addFlag("noPrice", "Skip USD valuation (much faster)")
   .addFlag("noCache", "Ignore the discovery cache and re-scan full history")
+  .addFlag("noProbe", "Skip the Multicall3 balance probe (log discovery only)")
   .setAction(async (args, hre) => {
     const only = args.networks
       ? new Set(String(args.networks).split(",").map((s: string) => s.trim()))
@@ -75,11 +77,25 @@ task("fees:scan", "Report idle protocol fees held by each OkuRouter")
 
     console.log(`\nScanning idle fees on ${chains.length} chain(s)...\n`);
 
+    // Loaded once and shared across chains: the published list is ~8 MB, so
+    // parsing it per chain would cost more than the probe it feeds.
+    let tokenListByChain: Map<number, Set<string>> | undefined;
+    if (!args.noProbe) {
+      const list = await loadOkuTokenList();
+      for (const w of list.warnings) console.log(`  ! ${w}`);
+      tokenListByChain = indexByChain(list.tokens);
+      console.log(
+        `Candidate token list: ${list.tokens.length} entries ` +
+          `(${list.fromCache ? "cached" : "fetched"})\n`,
+      );
+    }
+
     const results = await mapLimit(chains, 4, (chain) =>
       scanChainForSnapshot(chain, {
         maxRequests,
         useCache: !args.noCache,
         price: !args.noPrice,
+        tokenListByChain,
         rpcOverride: args.rpc ? String(args.rpc) : undefined,
       }),
     );
@@ -105,6 +121,12 @@ task("fees:scan", "Report idle protocol fees held by each OkuRouter")
             `${r.coverage.events} OrderFilled, ${r.coverage.everSeen} assets ever seen` +
             `${r.cacheHit ? ", resumed from cache" : ""}` +
             `${r.usedLogsRpc ? `, via ${logsEnvVar(r.network)}` : ""}`,
+        );
+      }
+      if (r.probe) {
+        console.log(
+          `    probe: ${r.probe.calls} eth_call(s) over ${r.probe.candidates} candidate(s), ` +
+            `${r.probe.found} holding a balance, ${r.probe.newToDiscovery} new to log discovery`,
         );
       }
       if (r.assets.length) {
@@ -134,6 +156,15 @@ task("fees:scan", "Report idle protocol fees held by each OkuRouter")
       "Notional is spot x balance and overstates long-tail tokens; realizable caps each\n" +
         "asset at a fraction of its pool depth. Decide on realizable.",
     );
+    if (snap.totals.unpricedCount > 0) {
+      // Without this line the totals above read as a valuation. They are not:
+      // an asset nobody could price contributes $0 to both, which is
+      // indistinguishable from an asset that is genuinely worthless.
+      console.log(
+        `\n${snap.totals.unpricedCount} asset(s) carry NO price and contributed $0 to both ` +
+          `totals.\nThe figures above are a lower bound, not a valuation.`,
+      );
+    }
 
     if (snap.totals.chainsErrored > 0) {
       // These chains were not proven empty -- they could not be read at all.

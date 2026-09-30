@@ -55,6 +55,23 @@ const CACHE_DIR = path.resolve(__dirname, "..", ".cache", "fee-assets");
 /** Default per-chain eth_getLogs request budget for one run. */
 export const DEFAULT_MAX_REQUESTS = 400;
 
+/**
+ * Cap on how much of that budget the BACKFILL pass may spend.
+ *
+ * The forward pass is cheap on a regular cadence and is the only one that can
+ * see newly-traded assets, so it keeps the full budget. Backfill is the
+ * expensive half -- re-walking millions of blocks of history at whatever
+ * window the endpoint allows -- and since the Multicall3 balance probe now
+ * covers any token that appears in a published list, backfill's remaining job
+ * is narrow: find historical assets that are in NO list. That is worth doing,
+ * but not worth 400 requests per chain per run.
+ *
+ * Capped rather than removed because it is still the only source for those
+ * assets: measured on the live routers, 4 of 88 held tokens appear in no
+ * list at all. Chains converge more slowly, and they do still converge.
+ */
+export const DEFAULT_MAX_BACKFILL_REQUESTS = 100;
+
 export interface FeeAssetCacheEntry {
   schemaVersion: 1;
   network: string;
@@ -89,6 +106,8 @@ export interface DiscoveryResult {
   historyComplete: boolean;
   /** Tokens known before this run (0 on a cold cache). */
   tokensBefore: number;
+  /** Tokens contributed by `extraTokens` that log discovery had never seen. */
+  fromProbe: number;
 }
 
 export function cachePath(network: string): string {
@@ -198,9 +217,28 @@ function normalizeTokens(tokens: Iterable<string>): string[] {
 export async function discoverFeeAssets(
   provider: LogScanProvider,
   chain: { network: string; chainId: number; router: string },
-  opts: { maxRequests?: number; useCache?: boolean; write?: boolean } = {},
+  opts: {
+    maxRequests?: number;
+    maxBackfillRequests?: number;
+    useCache?: boolean;
+    write?: boolean;
+    /**
+     * Addresses discovered by some means other than log scanning -- in
+     * practice the Multicall3 balance probe, which observes a non-zero
+     * balance directly.
+     *
+     * These are unioned into the persisted set on the same terms as
+     * log-derived ones. The cache's meaning widens slightly, from "assets
+     * ever taken as a fee" to "assets ever observed at this router", which is
+     * a superset and is what a sweep actually needs. It stays append-only and
+     * address-only, so the safety property is unchanged: a wrong entry here
+     * can cost a wasted `balanceOf`, never a wrong amount.
+     */
+    extraTokens?: Iterable<string>;
+  } = {},
 ): Promise<DiscoveryResult> {
   const budget = opts.maxRequests ?? DEFAULT_MAX_REQUESTS;
+  const backfillCap = opts.maxBackfillRequests ?? DEFAULT_MAX_BACKFILL_REQUESTS;
   const useCache = opts.useCache !== false;
   const write = opts.write !== false;
 
@@ -223,12 +261,38 @@ export async function discoverFeeAssets(
   );
   const tokensBefore = carried.size;
 
+  // Union probe results BEFORE the log scan, so they survive every early
+  // return below. A chain whose endpoint refuses logs outright (rootstock)
+  // has nothing else, and that is exactly where the probe matters most: it
+  // found six real balances there, on a chain with no cache file at all.
+  let fromProbe = 0;
+  for (const t of normalizeTokens(opts.extraTokens ?? [])) {
+    if (!carried.has(t)) fromProbe++;
+    carried.add(t);
+  }
+
   const range = await probeLogRange(provider, chain.router, latest);
   if (range === 0) {
+    // Persist even though no log window was read: the probe may have taught
+    // us about assets this run, and dropping them would mean re-learning them
+    // every time on precisely the chains that can least afford it.
+    if (write && fromProbe > 0) {
+      writeCache({
+        schemaVersion: 1,
+        network: chain.network,
+        chainId: chain.chainId,
+        router: toChecksum(chain.router) ?? chain.router,
+        firstScannedBlock: usable ? cached!.firstScannedBlock : 0,
+        lastScannedBlock: usable ? cached!.lastScannedBlock : 0,
+        historyComplete: usable ? cached!.historyComplete : false,
+        rangeUsed: 0,
+        tokens: normalizeTokens(carried),
+        updatedAt: new Date().toISOString(),
+      });
+    }
     // The endpoint refuses logs entirely. Previously-discovered assets are
     // still valid -- they are addresses, not balances -- so hand them back
-    // rather than regressing to well-known tokens only. The cache is left
-    // untouched because this run learned nothing.
+    // rather than regressing to well-known tokens only.
     return {
       tokens: carried,
       coverage: null,
@@ -237,6 +301,7 @@ export async function discoverFeeAssets(
       backfillBlocks: 0,
       historyComplete: usable ? cached!.historyComplete : false,
       tokensBefore,
+      fromProbe,
     };
   }
 
@@ -297,7 +362,13 @@ export async function discoverFeeAssets(
   }
 
   // ---- backfill pass: extend the interval downward with leftover budget ----
-  const remaining = budget - spent;
+  //
+  // Capped separately from the forward pass. The forward pass must always be
+  // able to reach head -- that is where newly-traded assets are -- whereas
+  // backfill is a slow convergence toward genesis that the balance probe has
+  // largely made redundant. Spending the whole remaining budget here is what
+  // made a scan cost hundreds of requests per chain.
+  const remaining = Math.min(budget - spent, backfillCap);
   if (!complete && last >= first && first > 0 && remaining > 0) {
     const to = first - 1;
     const from = Math.max(0, to - remaining * range + 1);
@@ -356,5 +427,6 @@ export async function discoverFeeAssets(
     backfillBlocks,
     historyComplete: completeOut,
     tokensBefore,
+    fromProbe,
   };
 }

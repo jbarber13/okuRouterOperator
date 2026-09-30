@@ -278,18 +278,27 @@ function renderSweepPanel() {
   // capping. That distinction matters elsewhere (deciding whether a chain is
   // worth sweeping), but here it is just an estimate of scale for the signer,
   // and the extra caveat would only add noise.
-  var totalAssets = 0, grandTotal = 0, anyPriced = false;
+  var totalAssets = 0, grandTotal = 0, anyPriced = false, unpriced = 0;
   chains.forEach(function (c) {
     var assets = c.sweep.assets || [];
     totalAssets += assets.length;
     assets.forEach(function (a) {
       if (typeof a.usdValue === "number") { grandTotal += a.usdValue; anyPriced = true; }
+      else { unpriced++; }
     });
   });
 
   el("sweepSummary").textContent =
-    totalAssets + " asset(s) across " + chains.length + " chain(s)";
-  el("sweepGrandTotal").textContent = anyPriced ? fmtUsd(grandTotal) : "— (no priced assets)";
+    totalAssets + " asset(s) across " + chains.length + " chain(s)" +
+    (unpriced ? "  (" + unpriced + " with no price)" : "");
+  // An unpriced asset contributes nothing to this total, so the total is a
+  // lower bound whenever there are any. Saying so here matters more than it
+  // does in the reports: this is the number a signer looks at immediately
+  // before authorizing an irreversible transfer, and "$4.21" reads very
+  // differently from "at least $4.21, 62 assets not valued".
+  el("sweepGrandTotal").textContent = anyPriced
+    ? fmtUsd(grandTotal) + (unpriced ? " or more" : "")
+    : "— (no priced assets)";
 
   // More than one recipient in a single bundle is not a normal sweep; make it
   // impossible to miss rather than rendering only the first.

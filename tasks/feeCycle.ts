@@ -43,6 +43,7 @@ import * as path from "path";
 import { task } from "hardhat/config";
 import { listSafeChains, logsEnvVar, mapLimit, pad } from "../util/safeChains";
 import { scanChainForSnapshot } from "../util/feeSweepScan";
+import { indexByChain, loadOkuTokenList } from "../util/tokenUniverse";
 import {
   buildSnapshot,
   chainsAboveThreshold,
@@ -66,6 +67,7 @@ task("fees:cycle", "Scan every chain for idle fees, build the sweep bundle, emit
   .addOptionalParam("concurrency", "Chains scanned in parallel (default 4)")
   .addFlag("scanOnly", "Stop after the snapshot; do not build a bundle")
   .addFlag("noCache", "Ignore the discovery cache and re-scan full history")
+  .addFlag("noProbe", "Skip the Multicall3 balance probe (log discovery only)")
   .addFlag("noEth", "Do NOT sweep the native balance")
   .addFlag("force", "Overwrite an existing bundle of the same name")
   .addFlag(
@@ -100,6 +102,21 @@ task("fees:cycle", "Scan every chain for idle fees, build the sweep bundle, emit
       `Logs endpoint: ${withLogsRpc.length}/${chains.length} chain(s) have a *_LOGS_URL override` +
         `${withLogsRpc.length ? ` (${withLogsRpc.map((c) => c.network).join(", ")})` : ""}`,
     );
+    // The balance probe is the half of discovery that does not depend on what
+    // eth_getLogs range an endpoint happens to allow, so a cycle that is about
+    // to move money should not run without it unless asked.
+    let tokenListByChain: Map<number, Set<string>> | undefined;
+    if (!args.noProbe) {
+      const list = await loadOkuTokenList();
+      for (const w of list.warnings) console.log(`  ! ${w}`);
+      tokenListByChain = indexByChain(list.tokens);
+      console.log(
+        `Probe list   : ${list.tokens.length} candidate tokens ` +
+          `(${list.fromCache ? "cached" : "fetched"})`,
+      );
+    } else {
+      console.log("Probe list   : DISABLED (--no-probe); discovery is eth_getLogs only");
+    }
     console.log("");
 
     // ---- 1. scan ----------------------------------------------------------
@@ -109,6 +126,7 @@ task("fees:cycle", "Scan every chain for idle fees, build the sweep bundle, emit
         maxRequests: args.maxRequests ? Number(args.maxRequests) : undefined,
         useCache: !args.noCache,
         price: true,
+        tokenListByChain,
       });
       done++;
       const detail =

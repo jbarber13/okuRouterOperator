@@ -32,6 +32,8 @@ import { Interface, getAddress, formatUnits } from "ethers";
 import { OkuRouter__factory } from "../typechain-types";
 import type { NetworkConfig } from "./deploymentConfig";
 import { logsEnvVar } from "./safeChains";
+import { toChecksum } from "./address";
+import { fetchLlamaPrices, llamaSlug } from "./priceLlama";
 
 /** Pseudo-address used to represent the chain's native asset in asset lists. */
 export const NATIVE_SENTINEL = "native";
@@ -196,30 +198,11 @@ export interface FeeScanResult {
 }
 
 /**
- * Checksum an address without validating the one it arrived with.
- *
- * ethers implements EIP-55, but Rootstock (and other chains) use EIP-1191,
- * which mixes the chainId into the checksum -- so an address that is
- * perfectly valid there fails EIP-55 validation. chain-config stores
- * addresses in each chain's native form, and `getAddress` on Rootstock's USDC
- * throws "bad address checksum", which previously took out valuation, and
- * therefore the entire scan, for that chain.
- *
- * Lowercasing first means we never validate an incoming checksum, only
- * recompute one. A malformed address (wrong length, non-hex) is still
- * rejected, which is the check that actually matters.
- *
- * Returns undefined rather than throwing so callers decide whether a bad
- * address is fatal.
+ * Re-exported from util/address.ts, which is where the implementation and its
+ * EIP-1191 rationale now live. Kept exported here so the many existing
+ * importers do not have to move.
  */
-export function toChecksum(value: string | undefined): string | undefined {
-  if (!value) return undefined;
-  try {
-    return getAddress(value.trim().toLowerCase());
-  } catch {
-    return undefined;
-  }
-}
+export { toChecksum };
 
 /**
  * The provider surface log discovery actually uses.
@@ -530,17 +513,34 @@ export async function symbolMatchesNative(
 }
 
 /**
+ * Relative gap between the on-chain and off-chain price above which we say so.
+ *
+ * Not an error: a thin V3 pool and a deep CEX book legitimately disagree. But
+ * a large divergence is the signature of the failure this module has already
+ * had twice (a dust pool quoting a fabricated number), so it is worth a line
+ * in the report rather than silent acceptance.
+ */
+const PRICE_DIVERGENCE_WARN = 0.25;
+
+/**
  * Attach USD valuations to a set of assets using on-chain V3 pools.
  *
  * Tries token/USDC first and token/WETH second, preferring whichever pool
  * holds more quote-side liquidity. Assets with no pool are left unpriced
  * rather than assigned a zero, so "unknown" is distinguishable from
  * "worthless".
+ *
+ * `opts.llama` adds DefiLlama as a FALLBACK for assets no pool could price,
+ * and as a cross-check on the ones that were. It is off by default, because
+ * the two historical callers (`fees:account`, the fork rehearsal) value
+ * assets at a PAST block, and a current off-chain price there would be
+ * quietly wrong. The live scan path opts in.
  */
 export async function priceAssets(
   provider: JsonRpcProvider,
   cfg: NetworkConfig,
   assets: FeeAsset[],
+  opts: { llama?: boolean } = {},
 ): Promise<{ priced: PricedFeeAsset[]; nativeUsd: number | null; warnings: string[] }> {
   const warnings: string[] = [];
   const uni = (cfg.chain as unknown as { uniswap?: { poolFactory?: string } }).uniswap;
@@ -548,18 +548,28 @@ export async function priceAssets(
   const usdc = cfg.usdcAddress;
   const weth = cfg.wethAddress;
 
+  // A chain with no V3 deployment cannot be valued on-chain AT ALL, which
+  // makes it the case that needs the off-chain fallback most -- so these two
+  // early exits must still run it. Returning straight out of here is what
+  // made celo report "$0.00" while holding three assets DefiLlama prices
+  // perfectly well.
+  const bailOut = async (why: string) => {
+    warnings.push(why);
+    const priced: PricedFeeAsset[] = assets.map((a) => ({ ...a }));
+    if (opts.llama) warnings.push(...(await applyLlamaPrices(cfg, priced)));
+    return { priced, nativeUsd: null, warnings };
+  };
+
   if (!factory || !usdc || !weth) {
-    warnings.push(`no V3 factory/USDC/WETH for ${cfg.networkName}; valuations unavailable`);
-    return { priced: assets.map((a) => ({ ...a })), nativeUsd: null, warnings };
+    return await bailOut(`no V3 factory/USDC/WETH for ${cfg.networkName}; on-chain valuation unavailable`);
   }
 
   const usdcAddr = toChecksum(usdc);
   const wethAddr = toChecksum(weth);
   if (!usdcAddr || !wethAddr) {
-    warnings.push(
-      `${cfg.networkName}: malformed USDC/WETH address in chain config; valuations unavailable`,
+    return await bailOut(
+      `${cfg.networkName}: malformed USDC/WETH address in chain config; on-chain valuation unavailable`,
     );
-    return { priced: assets.map((a) => ({ ...a })), nativeUsd: null, warnings };
   }
 
   // USDC decimals, read once; it anchors every other price.
@@ -739,7 +749,87 @@ export async function priceAssets(
     });
   }
 
+  if (opts.llama) {
+    warnings.push(...(await applyLlamaPrices(cfg, priced)));
+  }
+
   return { priced, nativeUsd, warnings };
+}
+
+/**
+ * Fill pricing gaps from DefiLlama, and cross-check the ones V3 did price.
+ *
+ * Two rules make this safe to add to a path that decides what gets swept:
+ *
+ *   1. It NEVER overwrites an on-chain price. V3 is the better source where
+ *      it works, and it is the one that pairs with a real depth measurement.
+ *      DefiLlama only fills `usdValue` where there was none.
+ *
+ *   2. It NEVER sets `realizableUsd`. Depth is a purely on-chain measurement.
+ *      An off-chain price tells you what a token is worth somewhere, not
+ *      whether this chain has the liquidity to exit into -- and `--min-usd`
+ *      gates on realizable. Letting a Llama price raise it would mean sweeping
+ *      decisions made on liquidity that was never observed to exist.
+ *
+ * Mutates `priced` in place and returns warnings.
+ */
+async function applyLlamaPrices(
+  cfg: NetworkConfig,
+  priced: PricedFeeAsset[],
+): Promise<string[]> {
+  const warnings: string[] = [];
+  if (!llamaSlug(cfg.networkName)) return warnings;
+
+  const erc20 = priced.filter((a) => a.token !== NATIVE_SENTINEL);
+  if (erc20.length === 0) return warnings;
+
+  const res = await fetchLlamaPrices(
+    cfg.networkName,
+    erc20.map((a) => a.token),
+  );
+  warnings.push(...res.warnings);
+  if (res.prices.size === 0) return warnings;
+
+  let filled = 0;
+  for (const a of erc20) {
+    const key = toChecksum(a.token);
+    const quote = key ? res.prices.get(key) : undefined;
+    if (!quote) continue;
+    const amount = Number(formatUnits(a.balance, a.decimals));
+
+    if (a.usdPrice === undefined) {
+      a.usdPrice = quote.price;
+      a.usdValue = amount * quote.price;
+      // realizableUsd deliberately left alone -- see rule 2 above. Where the
+      // implausible-quote branch already set one from measured pool depth,
+      // that measurement stands.
+      a.priceSource = `llama:${quote.confidence.toFixed(2)}`;
+      filled++;
+      continue;
+    }
+
+    // Both sources have an opinion: compare them.
+    const onChain = a.usdPrice;
+    if (onChain > 0) {
+      const gap = Math.abs(onChain - quote.price) / onChain;
+      if (gap > PRICE_DIVERGENCE_WARN) {
+        warnings.push(
+          `${a.symbol} (${a.token}): on-chain pool price $${onChain.toPrecision(6)} vs ` +
+            `DefiLlama $${quote.price.toPrecision(6)} (${(gap * 100).toFixed(0)}% apart); ` +
+            `reporting the on-chain figure`,
+        );
+      }
+    }
+  }
+
+  if (filled > 0) {
+    warnings.push(
+      `${cfg.networkName}: ${filled} asset(s) priced from DefiLlama because no V3 pool ` +
+        `could value them. These have a notional but NO realizable figure, since pool ` +
+        `depth was never observed.`,
+    );
+  }
+  return warnings;
 }
 
 /**
@@ -757,6 +847,12 @@ export async function scanChainFees(
   opts: {
     maxRequests?: number;
     price?: boolean;
+    /**
+     * Use DefiLlama to fill pricing gaps. Default true: this is the live
+     * "what is sitting there right now" path, where a current off-chain price
+     * is exactly the right thing to fall back on.
+     */
+    llama?: boolean;
     /**
      * Pre-computed discovery, so a caller that already knows which assets have
      * ever flowed through (from the incremental cache, or from an earlier
@@ -824,22 +920,48 @@ export async function scanChainFees(
     return { router, assets, coverage, warnings };
   }
 
-  const { priced, warnings: priceWarnings } = await priceAssets(provider, cfg, assets);
+  const { priced, warnings: priceWarnings } = await priceAssets(provider, cfg, assets, {
+    llama: opts.llama !== false,
+  });
   warnings.push(...priceWarnings);
 
   priced.sort((a, b) => (b.usdValue ?? -1) - (a.usdValue ?? -1));
   return { router, assets: priced, coverage, warnings };
 }
 
-/** Sum helpers used by both the scan task and the accounting report. */
-export function totalUsd(assets: PricedFeeAsset[]): { notional: number; realizable: number } {
+/**
+ * Sum helpers used by both the scan task and the accounting report.
+ *
+ * `unpriced` is part of the return value rather than something callers may
+ * compute if they remember to. Summing with `?? 0` silently turns "we could
+ * not value this" into "this is worth nothing", and on the 2026-09-30 scan
+ * that made eleven chains report exactly "$0.00" while holding 173 unvalued
+ * assets between them -- a total that reads as "nothing here" when it means
+ * "we do not know". Anything rendering these figures must be able to say how
+ * many assets are behind them.
+ */
+export function totalUsd(assets: PricedFeeAsset[]): {
+  notional: number;
+  realizable: number;
+  /** Assets with no usdValue at all. Excluded from `notional`. */
+  unpriced: number;
+  /** Assets with a notional but no depth-backed realizable figure. */
+  noDepth: number;
+} {
   let notional = 0;
   let realizable = 0;
+  let unpriced = 0;
+  let noDepth = 0;
   for (const a of assets) {
-    notional += a.usdValue ?? 0;
-    realizable += a.realizableUsd ?? 0;
+    if (a.usdValue === undefined) unpriced++;
+    else notional += a.usdValue;
+    if (a.realizableUsd === undefined) {
+      if (a.usdValue !== undefined) noDepth++;
+    } else {
+      realizable += a.realizableUsd;
+    }
   }
-  return { notional, realizable };
+  return { notional, realizable, unpriced, noDepth };
 }
 
 /** Human-readable amount, for tables and the accounting markdown. */

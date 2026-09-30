@@ -163,6 +163,14 @@ export interface AccountingReport {
     assetCount: number;
     usdNotional: number;
     usdRealizable: number;
+    /**
+     * Swept assets that carried no USD value. They contribute $0 to both
+     * totals above, so without this the totals cannot be distinguished from
+     * a sweep whose assets were genuinely worthless.
+     *
+     * Optional so reports written before this field remain readable.
+     */
+    unpricedCount?: number;
     nativeUsdPrice?: number;
   };
   reconciliation: {
@@ -217,10 +225,16 @@ export function buildReport(input: BuildReportInput): AccountingReport {
     }
   }
 
+  // Unpriced assets are counted, not silently folded in as zero. A sweep
+  // report that says "$4.21" for a batch containing sixty assets nobody could
+  // value is not reporting a total, it is reporting the subset that happened
+  // to have a pool -- and the reader has no way to tell the difference.
   let usdNotional = 0;
   let usdRealizable = 0;
+  let unpricedCount = 0;
   for (const a of input.assets) {
-    usdNotional += a.usdValue ?? 0;
+    if (a.usdValue === undefined) unpricedCount++;
+    else usdNotional += a.usdValue;
     usdRealizable += a.realizableUsd ?? 0;
   }
 
@@ -249,6 +263,7 @@ export function buildReport(input: BuildReportInput): AccountingReport {
       assetCount: input.assets.length,
       usdNotional,
       usdRealizable,
+      unpricedCount,
       nativeUsdPrice: input.nativeUsdPrice,
     },
     reconciliation: {
@@ -323,6 +338,12 @@ export function renderMarkdown(r: AccountingReport): string {
   L.push("");
   L.push(`**Notional:** ${usd(r.totals.usdNotional)}  `);
   L.push(`**Realizable:** ${usd(r.totals.usdRealizable)}`);
+  if (r.totals.unpricedCount) {
+    L.push(
+      `**Unpriced:** ${r.totals.unpricedCount} of ${r.totals.assetCount} asset(s) carried no ` +
+        `USD value and contributed $0 to both figures above.`,
+    );
+  }
   L.push("");
   L.push(
     "Notional is spot price x amount. Realizable caps each asset at a fraction of its " +
