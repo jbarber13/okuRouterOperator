@@ -68,6 +68,11 @@ task("fees:cycle", "Scan every chain for idle fees, build the sweep bundle, emit
   .addFlag("noCache", "Ignore the discovery cache and re-scan full history")
   .addFlag("noEth", "Do NOT sweep the native balance")
   .addFlag("force", "Overwrite an existing bundle of the same name")
+  .addFlag(
+    "acceptPartial",
+    "Proceed even when some chains have UNRELIABLE discovery (their $0.00 means " +
+      "'could not look', not 'nothing there')",
+  )
   .setAction(async (args, hre) => {
     const only = args.networks
       ? new Set(String(args.networks).split(",").map((s: string) => s.trim()).filter(Boolean))
@@ -130,17 +135,22 @@ task("fees:cycle", "Scan every chain for idle fees, build the sweep bundle, emit
       console.log("Nothing on any chain.");
     } else {
       console.log(
-        `  ${pad("chain", 14)}${pad("assets", 8)}${pad("notional", 14)}${pad("realizable", 14)}coverage`,
+        `  ${pad("chain", 14)}${pad("assets", 8)}${pad("notional", 13)}${pad("realizable", 13)}` +
+          `${pad("seen", 6)}${pad("hist%", 8)}discovery`,
       );
       for (const c of sweepable) {
-        const cov = !c.coverage
-          ? "NO LOGS"
-          : c.coverage.partial
-            ? `partial ${c.coverage.fromBlock}-${c.coverage.toBlock}`
-            : "full";
+        const q = c.discovery ?? (c.coverage ? "partial" : "unreliable");
+        const pct =
+          c.coverageFraction === undefined
+            ? "-"
+            : c.coverageFraction >= 0.9995
+              ? "100%"
+              : `${(c.coverageFraction * 100).toFixed(2)}%`;
+        const flag = q === "unreliable" ? "  <-- UNRELIABLE" : "";
         console.log(
           `  ${pad(c.network, 14)}${pad(String(c.totals.assetCount), 8)}` +
-            `${pad(usd(c.totals.usdNotional), 14)}${pad(usd(c.totals.usdRealizable), 14)}${cov}`,
+            `${pad(usd(c.totals.usdNotional), 13)}${pad(usd(c.totals.usdRealizable), 13)}` +
+            `${pad(String(c.coverage?.everSeen ?? "-"), 6)}${pad(pct, 8)}${q}${flag}`,
         );
       }
     }
@@ -173,13 +183,43 @@ task("fees:cycle", "Scan every chain for idle fees, build the sweep bundle, emit
       process.exitCode = 1;
     }
 
-    const noLogs = snap.chains.filter((c) => c.status !== "error" && c.coverage === null);
-    if (noLogs.length) {
+    // Discovery quality is a separate failure mode from "could not be read",
+    // and a more insidious one: an `unreliable` chain returns a perfectly
+    // well-formed $0.00 that looks identical to a genuinely empty chain.
+    //
+    // This is not hypothetical. On 2026-09-29 avax scanned 0.004% of history,
+    // discovered one token, reported $0.00, and was swept -- leaving nine
+    // tokens including USDC 1,173 behind. The scan warned; the warning was one
+    // line among 34 chains and was missed. So this now fails the exit code and
+    // requires an explicit acknowledgement to proceed.
+    const unreliable = snap.chains.filter(
+      (c) => c.status !== "error" && c.status !== "no-rpc" && c.status !== "no-config" &&
+        (c.discovery ?? (c.coverage ? "partial" : "unreliable")) === "unreliable",
+    );
+    if (unreliable.length) {
+      console.log("\n" + "!".repeat(96));
       console.log(
-        `\n${noLogs.length} chain(s) refused eth_getLogs entirely, so only well-known tokens ` +
-          `were checked.\nSet a logs-capable endpoint to see long-tail assets:`,
+        `${unreliable.length} chain(s) have UNRELIABLE discovery. Their asset list is the ` +
+          `hardcoded\nwell-known set (WETH/WBTC/USDC) plus whatever was cached -- NOT evidence ` +
+          `about\nwhat these routers actually hold. A $0.00 here means "we could not look",\n` +
+          `not "there is nothing".`,
       );
-      for (const c of noLogs) console.log(`  ${logsEnvVar(c.network)}=<url>`);
+      for (const c of unreliable) {
+        const pct = c.coverageFraction === undefined ? "?" : `${(c.coverageFraction * 100).toFixed(3)}%`;
+        const why = c.coverage === null ? "endpoint refused eth_getLogs" : `only ${pct} of history scanned`;
+        console.log(
+          `  ${pad(c.network, 14)}${pad(`${c.coverage?.everSeen ?? 0} ever seen`, 18)}${why}`,
+        );
+      }
+      console.log("\n  Fix by pointing these at a logs-capable endpoint:");
+      for (const c of unreliable) console.log(`    ${logsEnvVar(c.network)}=<url>`);
+      console.log(
+        `\n  Or re-run with --accept-partial to proceed anyway, having read the above.`,
+      );
+      console.log("!".repeat(96));
+      if (!args.acceptPartial) {
+        process.exitCode = 1;
+      }
     }
 
     console.log(`\nSnapshot: ${written.json}`);
@@ -197,6 +237,20 @@ task("fees:cycle", "Scan every chain for idle fees, build the sweep bundle, emit
     if (args.scanOnly) {
       console.log("\n--scan-only: stopping before the bundle.\n");
       return;
+    }
+
+    // Refuse to build a bundle off a scan we know is blind on some chains.
+    // Sweeping an `unreliable` chain is worse than skipping it: sweepAll moves
+    // only the tokens named in the calldata, so a blind sweep burns the Safe
+    // nonce and a 2-of-3 signing ceremony to collect the three well-known
+    // tokens while leaving the rest sitting there -- and produces an
+    // accounting record that looks like a complete collection.
+    if (unreliable.length && !args.acceptPartial) {
+      throw new Error(
+        `refusing to build a bundle: ${unreliable.length} chain(s) have unreliable ` +
+          `discovery (${unreliable.map((c) => c.network).join(", ")}). Point them at a ` +
+          `logs-capable endpoint, or pass --accept-partial to sweep them blind anyway.`,
+      );
     }
 
     if (selected.length === 0) {

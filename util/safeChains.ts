@@ -14,6 +14,7 @@ import * as path from "path";
 import { JsonRpcProvider, Network, Wallet } from "ethers";
 import type { TransactionReceipt } from "ethers";
 import { sleep } from "./rpcRetry";
+import { curatedLogsRpc } from "./rpcEndpoints";
 import type { HardhatRuntimeEnvironment } from "hardhat/types";
 
 export interface SafeChain {
@@ -59,14 +60,19 @@ export function logsEnvVar(network: string): string {
  * Most public endpoints cap eth_getLogs at 10-100 blocks, which makes
  * long-tail fee asset discovery impossible on a chain with millions of
  * blocks. `--rpc` covers one chain at a time; a 34-chain sweep needs a
- * per-chain override, and env vars keep the (key-bearing) URLs out of git.
+ * per-chain default, which is what `util/rpcEndpoints.ts` provides.
  *
- * Returns undefined when unset, so callers can report whether an override was
- * actually in play rather than guessing.
+ * Precedence:
+ *   1. `<NET>_LOGS_URL` env var -- always wins, so a bad curated default can
+ *      be worked around per-run without a code change, and key-bearing URLs
+ *      stay out of git.
+ *   2. The curated map, which is measured rather than assumed.
+ *   3. undefined -- caller falls back to the chain's general RPC.
  */
 export function resolveLogsRpc(network: string): string | undefined {
   const v = process.env[logsEnvVar(network)];
-  return v && v.trim() ? v.trim() : undefined;
+  if (v && v.trim()) return v.trim();
+  return curatedLogsRpc(network);
 }
 
 /**

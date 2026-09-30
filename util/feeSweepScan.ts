@@ -14,7 +14,7 @@
  */
 import { makeProvider, type SafeChain } from "./safeChains";
 import { NETWORK_CONFIGS } from "./deploymentConfig";
-import { scanChainFees, totalUsd } from "./feeScan";
+import { coverageFraction, discoveryQuality, scanChainFees, totalUsd } from "./feeScan";
 import { discoverFeeAssets } from "./feeAssetCache";
 import { toSnapshotAsset, type SnapshotChain } from "./feeSnapshot";
 
@@ -86,10 +86,22 @@ export async function scanChainForSnapshot(
     });
 
     const { notional, realizable } = totalUsd(res.assets);
+
+    // Judge how much of history we actually saw. `historySpan` uses the chain
+    // head as the denominator: we do not know the router's deploy block here,
+    // so this over-estimates history and therefore errs toward a WORSE
+    // verdict. That is the safe direction -- over-reporting coverage is what
+    // caused avax to be swept as "$0.00" while holding USDC 1,173.
+    const head = discovery.coverage?.scannedThrough ?? discovery.coverage?.toBlock ?? 0;
+    const quality = discoveryQuality(discovery.coverage, head);
+    const fraction = coverageFraction(discovery.coverage, head);
+
     return {
       ...base,
       status: res.assets.length > 0 ? "has-fees" : "empty",
       coverage: discovery.coverage,
+      discovery: quality,
+      coverageFraction: fraction,
       cacheHit: discovery.cacheHit,
       usedLogsRpc,
       warnings: res.warnings,

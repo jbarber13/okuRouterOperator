@@ -122,6 +122,71 @@ export interface ScanCoverage {
   scannedThrough: number | null;
 }
 
+/**
+ * How much of a chain's fee history discovery actually managed to see.
+ *
+ *   complete   — the full history behind the router was walked.
+ *   partial    — a meaningful fraction was walked; assets first traded
+ *                outside the window are invisible but the window is wide
+ *                enough to be worth something.
+ *   unreliable — effectively nothing was discovered. The asset list is the
+ *                hardcoded well-known set plus whatever a previous run
+ *                cached, and treating the result as "this chain's fees" is
+ *                wrong.
+ *
+ * This distinction exists because it was got wrong in production. On the
+ * 2026-09-29 sweep, avax scanned 4,000 blocks of a ~96,000,000 block history
+ * (0.004%), discovered one token, and was reported as "$0.00" -- while the
+ * router held nine tokens including USDC 1,173. The scan DID emit a warning,
+ * but it was one string in a `warnings[]` array among 34 chains and was read
+ * straight past. A verdict callers must branch on is much harder to ignore
+ * than a warning they can forget to print.
+ */
+export type DiscoveryQuality = "complete" | "partial" | "unreliable";
+
+/**
+ * Fraction of history below which discovery is considered unreliable rather
+ * than merely partial.
+ *
+ * 1% is deliberately generous: the failure this guards against looked like
+ * 0.004%, not 0.9%. The goal is to catch "the endpoint refused to tell us
+ * anything useful", not to demand completeness.
+ */
+export const UNRELIABLE_COVERAGE_FRACTION = 0.01;
+
+/** Fraction of history covered, 0..1, for reporting alongside the verdict. */
+export function coverageFraction(
+  coverage: ScanCoverage | null,
+  historySpan: number,
+): number {
+  if (!coverage || historySpan <= 0) return 0;
+  const scanned = Math.max(0, coverage.toBlock - coverage.fromBlock + 1);
+  return Math.min(1, scanned / historySpan);
+}
+
+/**
+ * Judge how much of a chain's history discovery covered.
+ *
+ * `historySpan` is the number of blocks of history the scan could in
+ * principle have walked. Callers that cannot determine the router's first
+ * block should pass the chain head, which over-estimates history and
+ * therefore errs toward reporting a WORSE verdict -- the safe direction.
+ */
+export function discoveryQuality(
+  coverage: ScanCoverage | null,
+  historySpan: number,
+): DiscoveryQuality {
+  // No coverage at all means the endpoint refused eth_getLogs outright.
+  if (!coverage) return "unreliable";
+  if (!coverage.partial && coverage.refusedWindows === 0) return "complete";
+  if (historySpan <= 0) return coverage.partial ? "partial" : "complete";
+  // A scan that saw almost nothing is not "partial", it is uninformative.
+  if (coverageFraction(coverage, historySpan) < UNRELIABLE_COVERAGE_FRACTION) {
+    return "unreliable";
+  }
+  return "partial";
+}
+
 export interface FeeScanResult {
   router: string;
   assets: PricedFeeAsset[];
@@ -176,6 +241,13 @@ const REALIZABLE_DEPTH_FRACTION = 0.3;
  * honestly by the realizable cap.
  */
 const MIN_POOL_DEPTH_USD = 1;
+
+/**
+ * Ratio of notional-to-pool-depth above which a quote is treated as an
+ * artifact rather than a price. See the use site for the reasoning and for
+ * the base `UP` token that motivated it.
+ */
+const MAX_NOTIONAL_TO_DEPTH_RATIO = 1e6;
 
 /**
  * Find the largest block span this endpoint will accept for eth_getLogs.
@@ -625,6 +697,36 @@ export async function priceAssets(
     // one prompts someone to go and look.
     if (pick.depth < MIN_POOL_DEPTH_USD) {
       priced.push({ ...a, poolDepthUsd: pick.depth, priceSource: "unpriced:no-liquidity" });
+      continue;
+    }
+    // The pool is the ONLY evidence for this price, so a valuation that
+    // exceeds the pool's entire depth by an absurd factor is not a price --
+    // it is an artifact of dividing by a near-empty reserve. The depth floor
+    // above catches pools holding nothing; this catches pools holding
+    // *almost* nothing, which the floor lets through.
+    //
+    // Observed: base token `UP` quoted $3.4e50 per token against a pool
+    // holding $1.25, producing a $2.1e50 line item that made the whole scan's
+    // notional total read as 2.1e50 dollars. Realizable was unaffected (it is
+    // capped at a fraction of depth), which is exactly why this slipped by --
+    // only the notional column was nonsense.
+    //
+    // 1e6 is deliberately loose: a router legitimately holding a million
+    // times a dead token's pool depth is already a curiosity, and realizable
+    // still reports it honestly. The target is 1e50, not 1e3.
+    if (pick.usd > pick.depth * MAX_NOTIONAL_TO_DEPTH_RATIO) {
+      warnings.push(
+        `${a.symbol} (${a.token}): quote of ${pick.usd.toExponential(2)} USD against a pool ` +
+          `holding only ${pick.depth.toFixed(2)} USD is not credible; reporting unpriced`,
+      );
+      priced.push({
+        ...a,
+        poolDepthUsd: pick.depth,
+        // Realizable is still meaningful: it is bounded by pool depth, which
+        // is a real measurement even when the price derived from it is not.
+        realizableUsd: pick.depth * REALIZABLE_DEPTH_FRACTION,
+        priceSource: "unpriced:implausible-quote",
+      });
       continue;
     }
     priced.push({

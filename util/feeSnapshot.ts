@@ -25,7 +25,13 @@
  */
 import * as fs from "fs";
 import * as path from "path";
-import { NATIVE_SENTINEL, fmtAmount, type PricedFeeAsset, type ScanCoverage } from "./feeScan";
+import {
+  NATIVE_SENTINEL,
+  fmtAmount,
+  type DiscoveryQuality,
+  type PricedFeeAsset,
+  type ScanCoverage,
+} from "./feeScan";
 
 const REPORTS_DIR = path.resolve(__dirname, "..", "fee-reports");
 const SCANS_DIR = path.join(REPORTS_DIR, "scans");
@@ -61,6 +67,17 @@ export interface SnapshotChain {
   /** Truncated failure message when status is "error". */
   error?: string;
   coverage: ScanCoverage | null;
+  /**
+   * How much of this chain's history discovery actually saw.
+   *
+   * `unreliable` means the asset list is not evidence about this chain's
+   * fees -- it is the hardcoded well-known set plus whatever was cached. A
+   * $0.00 total on an `unreliable` chain says nothing about whether the
+   * router holds anything.
+   */
+  discovery?: DiscoveryQuality;
+  /** Fraction of history covered, 0..1. Reported alongside `discovery`. */
+  coverageFraction?: number;
   /** A cached discovery interval was resumed from, rather than a cold scan. */
   cacheHit: boolean;
   /** Whether <NET>_LOGS_URL was in play. The URL itself is never recorded. */
@@ -218,21 +235,55 @@ export function renderSnapshotMarkdown(snap: FeeScanSnapshot): string {
   if (sweepable.length === 0) {
     L.push("None.");
   } else {
-    L.push("| Chain | Chain ID | Assets | Notional | Realizable | Coverage |");
-    L.push("|---|---:|---:|---:|---:|---|");
+    L.push("| Chain | Chain ID | Assets | Notional | Realizable | Ever seen | History scanned | Discovery |");
+    L.push("|---|---:|---:|---:|---:|---:|---:|---|");
     for (const c of sweepable) {
-      const cov = !c.coverage
-        ? "no logs"
-        : c.coverage.partial
-          ? `partial (${c.coverage.fromBlock}-${c.coverage.toBlock})`
-          : "full";
+      const q = c.discovery ?? (c.coverage ? "partial" : "unreliable");
+      const pct =
+        c.coverageFraction === undefined
+          ? "—"
+          : c.coverageFraction >= 0.9995
+            ? "100%"
+            : `${(c.coverageFraction * 100).toFixed(2)}%`;
+      const label = q === "unreliable" ? "**UNRELIABLE**" : q;
       L.push(
         `| ${c.network} | ${c.chainId} | ${c.totals.assetCount} | ` +
-          `${usd(c.totals.usdNotional)} | ${usd(c.totals.usdRealizable)} | ${cov} |`,
+          `${usd(c.totals.usdNotional)} | ${usd(c.totals.usdRealizable)} | ` +
+          `${c.coverage?.everSeen ?? "—"} | ${pct} | ${label} |`,
       );
     }
   }
   L.push("");
+
+  const unreliable = snap.chains.filter(
+    (c) =>
+      c.status !== "error" &&
+      c.status !== "no-rpc" &&
+      c.status !== "no-config" &&
+      (c.discovery ?? (c.coverage ? "partial" : "unreliable")) === "unreliable",
+  );
+  if (unreliable.length) {
+    L.push("## Unreliable discovery — read before trusting any total above");
+    L.push("");
+    L.push(
+      "On these chains the scan saw effectively none of the fee history. The asset list",
+    );
+    L.push(
+      "is the hardcoded well-known set (WETH/WBTC/USDC) plus anything a previous run had",
+    );
+    L.push("already cached — it is **not** evidence about what these routers hold.");
+    L.push("");
+    L.push("A `$0.00` here means *we could not look*, not *there is nothing there*.");
+    L.push("");
+    for (const c of unreliable) {
+      const pct =
+        c.coverageFraction === undefined ? "?" : `${(c.coverageFraction * 100).toFixed(3)}%`;
+      const why =
+        c.coverage === null ? "endpoint refused eth_getLogs" : `only ${pct} of history scanned`;
+      L.push(`- **${c.network}** (${c.chainId}): ${why}; ${c.coverage?.everSeen ?? 0} asset(s) ever discovered`);
+    }
+    L.push("");
+  }
 
   const errored = snap.chains.filter((c) => c.status === "error");
   const unreachable = snap.chains.filter(

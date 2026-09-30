@@ -64,7 +64,7 @@ minimum, `MAINNET_PRIVATE_KEY` (the hot deployer/executor/relayer key — see
 [Roles](#roles); it never holds Safe-owner authority) and whichever `<NET>_URL`
 overrides you need (see the RPC gotcha notes under
 [Swap-target whitelisting](#swap-target-whitelisting) and
-[Log endpoints](#log-endpoints--net_logs_url)).
+[Endpoints](#endpoints--why-discovery-depends-on-them)).
 
 ## Relationship to okuRouter
 
@@ -637,22 +637,93 @@ nothing to collect, and set a non-zero exit code. Previously both simply
 vanished from the bundle, which on a 34-chain sweep is indistinguishable from
 a silent loss of collectable fees.
 
-### Log endpoints — `<NET>_LOGS_URL`
+### Endpoints — why discovery depends on them
 
-Asset discovery walks `OrderFilled` history, and most public endpoints cap
-`eth_getLogs` at 10–100 blocks (Alchemy: 100 on the public tier, 10 on free),
-which makes long-tail discovery impossible. `--rpc` overrides one chain at a
-time; a multi-chain run needs a per-chain override:
+Asset discovery walks `OrderFilled` history, so **the largest block span an
+endpoint accepts for `eth_getLogs` directly bounds how much of the fee history
+is visible**. This is the single highest-leverage configuration in the repo,
+and getting it wrong is silent.
+
+`util/rpcEndpoints.ts` holds a curated per-chain map, consulted *before*
+Alchemy. It splits two choices that have different winners:
+
+- **`rpc`** — balance reads, archive state, transaction broadcast
+- **`logs`** — the `eth_getLogs` endpoint used for discovery
+
+On `xdc` and `goat` the public endpoint serves a far wider log range while
+Ankr serves archive state the public endpoint does not, so those two are
+deliberately split across providers.
+
+> **Why the map sits above Alchemy.** Alchemy's free tier caps `eth_getLogs`
+> at **10 blocks**. Because endpoint resolution used to try Alchemy first,
+> that cap silently became the discovery window on every chain Alchemy serves
+> — base, arbitrum, avax, op, linea, scroll, mantle, unichain. The 2026-09-29
+> sweep therefore reported avax as `$0.00` while the router held nine tokens
+> including **USDC 1,173**, and swept arbitrum with only the hardcoded
+> WETH/WBTC/USDC fallback, leaving 33 tokens behind. Measured spans, same
+> chain, same router: Alchemy `10` vs official endpoint `1,000,000`–`10,000,000`.
+
+Per-chain overrides still win over the map, and are the right tool for a
+key-bearing or private endpoint:
 
 ```bash
 WORLDCHAIN_LOGS_URL=https://...
 BASE_LOGS_URL=https://...
 ```
 
-Same naming as the existing `<NET>_URL` family, including the `arbitrum` →
-`ARB_LOGS_URL` deviation. Unset chains fall back to their normal RPC. These
-URLs carry API keys, so they live in `.env` and are never written into a
-snapshot — only a boolean `usedLogsRpc` is recorded.
+Same naming as the `<NET>_URL` family, including the `arbitrum` →
+`ARB_LOGS_URL` deviation. Unset chains fall back to the curated map, then to
+their normal RPC. These URLs carry API keys, so they live in `.env` and are
+never written into a snapshot — only a boolean `usedLogsRpc` is recorded.
+
+#### Ankr
+
+`ANKR_FREEMIUM_API_KEY` covers **14 of 34 chains** on the Freemium plan, and
+is the best available option on 8 of them. The remaining 20 split into:
+
+- **Premium-gated (7)** — `linea` `op` `mantle` `telos` `sei` `scroll` `zerog`.
+  A $10 pay-as-you-go upgrade would unlock these, but the public endpoints in
+  the curated map already match or beat Ankr on all of them for log range, so
+  the upgrade buys reliability rather than reach.
+- **Not offered by Ankr at any tier (13)** — `rootstock` `unichain` `boba`
+  `worldchain` `hyperevm` `pharos` `robinhood` `saga` `nibiru` `plasma`
+  `hemi` `bob` `gensyn`.
+
+Note four chains need a `_mainnet` slug suffix (`monad_mainnet`,
+`redbelly_mainnet`, `goat_mainnet`, `etherlink_mainnet`); the bare slug 403s.
+
+#### Known permanent gaps
+
+Recorded rather than hidden, because a chain that cannot be scanned is not a
+chain with nothing on it:
+
+| chain | limitation |
+| --- | --- |
+| `rootstock` | No known endpoint serves `eth_getLogs` at all. Discovery is impossible; only well-known tokens are ever checked. |
+| `monad` | Provider-side cap of 100 blocks per `eth_getLogs`, on both Ankr and the public endpoint. |
+| `sei`, `gensyn` | Log span too narrow relative to chain history to walk it fully within any sane request budget. |
+| `filecoin`, `saga`, `nibiru`, `robinhood` | Archive state only ~1,000 blocks deep, so `fees:account` falls back to event-derived amounts. |
+
+### Discovery quality — `complete` / `partial` / `unreliable`
+
+Every scanned chain is now assigned a discovery verdict, reported next to
+`ever seen` (assets ever discovered) and `hist%` (fraction of history walked):
+
+- **`complete`** — full history walked, no refused windows.
+- **`partial`** — a meaningful fraction walked. Assets first traded outside
+  the window are invisible, but the result is real evidence.
+- **`unreliable`** — under 1% of history seen, or logs refused outright. The
+  asset list is the hardcoded well-known set plus whatever was cached. **A
+  `$0.00` here means "we could not look", not "there is nothing there."**
+
+`fees:cycle` **exits non-zero and refuses to build a bundle** when any chain
+is `unreliable`, unless `--accept-partial` is passed. That gate exists because
+the failure it guards against already happened: avax scanned 0.004% of its
+history, reported `$0.00`, and was swept — the scan *did* warn, but the
+warning was one line among 34 chains and was read straight past. Sweeping a
+blind chain is worse than skipping it, because it burns a Safe nonce and a
+2-of-3 ceremony to collect three tokens while producing an accounting record
+that looks like a complete collection.
 
 ### Discovery cache
 
