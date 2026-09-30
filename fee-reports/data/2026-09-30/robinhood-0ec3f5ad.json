@@ -1,0 +1,145 @@
+{
+  "kind": "oku-fee-sweep",
+  "schemaVersion": 1,
+  "mode": "execution",
+  "bundle": "sweep-recovery-2026-09-30",
+  "network": "robinhood",
+  "chainId": 4663,
+  "router": "0xb1f3a7B816B0681188F54dFa400991B93ADf00ed",
+  "safe": "0xdC91978e0617CcA2EE1E658d0A1CA3F63CF10f1F",
+  "recipient": "0x8288Ba381e07EA5E9Fc4053a97545161D7d4683C",
+  "date": "2026-09-30",
+  "isoWeek": "2026-W40",
+  "generatedAt": "2026-09-30T03:15:35.897Z",
+  "execution": {
+    "txHash": "0x0ec3f5ada5185e7869470b767f60cee15859f259a58d20d09d79f176d26fdbc4",
+    "blockNumber": 76186515,
+    "blockTimestamp": "2026-09-30T03:15:30.000Z",
+    "relayer": "0x3CB68a6762041aA05E762814A8791CA9d98E79A0",
+    "safeNonce": "2",
+    "safeTxHash": "0x965aeea929ac3ffe4b5edcfe55e827447bce371b723858f324e53a6e430cc8f5",
+    "signers": [
+      "0x43A9beCdC1323c1dFcfA776cE9bF57F9F8Ce8200",
+      "0x9B68c14e936104e9a7a24c712BEecdc220002984"
+    ],
+    "gasUsed": "293348",
+    "effectiveGasPrice": "24662000",
+    "gasCostWei": "7234548376000",
+    "gasCostNative": "0.000007234548376",
+    "status": "success"
+  },
+  "assets": [
+    {
+      "token": "0x0Bd7D308f8E1639FAb988df18A8011f41EAcAD73",
+      "symbol": "WETH",
+      "decimals": 18,
+      "amountRaw": "46191237269562",
+      "amount": "0.000046191237269562",
+      "eventAmountRaw": "46191237269562",
+      "routerBalanceBefore": "46191237269562",
+      "routerBalanceAfter": "0",
+      "recipientBalanceBefore": "213886062706475",
+      "recipientBalanceAfter": "260077299976037",
+      "recipientDeltaRaw": "46191237269562",
+      "deltaMatchesEvent": true
+    },
+    {
+      "token": "0x2E8c31162b855A2ffa90F6F8634643Ad6F111e18",
+      "symbol": "AI",
+      "decimals": 18,
+      "amountRaw": "525396919411150408",
+      "amount": "0.525396919411150408",
+      "eventAmountRaw": "525396919411150408",
+      "routerBalanceBefore": "525396919411150408",
+      "routerBalanceAfter": "0",
+      "recipientBalanceBefore": "15213805783548740190",
+      "recipientBalanceAfter": "15739202702959890598",
+      "recipientDeltaRaw": "525396919411150408",
+      "deltaMatchesEvent": true
+    },
+    {
+      "token": "0x39dBED3a2bd333467115dE45665cC57F813C4571",
+      "symbol": "PONS",
+      "decimals": 18,
+      "amountRaw": "174448515358903005",
+      "amount": "0.174448515358903005",
+      "eventAmountRaw": "174448515358903005",
+      "routerBalanceBefore": "174448515358903005",
+      "routerBalanceAfter": "0",
+      "recipientBalanceBefore": "1338164401075842246",
+      "recipientBalanceAfter": "1512612916434745251",
+      "recipientDeltaRaw": "174448515358903005",
+      "deltaMatchesEvent": true
+    },
+    {
+      "token": "0x5fc5360D0400a0Fd4f2af552ADD042D716F1d168",
+      "symbol": "USDG",
+      "decimals": 6,
+      "amountRaw": "4640000",
+      "amount": "4.64",
+      "eventAmountRaw": "4640000",
+      "routerBalanceBefore": "4640000",
+      "routerBalanceAfter": "0",
+      "recipientBalanceBefore": "0",
+      "recipientBalanceAfter": "4640000",
+      "recipientDeltaRaw": "4640000",
+      "deltaMatchesEvent": true
+    },
+    {
+      "token": "0x63Ee32Ac3077d1fbd8a77eBBA2a6ed4b8e9c1e18",
+      "symbol": "INU",
+      "decimals": 18,
+      "amountRaw": "2850579410877022222",
+      "amount": "2.850579410877022222",
+      "eventAmountRaw": "2850579410877022222",
+      "routerBalanceBefore": "2850579410877022222",
+      "routerBalanceAfter": "0",
+      "recipientBalanceBefore": "0",
+      "recipientBalanceAfter": "2850579410877022222",
+      "recipientDeltaRaw": "2850579410877022222",
+      "deltaMatchesEvent": true
+    },
+    {
+      "token": "0xd0601CE157Db5bdC3162BbaC2a2C8aF5320D9EEC",
+      "symbol": "NVDA",
+      "decimals": 18,
+      "amountRaw": "309716077961996",
+      "amount": "0.000309716077961996",
+      "eventAmountRaw": "309716077961996",
+      "routerBalanceBefore": "309716077961996",
+      "routerBalanceAfter": "0",
+      "recipientBalanceBefore": "0",
+      "recipientBalanceAfter": "309716077961996",
+      "recipientDeltaRaw": "309716077961996",
+      "deltaMatchesEvent": true
+    },
+    {
+      "token": "native",
+      "symbol": "ETH",
+      "decimals": 18,
+      "amountRaw": "6565322750817620",
+      "amount": "0.00656532275081762",
+      "eventAmountRaw": "6565322750817620",
+      "routerBalanceBefore": "6565322750817620",
+      "routerBalanceAfter": "0",
+      "recipientBalanceBefore": "114907261235502",
+      "recipientBalanceAfter": "6680230012053122",
+      "recipientDeltaRaw": "6565322750817620",
+      "deltaMatchesEvent": true
+    }
+  ],
+  "totals": {
+    "assetCount": 7,
+    "usdNotional": 0,
+    "usdRealizable": 0
+  },
+  "reconciliation": {
+    "allRouterBalancesZero": true,
+    "eventsMatchBalanceDeltas": true,
+    "residuals": [],
+    "discrepancies": []
+  },
+  "warnings": [
+    "no V3 factory/USDC/WETH for robinhood; valuations unavailable"
+  ]
+}

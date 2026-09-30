@@ -1,0 +1,103 @@
+{
+  "kind": "oku-fee-sweep",
+  "schemaVersion": 1,
+  "mode": "execution",
+  "bundle": "sweep-recovery-2026-09-30",
+  "network": "unichain",
+  "chainId": 130,
+  "router": "0xb1f3a7B816B0681188F54dFa400991B93ADf00ed",
+  "safe": "0xdC91978e0617CcA2EE1E658d0A1CA3F63CF10f1F",
+  "recipient": "0x8288Ba381e07EA5E9Fc4053a97545161D7d4683C",
+  "date": "2026-09-30",
+  "isoWeek": "2026-W40",
+  "generatedAt": "2026-09-30T03:25:03.020Z",
+  "execution": {
+    "txHash": "0xd4d997bbf16b7eea263e23c5079e1fc6395ec6d4957d7189c0903201ddc5ded8",
+    "blockNumber": 59990341,
+    "blockTimestamp": "2026-09-30T03:25:00.000Z",
+    "relayer": "0x3CB68a6762041aA05E762814A8791CA9d98E79A0",
+    "safeNonce": "2",
+    "safeTxHash": "0x257f906afd9d945eb19f75999780ef33c3b067d8ba464907f556c378e5b7fb77",
+    "signers": [
+      "0x43A9beCdC1323c1dFcfA776cE9bF57F9F8Ce8200",
+      "0x9B68c14e936104e9a7a24c712BEecdc220002984"
+    ],
+    "gasUsed": "243243",
+    "effectiveGasPrice": "1500000",
+    "gasCostWei": "364864500000",
+    "gasCostNative": "0.0000003648645",
+    "status": "success"
+  },
+  "assets": [
+    {
+      "token": "0x078D782b760474a361dDA0AF3839290b0EF57AD6",
+      "symbol": "USDC",
+      "decimals": 6,
+      "amountRaw": "12538831",
+      "amount": "12.538831",
+      "eventAmountRaw": "12538831",
+      "routerBalanceBefore": "12538831",
+      "routerBalanceAfter": "0",
+      "recipientBalanceBefore": "0",
+      "recipientBalanceAfter": "12538831",
+      "recipientDeltaRaw": "12538831",
+      "deltaMatchesEvent": true
+    },
+    {
+      "token": "0x2615a94df961278DcbC41Fb0a54fEc5f10a693aE",
+      "symbol": "XRP",
+      "decimals": 18,
+      "amountRaw": "1032899301094833651",
+      "amount": "1.032899301094833651",
+      "eventAmountRaw": "1032899301094833651",
+      "routerBalanceBefore": "1032899301094833651",
+      "routerBalanceAfter": "0",
+      "recipientBalanceBefore": "0",
+      "recipientBalanceAfter": "1032899301094833651",
+      "recipientDeltaRaw": "1032899301094833651",
+      "deltaMatchesEvent": true
+    },
+    {
+      "token": "0x81908BBaad3f6fC74093540Ab2E9B749BB62aA0d",
+      "symbol": "XVS",
+      "decimals": 18,
+      "amountRaw": "743333173885315104",
+      "amount": "0.743333173885315104",
+      "eventAmountRaw": "743333173885315104",
+      "routerBalanceBefore": "743333173885315104",
+      "routerBalanceAfter": "0",
+      "recipientBalanceBefore": "0",
+      "recipientBalanceAfter": "743333173885315104",
+      "recipientDeltaRaw": "743333173885315104",
+      "deltaMatchesEvent": true
+    },
+    {
+      "token": "0x9151434b16b9763660705744891fA906F660EcC5",
+      "symbol": "USD₮0",
+      "decimals": 6,
+      "amountRaw": "211249",
+      "amount": "0.211249",
+      "eventAmountRaw": "211249",
+      "routerBalanceBefore": "211249",
+      "routerBalanceAfter": "0",
+      "recipientBalanceBefore": "0",
+      "recipientBalanceAfter": "211249",
+      "recipientDeltaRaw": "211249",
+      "deltaMatchesEvent": true
+    }
+  ],
+  "totals": {
+    "assetCount": 4,
+    "usdNotional": 0,
+    "usdRealizable": 0
+  },
+  "reconciliation": {
+    "allRouterBalancesZero": true,
+    "eventsMatchBalanceDeltas": true,
+    "residuals": [],
+    "discrepancies": []
+  },
+  "warnings": [
+    "no V3 factory/USDC/WETH for unichain; valuations unavailable"
+  ]
+}

@@ -1,0 +1,66 @@
+{
+  "kind": "oku-fee-sweep",
+  "schemaVersion": 1,
+  "mode": "execution",
+  "bundle": "sweep-recovery-2026-09-30",
+  "network": "sei",
+  "chainId": 1329,
+  "router": "0x7B060A98BA242Ae42D6027a60937787eBe33DEBe",
+  "safe": "0xdC91978e0617CcA2EE1E658d0A1CA3F63CF10f1F",
+  "recipient": "0x8288Ba381e07EA5E9Fc4053a97545161D7d4683C",
+  "date": "2026-09-30",
+  "isoWeek": "2026-W40",
+  "generatedAt": "2026-09-30T03:15:29.085Z",
+  "execution": {
+    "txHash": "0x09eb8dcbf879374fd1c38473121dbe5b2e30ec0d1cf638bee4ca2dfc997436a4",
+    "blockNumber": 234895123,
+    "blockTimestamp": "2026-09-30T03:15:24.000Z",
+    "relayer": "0x3CB68a6762041aA05E762814A8791CA9d98E79A0",
+    "safeNonce": "2",
+    "safeTxHash": "0xbbad9a941aa370c11ee1878a9516ed703b69179c9bc9c101911df003335f4feb",
+    "signers": [
+      "0x43A9beCdC1323c1dFcfA776cE9bF57F9F8Ce8200",
+      "0x9B68c14e936104e9a7a24c712BEecdc220002984"
+    ],
+    "gasUsed": "83667",
+    "effectiveGasPrice": "51000000000",
+    "gasCostWei": "4267017000000000",
+    "gasCostNative": "0.004267017",
+    "gasCostUsd": 0.0008742447871509172,
+    "status": "success"
+  },
+  "assets": [
+    {
+      "token": "native",
+      "symbol": "SEI",
+      "decimals": 18,
+      "amountRaw": "300000000000000000",
+      "amount": "0.3",
+      "eventAmountRaw": "300000000000000000",
+      "routerBalanceBefore": "300000000000000000",
+      "routerBalanceAfter": "0",
+      "recipientBalanceBefore": "2223056522504443394",
+      "recipientBalanceAfter": "2523056522504443394",
+      "recipientDeltaRaw": "300000000000000000",
+      "deltaMatchesEvent": true,
+      "usdPrice": 0.20488429906675254,
+      "usdValue": 0.06146528972002576,
+      "poolDepthUsd": 776.957107,
+      "realizableUsd": 0.06146528972002576,
+      "priceSource": "univ3:0x5cFA8dB453C9904511C4eA9eb0bfc903E36b9F5F@500"
+    }
+  ],
+  "totals": {
+    "assetCount": 1,
+    "usdNotional": 0.06146528972002576,
+    "usdRealizable": 0.06146528972002576,
+    "nativeUsdPrice": 0.20488429906675254
+  },
+  "reconciliation": {
+    "allRouterBalancesZero": true,
+    "eventsMatchBalanceDeltas": true,
+    "residuals": [],
+    "discrepancies": []
+  },
+  "warnings": []
+}

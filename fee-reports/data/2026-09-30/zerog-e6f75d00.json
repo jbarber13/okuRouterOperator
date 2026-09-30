@@ -1,0 +1,61 @@
+{
+  "kind": "oku-fee-sweep",
+  "schemaVersion": 1,
+  "mode": "execution",
+  "bundle": "sweep-recovery-2026-09-30",
+  "network": "zerog",
+  "chainId": 16661,
+  "router": "0xb1f3a7B816B0681188F54dFa400991B93ADf00ed",
+  "safe": "0xdC91978e0617CcA2EE1E658d0A1CA3F63CF10f1F",
+  "recipient": "0x8288Ba381e07EA5E9Fc4053a97545161D7d4683C",
+  "date": "2026-09-30",
+  "isoWeek": "2026-W40",
+  "generatedAt": "2026-09-30T03:17:52.926Z",
+  "execution": {
+    "txHash": "0xe6f75d009ee7d0f1ed814d3a3477394684466442f5ac6d4d8da4ae433352f188",
+    "blockNumber": 45716491,
+    "blockTimestamp": "2026-09-30T03:17:47.000Z",
+    "relayer": "0x3CB68a6762041aA05E762814A8791CA9d98E79A0",
+    "safeNonce": "2",
+    "safeTxHash": "0x5971b7b675384359d97c36d6dbdf0da3be0b50b25fab2cd4161e512af0a1ef5d",
+    "signers": [
+      "0x43A9beCdC1323c1dFcfA776cE9bF57F9F8Ce8200",
+      "0x9B68c14e936104e9a7a24c712BEecdc220002984"
+    ],
+    "gasUsed": "133996",
+    "effectiveGasPrice": "4000000007",
+    "gasCostWei": "535984000937972",
+    "gasCostNative": "0.000535984000937972",
+    "status": "success"
+  },
+  "assets": [
+    {
+      "token": "0x4B3c2f55fa67679b382c979A082Df1B32079B4cB",
+      "symbol": "a0G",
+      "decimals": 18,
+      "amountRaw": "1737509489982949",
+      "amount": "0.001737509489982949",
+      "eventAmountRaw": "1737509489982949",
+      "routerBalanceBefore": "1737509489982949",
+      "routerBalanceAfter": "0",
+      "recipientBalanceBefore": "0",
+      "recipientBalanceAfter": "1737509489982949",
+      "recipientDeltaRaw": "1737509489982949",
+      "deltaMatchesEvent": true
+    }
+  ],
+  "totals": {
+    "assetCount": 1,
+    "usdNotional": 0,
+    "usdRealizable": 0
+  },
+  "reconciliation": {
+    "allRouterBalancesZero": true,
+    "eventsMatchBalanceDeltas": true,
+    "residuals": [],
+    "discrepancies": []
+  },
+  "warnings": [
+    "no V3 factory/USDC/WETH for zerog; valuations unavailable"
+  ]
+}

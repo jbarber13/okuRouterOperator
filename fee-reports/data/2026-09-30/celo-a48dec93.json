@@ -1,0 +1,117 @@
+{
+  "kind": "oku-fee-sweep",
+  "schemaVersion": 1,
+  "mode": "execution",
+  "bundle": "sweep-recovery-2026-09-30",
+  "network": "celo",
+  "chainId": 42220,
+  "router": "0xb1f3a7B816B0681188F54dFa400991B93ADf00ed",
+  "safe": "0xdC91978e0617CcA2EE1E658d0A1CA3F63CF10f1F",
+  "recipient": "0x8288Ba381e07EA5E9Fc4053a97545161D7d4683C",
+  "date": "2026-09-30",
+  "isoWeek": "2026-W40",
+  "generatedAt": "2026-09-30T03:18:31.753Z",
+  "execution": {
+    "txHash": "0xa48dec930ad247f82c7c9a245003e05e3f21be71bdca8d9a519e41d40aac4c71",
+    "blockNumber": 78837550,
+    "blockTimestamp": "2026-09-30T03:18:28.000Z",
+    "relayer": "0x3CB68a6762041aA05E762814A8791CA9d98E79A0",
+    "safeNonce": "2",
+    "safeTxHash": "0x81b1ca99be7d4169474058d16b344732864a93702ba7a12a071356291dbe50d4",
+    "signers": [
+      "0x43A9beCdC1323c1dFcfA776cE9bF57F9F8Ce8200",
+      "0x9B68c14e936104e9a7a24c712BEecdc220002984"
+    ],
+    "gasUsed": "530857",
+    "effectiveGasPrice": "200001000000",
+    "gasCostWei": "106171930857000000",
+    "gasCostNative": "0.106171930857",
+    "status": "success"
+  },
+  "assets": [
+    {
+      "token": "0x00Be915B9dCf56a3CBE739D9B9c202ca692409EC",
+      "symbol": "UBE",
+      "decimals": 18,
+      "amountRaw": "746957799336890471",
+      "amount": "0.746957799336890471",
+      "eventAmountRaw": "746957799336890471",
+      "routerBalanceBefore": "746957799336890471",
+      "routerBalanceAfter": "0",
+      "recipientBalanceBefore": "0",
+      "recipientBalanceAfter": "746957799336890471",
+      "recipientDeltaRaw": "746957799336890471",
+      "deltaMatchesEvent": true
+    },
+    {
+      "token": "0x48065fbBE25f71C9282ddf5e1cD6D6A887483D5e",
+      "symbol": "USD₮",
+      "decimals": 6,
+      "amountRaw": "354343",
+      "amount": "0.354343",
+      "eventAmountRaw": "354343",
+      "routerBalanceBefore": "354343",
+      "routerBalanceAfter": "0",
+      "recipientBalanceBefore": "0",
+      "recipientBalanceAfter": "354343",
+      "recipientDeltaRaw": "354343",
+      "deltaMatchesEvent": true
+    },
+    {
+      "token": "0x62B8B11039FcfE5aB0C56E502b1C372A3d2a9c7A",
+      "symbol": "G$",
+      "decimals": 18,
+      "amountRaw": "272936126925927968619026",
+      "amount": "272936.126925927968619026",
+      "eventAmountRaw": "272936126925927968619026",
+      "routerBalanceBefore": "272936126925927968619026",
+      "routerBalanceAfter": "0",
+      "recipientBalanceBefore": "0",
+      "recipientBalanceAfter": "272936126925927968619026",
+      "recipientDeltaRaw": "272936126925927968619026",
+      "deltaMatchesEvent": true
+    },
+    {
+      "token": "0x73a210637f6F6B7005512677Ba6B3C96bb4AA44B",
+      "symbol": "MOBI",
+      "decimals": 18,
+      "amountRaw": "1498176749440062155782",
+      "amount": "1498.176749440062155782",
+      "eventAmountRaw": "1498176749440062155782",
+      "routerBalanceBefore": "1498176749440062155782",
+      "routerBalanceAfter": "0",
+      "recipientBalanceBefore": "0",
+      "recipientBalanceAfter": "1498176749440062155782",
+      "recipientDeltaRaw": "1498176749440062155782",
+      "deltaMatchesEvent": true
+    },
+    {
+      "token": "0x765DE816845861e75A25fCA122bb6898B8B1282a",
+      "symbol": "USDm",
+      "decimals": 18,
+      "amountRaw": "8840931662295149",
+      "amount": "0.008840931662295149",
+      "eventAmountRaw": "8840931662295149",
+      "routerBalanceBefore": "8840931662295149",
+      "routerBalanceAfter": "0",
+      "recipientBalanceBefore": "0",
+      "recipientBalanceAfter": "8840931662295149",
+      "recipientDeltaRaw": "8840931662295149",
+      "deltaMatchesEvent": true
+    }
+  ],
+  "totals": {
+    "assetCount": 5,
+    "usdNotional": 0,
+    "usdRealizable": 0
+  },
+  "reconciliation": {
+    "allRouterBalancesZero": true,
+    "eventsMatchBalanceDeltas": true,
+    "residuals": [],
+    "discrepancies": []
+  },
+  "warnings": [
+    "no V3 factory/USDC/WETH for celo; valuations unavailable"
+  ]
+}
