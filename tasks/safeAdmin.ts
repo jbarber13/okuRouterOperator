@@ -42,14 +42,16 @@
 import * as fs from "fs";
 import * as path from "path";
 import { task } from "hardhat/config";
-import { TypedDataEncoder, Wallet, formatUnits, getAddress } from "ethers";
+import { TypedDataEncoder, Wallet, ZeroAddress, formatUnits, getAddress } from "ethers";
 import type { JsonRpcProvider } from "ethers";
 import type { HardhatRuntimeEnvironment } from "hardhat/types";
 import {
   OKU_DEPLOYER_EOA,
   SAFE_MULTISEND_CALL_ONLY,
+  OKU_SAFE_V2_EXPECTED_ADDRESS,
   assertOkuSafeConfig,
   getOkuSafeDeployment,
+  resolveSafeVersion,
   hasSafeTxService,
   safeTxServiceUrl,
 } from "../util/safeConfig";
@@ -100,6 +102,7 @@ const ROUTER_IFACE = OkuRouter__factory.createInterface();
 /** Supported build intents. */
 type Intent =
   | "accept-ownership"
+  | "transfer-ownership"
   | "pause"
   | "unpause"
   | "swap-targets"
@@ -276,6 +279,74 @@ async function callsForIntent(
             data: ROUTER_IFACE.encodeFunctionData("acceptOwnership"),
             value: "0",
             label: `acceptOwnership() -- Safe takes ownership of OkuRouter ${chain.router}`,
+          },
+        ],
+      };
+    }
+
+    case "transfer-ownership": {
+      // Step 1 of the Ownable2Step handover, authorized by the CURRENT owner
+      // (the v1 Safe). This only sets pendingOwner -- the current Safe keeps
+      // full control until the new Safe executes acceptOwnership(), so a
+      // mistake here is recoverable by simply transferring again.
+      //
+      // Note this is NOT `safe:handover`, which does the same call from a
+      // local EOA key and cannot act on behalf of a Safe.
+      const newOwner = getAddress(String(params.to));
+      const [owner, pending] = await Promise.all([router.owner(), router.pendingOwner()]);
+
+      if (getAddress(owner) !== getAddress(safeAddress)) {
+        return {
+          calls: [],
+          note: `router owner is ${getAddress(owner)}, not this Safe -- cannot transfer`,
+        };
+      }
+      if (getAddress(owner) === newOwner) {
+        return { calls: [], note: "router is already owned by the target" };
+      }
+      if (getAddress(pending) === newOwner) {
+        return { calls: [], note: "pendingOwner is already the target -- awaiting accept" };
+      }
+      // A swap target getting it wrong costs a whitelist entry; getting THIS
+      // wrong hands the router to an address nobody controls. The destination
+      // must be a live contract, and it must answer as a Safe with the
+      // threshold we expect -- an EOA or an unrelated contract is refused.
+      const code = await provider.getCode(newOwner);
+      if (code === "0x") {
+        return { calls: [], note: `REFUSED: ${newOwner} has no bytecode on this chain` };
+      }
+      try {
+        const got = await provider.call({
+          to: newOwner,
+          data: SAFE_IFACE.encodeFunctionData("getThreshold"),
+        });
+        const th = Number(SAFE_IFACE.decodeFunctionResult("getThreshold", got)[0]);
+        if (th < 1) {
+          return { calls: [], note: `REFUSED: ${newOwner} reports threshold ${th}` };
+        }
+      } catch {
+        return {
+          calls: [],
+          note: `REFUSED: ${newOwner} does not answer getThreshold() -- not a Safe`,
+        };
+      }
+      if (getAddress(pending) !== getAddress(ZeroAddress)) {
+        // Not fatal (transferOwnership overwrites it), but the operator
+        // should know they are redirecting an in-flight handover.
+        console.log(
+          `  ⚠ ${chain.network}: pendingOwner is currently ${getAddress(pending)}; ` +
+            `this call replaces it with ${newOwner}`,
+        );
+      }
+      return {
+        calls: [
+          {
+            to: chain.router!,
+            data: ROUTER_IFACE.encodeFunctionData("transferOwnership", [newOwner]),
+            value: "0",
+            label:
+              `transferOwnership(${newOwner}) -- sets pendingOwner on OkuRouter ` +
+              `${chain.router}; ownership does NOT move until the new Safe accepts`,
           },
         ],
       };
@@ -771,14 +842,18 @@ function txBuilderJson(chain: BundleChain, safe: string) {
 task("safe:build", "Diff on-chain state and emit a per-chain SafeTx bundle")
   .addParam(
     "intent",
-    "accept-ownership | pause | unpause | swap-targets | valid-signer | max-warrant-duration | sweep",
+    "accept-ownership | transfer-ownership | pause | unpause | swap-targets | valid-signer | max-warrant-duration | sweep",
   )
   .addOptionalParam("name", "Bundle name (default: <intent>-<timestamp>)")
   .addOptionalParam("networks", "Comma-separated list of networks to restrict to")
   .addOptionalParam("address", "For valid-signer: the signer address")
   .addOptionalParam("add", "For valid-signer: true|false")
   .addOptionalParam("seconds", "For max-warrant-duration: the new duration")
-  .addOptionalParam("to", "For sweep: recipient (default: OKU_FEE_RECIPIENT)")
+  .addOptionalParam(
+    "to",
+    "For sweep: recipient (default: OKU_FEE_RECIPIENT). For transfer-ownership: the new owner Safe",
+  )
+  .addOptionalParam("safeVersion", "Which Safe generation signs this bundle: v1 (default) or v2")
   .addOptionalParam("tokens", "For sweep: comma-separated token list, or omit to auto-discover")
   .addOptionalParam("maxTokens", "For sweep: max tokens per sweepAll call (default 40)")
   .addOptionalParam(
@@ -796,12 +871,15 @@ task("safe:build", "Diff on-chain state and emit a per-chain SafeTx bundle")
       "instead; the default endpoints on several chains restrict eth_getLogs.",
   )
   .addFlag("noEth", "For sweep: do NOT sweep the native balance")
+  .addFlag("force", "For transfer-ownership: allow a --to other than the pinned v2 Safe")
   .setAction(async (taskArgs, hre: HardhatRuntimeEnvironment) => {
     assertOkuSafeConfig();
-    const dep = getOkuSafeDeployment();
+    const safeVersion = resolveSafeVersion(taskArgs.safeVersion);
+    const dep = getOkuSafeDeployment(safeVersion);
     const intent = String(taskArgs.intent) as Intent;
     const valid: Intent[] = [
       "accept-ownership",
+      "transfer-ownership",
       "pause",
       "unpause",
       "swap-targets",
@@ -822,6 +900,33 @@ task("safe:build", "Diff on-chain state and emit a per-chain SafeTx bundle")
     if (intent === "max-warrant-duration") {
       if (!taskArgs.seconds) throw new Error("--seconds is required");
       params.seconds = String(taskArgs.seconds);
+    }
+    if (intent === "transfer-ownership") {
+      if (!taskArgs.to) {
+        throw new Error(
+          "--to is required for transfer-ownership (the new owner Safe address)",
+        );
+      }
+      const to = getAddress(String(taskArgs.to));
+      if (to === getAddress(ZeroAddress)) {
+        throw new Error("transfer-ownership target cannot be the zero address");
+      }
+      if (to === getAddress(dep.address)) {
+        throw new Error(
+          "transfer-ownership target is the signing Safe itself -- that is a no-op",
+        );
+      }
+      // Typing a wrong address here hands 34 routers to a Safe nobody
+      // controls. The only destination this migration has any business
+      // using is the pinned v2 Safe, so anything else must be stated twice.
+      if (to !== getAddress(OKU_SAFE_V2_EXPECTED_ADDRESS) && !taskArgs.force) {
+        throw new Error(
+          `--to ${to} is not the pinned v2 Safe ` +
+            `(${getAddress(OKU_SAFE_V2_EXPECTED_ADDRESS)}). ` +
+            `Re-run with --force if you really mean it.`,
+        );
+      }
+      params.to = to;
     }
     if (intent === "sweep") {
       // Defaults to the committed constant so the destination of an

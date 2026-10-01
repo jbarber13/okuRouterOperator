@@ -16,6 +16,16 @@
         "0x5227a7404631Eb7De411232535E36dE8dad318f0",
         "0x43A9beCdC1323c1dFcfA776cE9bF57F9F8Ce8200"
       ]
+    },
+    "SafeV2": {
+      "address": "0x37333A9626E99eC2012F3cC47a062649CF741303",
+      "version": "1.4.1",
+      "threshold": 2,
+      "owners": [
+        "0x5348bb6318f5Dc05C4501BA8D9b543666ec772e8",
+        "0x5227a7404631Eb7De411232535E36dE8dad318f0",
+        "0x46e9CF7694535b4Ba5a7ba09f6c54B05CE7A85E3"
+      ]
     }
   }
 }

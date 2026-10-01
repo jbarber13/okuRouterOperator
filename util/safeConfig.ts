@@ -190,6 +190,91 @@ export const OKU_SAFE_SALT_NONCE = 0n;
  */
 export const OKU_SAFE_EXPECTED_ADDRESS = "0xdC91978e0617CcA2EE1E658d0A1CA3F63CF10f1F";
 
+// ---------------------------------------------------------------------------
+// Signer rotation: the v2 Safe
+// ---------------------------------------------------------------------------
+
+/**
+ * SIGNER ROTATION, 2026-10. Two of the three signers are being replaced:
+ *
+ *   coworker  0x9B68c14e936104e9a7a24c712BEecdc220002984
+ *          -> 0x5348bb6318f5Dc05C4501BA8D9b543666ec772e8
+ *   hardware  0x43A9beCdC1323c1dFcfA776cE9bF57F9F8Ce8200
+ *          -> 0x46e9CF7694535b4Ba5a7ba09f6c54B05CE7A85E3
+ *   retained  0x5227a7404631Eb7De411232535E36dE8dad318f0  (unchanged)
+ *
+ * A Safe's address is derived from its owner set, so rotating signers cannot
+ * preserve the address: the v2 owner set necessarily produces a different
+ * Safe. The migration is therefore a router ownership handover, v1 -> v2, not
+ * an in-place edit.
+ *
+ * Why both versions coexist here rather than editing the v1 constants in
+ * place: the handover is a two-step Ownable2Step dance where step 1
+ * (`transferOwnership`) is authorized by the v1 Safe and step 2
+ * (`acceptOwnership`) by the v2 Safe. Both Safes must be addressable at the
+ * same time, and bundles signed against one must not silently re-target the
+ * other. Mutating a single constant mid-migration would strand any bundle
+ * built before the edit.
+ *
+ * Once every chain has been accepted by v2, promote v2 to primary and delete
+ * the v1 constants and the version selector.
+ */
+
+/**
+ * The v2 signers, in the order passed to `setup()`.
+ *
+ * ORDER IS LOAD-BEARING -- same rule as OKU_SAFE_OWNERS. This ordering mirrors
+ * the v1 layout positionally (coworker, retained, hardware) so diffs and
+ * mental models stay aligned; it was chosen deliberately and must not be
+ * re-sorted. Any reorder produces a different Safe and trips the tripwire.
+ *
+ * Verified before adoption: all three are valid EIP-55, mutually distinct,
+ * non-zero, and carry no contract code on every chain probed (an owner must
+ * be an EOA -- a contract cannot produce an ECDSA signature for
+ * `execTransaction`).
+ */
+export const OKU_SAFE_V2_OWNERS: readonly string[] = Object.freeze([
+  "0x5348bb6318f5Dc05C4501BA8D9b543666ec772e8",
+  "0x5227a7404631Eb7De411232535E36dE8dad318f0",
+  "0x46e9CF7694535b4Ba5a7ba09f6c54B05CE7A85E3",
+]);
+
+/**
+ * Pinned expected v2 Safe address. Same tripwire role as its v1 counterpart:
+ * derived, never trusted. Verified free of bytecode on mainnet, arbitrum,
+ * base and op before adoption; `safe:preflight` re-checks all 34.
+ */
+export const OKU_SAFE_V2_EXPECTED_ADDRESS =
+  "0x37333A9626E99eC2012F3cC47a062649CF741303";
+
+/** Which Safe generation a task should operate on. */
+export type SafeVersion = "v1" | "v2";
+
+/**
+ * Resolve a SafeVersion from a CLI flag, defaulting to v1.
+ *
+ * Defaulting to v1 is deliberate: every pre-existing task keeps its current
+ * behaviour untouched, so adding v2 cannot change what an un-flagged command
+ * does. Throws on anything unrecognised rather than silently falling back --
+ * a typo in `--safe-version` must not quietly operate on the wrong Safe.
+ */
+export function resolveSafeVersion(raw?: unknown): SafeVersion {
+  if (raw === undefined || raw === null || raw === "") return "v1";
+  const v = String(raw).toLowerCase();
+  if (v === "v1" || v === "v2") return v;
+  throw new Error(`unknown --safe-version "${String(raw)}". Expected v1 or v2.`);
+}
+
+/** The owner set / pinned address for a given Safe generation. */
+export function safeParamsFor(version: SafeVersion): {
+  owners: readonly string[];
+  expectedAddress: string;
+} {
+  return version === "v2"
+    ? { owners: OKU_SAFE_V2_OWNERS, expectedAddress: OKU_SAFE_V2_EXPECTED_ADDRESS }
+    : { owners: OKU_SAFE_OWNERS, expectedAddress: OKU_SAFE_EXPECTED_ADDRESS };
+}
+
 /**
  * The hot deployer EOA that currently owns every OkuRouter.
  *
@@ -382,7 +467,7 @@ export function predictSafeAddress(
  * than reading OKU_SAFE_EXPECTED_ADDRESS directly, so the constants can never
  * drift apart from the derivation.
  */
-export function getOkuSafeDeployment(): {
+export function getOkuSafeDeployment(version: SafeVersion = "v1"): {
   address: string;
   initializer: string;
   salt: string;
@@ -390,24 +475,27 @@ export function getOkuSafeDeployment(): {
   owners: readonly string[];
   threshold: number;
   saltNonce: bigint;
+  version: SafeVersion;
 } {
-  const predicted = predictSafeAddress();
-  if (getAddress(predicted.address) !== getAddress(OKU_SAFE_EXPECTED_ADDRESS)) {
+  const { owners, expectedAddress } = safeParamsFor(version);
+  const predicted = predictSafeAddress(owners, OKU_SAFE_THRESHOLD, OKU_SAFE_SALT_NONCE);
+  if (getAddress(predicted.address) !== getAddress(expectedAddress)) {
     throw new Error(
-      `Safe config drift detected.\n` +
+      `Safe config drift detected (${version}).\n` +
         `  computed: ${predicted.address}\n` +
-        `  expected: ${OKU_SAFE_EXPECTED_ADDRESS}\n` +
+        `  expected: ${expectedAddress}\n` +
         `The owner set, owner ORDER, threshold or saltNonce in util/safeConfig.ts ` +
-        `changed. If that was intentional, update OKU_SAFE_EXPECTED_ADDRESS -- but ` +
+        `changed. If that was intentional, update the pinned address -- but ` +
         `be aware this is a DIFFERENT Safe, and any chain already handed over to ` +
         `the old address will still be owned by the old Safe.`,
     );
   }
   return {
     ...predicted,
-    owners: OKU_SAFE_OWNERS,
+    owners,
     threshold: OKU_SAFE_THRESHOLD,
     saltNonce: OKU_SAFE_SALT_NONCE,
+    version,
   };
 }
 
@@ -437,8 +525,16 @@ export function assertSafeToL2SetupBytecode(): void {
   }
 }
 
-/** Fail fast at import-adjacent call sites if the pinned constants drifted. */
+/**
+ * Fail fast at import-adjacent call sites if the pinned constants drifted.
+ *
+ * Checks BOTH Safe generations regardless of which one the caller intends to
+ * use. During the rotation a task that operates on v1 still depends on v2
+ * being derivable (and vice versa) -- the handover is only meaningful if both
+ * addresses are correct -- so a drift in either is a reason to stop.
+ */
 export function assertOkuSafeConfig(): void {
-  getOkuSafeDeployment();
+  getOkuSafeDeployment("v1");
+  getOkuSafeDeployment("v2");
   assertSafeToL2SetupBytecode();
 }

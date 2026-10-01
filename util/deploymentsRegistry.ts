@@ -35,6 +35,12 @@
  *         "version":   "1.4.1+L2",   // live VERSION() + singleton flavour
  *         "threshold": 2,
  *         "owners":    ["0x...", "0x...", "0x..."]
+ *       },
+ *       "SafeV2": {                  // TRANSITIONAL, signer rotation only
+ *         "address":   "0x...",      // deployed but NOT yet the router owner
+ *         "version":   "1.4.1+L2",
+ *         "threshold": 2,
+ *         "owners":    ["0x...", "0x...", "0x..."]
  *       }
  *     }
  *   }
@@ -49,12 +55,20 @@
  *     `owner` is omitted -- a Safe has owners (plural), not an owner. The
  *     recorded owners/threshold are a snapshot of the live on-chain values at
  *     write time; refresh after any addOwner/swapOwner/changeThreshold.
+ *   - SafeV2 is a TRANSITIONAL entry used only during a signer rotation. It
+ *     records a successor Safe that has been deployed but does NOT yet own
+ *     the router. `Safe` must keep naming whichever Safe actually holds
+ *     ownership right now, because `current.Safe.address` is what
+ *     `listSafeChains` surfaces as `recordedSafe` and what fee reports stamp
+ *     as the executing Safe -- overwriting it early makes those records
+ *     attribute a sweep to a Safe that never signed it. Once the handover
+ *     completes, promote SafeV2 into Safe and delete this key.
  */
 import * as fs from "fs";
 import * as path from "path";
 
 /** Contract identifiers tracked in the registry. */
-export type ContractKind = "OkuRouter" | "Permit2Proxy" | "Safe";
+export type ContractKind = "OkuRouter" | "Permit2Proxy" | "Safe" | "SafeV2";
 
 /**
  * A live deployment entry. Field presence depends on `contract`:
@@ -208,9 +222,9 @@ function validateEntry(contract: ContractKind, entry: DeploymentEntry): void {
         "recordDeployment(Permit2Proxy): version is implied by the bonded OkuRouter; omit it",
       );
     }
-  } else if (contract === "Safe") {
+  } else if (contract === "Safe" || contract === "SafeV2") {
     if (!entry.version) {
-      throw new Error("recordDeployment(Safe): version is required");
+      throw new Error(`recordDeployment(${contract}): version is required`);
     }
     if (entry.threshold === undefined) {
       throw new Error("recordDeployment(Safe): threshold is required");
