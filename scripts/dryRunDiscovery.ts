@@ -1,198 +1,229 @@
 /**
  * dryRunDiscovery.ts
  *
- * Read-only measurement of what a Multicall3 balance probe would find, and
- * what DefiLlama would price, compared against what `eth_getLogs` discovery
- * has actually found so far.
+ * Audit tool: how much is list-based discovery missing?
  *
- * This writes NOTHING except the shared token-list cache (gitignored derived
- * state). It does not touch .cache/fee-assets, does not produce a snapshot,
- * and cannot be mistaken for a collection record.
+ * WHY THIS EXISTS
+ *
+ * Discovery is now "read `balanceOf` for every token on a published list".
+ * That is fast and has no RPC-range failure modes, but it cannot find a token
+ * nobody ever listed -- and the router accepts ANY ERC20 as `tokenIn`, since
+ * the only on-chain allowlist is of aggregator targets, not tokens. Measured
+ * on base before the pivot, 63 of 300 distinct `tokenIn` addresses (21%)
+ * appeared in no list.
+ *
+ * Without something like this, that gap is unfalsifiable: a scan that misses
+ * an asset produces the same clean output as one that finds everything. This
+ * script walks real `OrderFilled` history and reports what the list-based path
+ * would not have found.
+ *
+ * IT IS NOT A FALLBACK. Nothing in `fees:scan` or `fees:cycle` imports it, and
+ * it deliberately carries its own copy of the log-walking code rather than
+ * exporting one for production to reach for. Run it occasionally; act on it by
+ * adding addresses to data/known-fee-assets.json.
  *
  * Usage:
  *   npx hardhat run scripts/dryRunDiscovery.ts
  *
  * Env:
- *   DRYRUN_ONLY     comma-separated network names to limit the run
- *   DRYRUN_NO_PRICE set to skip DefiLlama entirely
- *
- * The three columns that matter:
- *
- *   NEW      non-zero balances the probe found that log discovery has never
- *            seen. This is what the probe adds.
- *   LOGSONLY non-zero balances held in tokens that appear in NO published
- *            list. Only `eth_getLogs` can ever find these, which is why the
- *            probe is a union member and not a replacement.
- *   UNCHK    candidates the probe could not check. Not evidence of zero.
+ *   AUDIT_ONLY    comma-separated network names (default: all deployed)
+ *   AUDIT_RANGE   starting getLogs block span to probe down from (default 10000000)
  */
 import hre from "hardhat";
-import { formatUnits } from "ethers";
+import { id, getAddress, type JsonRpcProvider } from "ethers";
 import { listSafeChains, makeProvider, mapLimit } from "../util/safeChains";
 import { NETWORK_CONFIGS } from "../util/deploymentConfig";
-import { readCache } from "../util/feeAssetCache";
-import { toChecksum } from "../util/feeScan";
-import { buildTokenUniverse, indexByChain, loadOkuTokenList } from "../util/tokenUniverse";
+import { toChecksum } from "../util/address";
+import { indexByChain, loadKnownFeeAssets, loadOkuTokenList } from "../util/tokenUniverse";
 import { multicallAddressFor, probeBalances } from "../util/balanceProbe";
-import { fetchLlamaPrices, llamaSlug } from "../util/priceLlama";
+
+/** OrderFilled(address,address,address,address,uint256,uint256,uint256,address) */
+const ORDER_FILLED = id(
+  "OrderFilled(address,address,address,address,uint256,uint256,uint256,address)",
+);
+
+const RANGE_PROBES = [10_000_000, 1_000_000, 100_000, 10_000, 2_000, 1_000, 500, 200, 100, 50, 10];
+
+/** Largest block span this endpoint will serve, or 0 if it refuses all of them. */
+async function probeLogRange(
+  provider: JsonRpcProvider,
+  address: string,
+  latest: number,
+  start: number,
+): Promise<number> {
+  for (const span of RANGE_PROBES) {
+    if (span > start) continue;
+    try {
+      await provider.getLogs({
+        address,
+        fromBlock: Math.max(0, latest - span + 1),
+        toBlock: latest,
+      });
+      return span;
+    } catch {
+      // Refused: try a smaller window.
+    }
+  }
+  return 0;
+}
+
+/** Every distinct tokenIn ever seen, walking the whole history we can reach. */
+async function distinctTokenIn(
+  provider: JsonRpcProvider,
+  router: string,
+  latest: number,
+  range: number,
+): Promise<{ tokens: Set<string>; events: number; refused: number }> {
+  const tokens = new Set<string>();
+  let events = 0;
+  let refused = 0;
+  for (let start = 0; start <= latest; start += range) {
+    const end = Math.min(start + range - 1, latest);
+    try {
+      const logs = await provider.getLogs({
+        address: router,
+        fromBlock: start,
+        toBlock: end,
+        topics: [ORDER_FILLED],
+      });
+      for (const log of logs) {
+        events++;
+        // tokenIn is the first non-indexed field. Zero means ETH -> token,
+        // where the fee is native and there is no ERC20 to record.
+        const tokenIn = `0x${log.data.slice(26, 66)}`;
+        if (!/^0x0{40}$/.test(tokenIn)) tokens.add(getAddress(tokenIn));
+      }
+    } catch {
+      refused++;
+    }
+  }
+  return { tokens, events, refused };
+}
 
 interface Row {
   network: string;
   chainId: number;
   status: string;
-  cacheTokens: number;
-  listed: number;
-  universe: number;
-  calls: number;
-  found: number;
-  fresh: number;
-  logsOnly: number;
-  unchecked: number;
-  usd: number | null;
-  pricedOf: string;
-  warnings: string[];
+  events: number;
+  tokenIn: number;
+  unlisted: number;
+  unseeded: number;
+  heldUnlisted: number;
+  missing: string[];
 }
 
 async function main(): Promise<void> {
-  const only = process.env.DRYRUN_ONLY?.trim()
-    ? new Set(process.env.DRYRUN_ONLY.split(",").map((s) => s.trim()))
+  const only = process.env.AUDIT_ONLY?.trim()
+    ? new Set(process.env.AUDIT_ONLY.split(",").map((s) => s.trim()))
     : undefined;
-  const doPrice = !process.env.DRYRUN_NO_PRICE;
+  const startRange = Number(process.env.AUDIT_RANGE ?? 10_000_000);
 
-  const chains = listSafeChains(hre, only);
-  console.log(`Dry run over ${chains.length} chain(s). Read-only; no cache or snapshot is written.\n`);
-
+  const chains = listSafeChains(hre, only).filter((c) => c.router);
   const list = await loadOkuTokenList();
-  for (const w of list.warnings) console.log(`  ! ${w}`);
   const byChain = indexByChain(list.tokens);
+  const seed = loadKnownFeeAssets();
+
   console.log(
-    `Token list: ${list.tokens.length} entries across ${byChain.size} chains ` +
-      `(${list.fromCache ? "cached" : "fetched"})\n`,
+    `Auditing list-based discovery on ${chains.length} chain(s) against real OrderFilled ` +
+      `history.\nThis walks logs and is SLOW. It is a measurement, not part of any scan.\n`,
   );
 
   const rows = await mapLimit(chains, 4, async (chain): Promise<Row> => {
-    const cfg = NETWORK_CONFIGS[chain.network];
-    const cached = readCache(chain.network);
-    const listed = byChain.get(chain.chainId) ?? new Set<string>();
-    const universe = buildTokenUniverse(chain, byChain, cfg);
-
     const base: Row = {
       network: chain.network,
       chainId: chain.chainId,
       status: "ok",
-      cacheTokens: cached?.tokens.length ?? 0,
-      listed: listed.size,
-      universe: universe.tokens.size,
-      calls: 0,
-      found: 0,
-      fresh: 0,
-      logsOnly: 0,
-      unchecked: 0,
-      usd: null,
-      pricedOf: "",
-      warnings: [...universe.warnings],
+      events: 0,
+      tokenIn: 0,
+      unlisted: 0,
+      unseeded: 0,
+      heldUnlisted: 0,
+      missing: [],
     };
+    if (!chain.rpcUrl) return { ...base, status: "no-rpc" };
 
-    const rpc = chain.rpcUrl || chain.logsRpcUrl;
-    if (!rpc) return { ...base, status: "no-rpc" };
-    if (!chain.router) return { ...base, status: "no-router" };
-
-    const provider = makeProvider(rpc, chain.chainId);
+    const provider = makeProvider(chain.rpcUrl, chain.chainId);
     try {
-      const probe = await probeBalances(provider, chain.router, universe.tokens, {
-        multicall: multicallAddressFor(cfg),
-      });
-      base.calls = probe.calls;
-      base.unchecked = probe.unchecked;
-      base.warnings.push(...probe.warnings);
-      if (!probe.available) return { ...base, status: "no-multicall" };
+      const latest = await provider.getBlockNumber();
+      const range = await probeLogRange(provider, chain.router!, latest, startRange);
+      if (range === 0) return { ...base, status: "no-logs" };
 
-      const knownFromLogs = new Set<string>();
-      for (const t of cached?.tokens ?? []) {
-        const a = toChecksum(t);
-        if (a) knownFromLogs.add(a);
-      }
+      const { tokens, events, refused } = await distinctTokenIn(
+        provider,
+        chain.router!,
+        latest,
+        range,
+      );
+      base.events = events;
+      base.tokenIn = tokens.size;
+      if (refused > 0) base.status = `partial(${refused} refused)`;
 
-      base.found = probe.balances.size;
-      for (const token of probe.balances.keys()) {
-        if (!knownFromLogs.has(token)) base.fresh++;
-        if (!listed.has(token)) base.logsOnly++;
-      }
+      const listed = byChain.get(chain.chainId) ?? new Set<string>();
+      const seeded = seed.get(chain.chainId) ?? new Set<string>();
+      const unlisted = [...tokens].filter((t) => !listed.has(t));
+      const unseeded = unlisted.filter((t) => !seeded.has(t));
+      base.unlisted = unlisted.length;
+      base.unseeded = unseeded.length;
 
-      if (doPrice && probe.balances.size > 0 && llamaSlug(chain.network)) {
-        const px = await fetchLlamaPrices(chain.network, probe.balances.keys());
-        base.warnings.push(...px.warnings);
-        let usd = 0;
-        let priced = 0;
-        for (const [token, bal] of probe.balances) {
-          const p = px.prices.get(token);
-          if (!p || p.decimals === undefined) continue;
-          usd += Number(formatUnits(bal, p.decimals)) * p.price;
-          priced++;
-        }
-        base.usd = usd;
-        base.pricedOf = `${priced}/${probe.balances.size}`;
+      // The number that actually matters: of the tokens our candidate set
+      // would never ask about, how many is the router holding right now?
+      if (unseeded.length) {
+        const cfg = NETWORK_CONFIGS[chain.network];
+        const probe = await probeBalances(provider, chain.router!, unseeded, {
+          multicall: multicallAddressFor(cfg),
+        });
+        base.heldUnlisted = probe.balances.size;
+        base.missing = [...probe.balances.keys()].map((t) => toChecksum(t) ?? t);
       }
       return base;
     } catch (e) {
-      base.warnings.push(String((e as Error).message ?? e).slice(0, 140));
-      return { ...base, status: "error" };
+      return { ...base, status: `error: ${String((e as Error).message).slice(0, 40)}` };
     } finally {
       provider.destroy();
     }
   });
 
-  rows.sort((a, b) => a.chainId - b.chainId);
+  rows.sort((a, b) => b.heldUnlisted - a.heldUnlisted || a.chainId - b.chainId);
 
-  const p = (v: unknown, n: number) => String(v ?? "").padStart(n);
   const l = (v: unknown, n: number) => String(v ?? "").padEnd(n);
-
+  const p = (v: unknown, n: number) => String(v ?? "").padStart(n);
   console.log(
-    `${l("network", 12)} ${p("cache", 6)} ${p("listed", 7)} ${p("univ", 7)} ${p("calls", 6)} ` +
-      `${p("FOUND", 6)} ${p("NEW", 5)} ${p("LOGSONLY", 9)} ${p("UNCHK", 6)} ${p("USD", 11)}  priced  status`,
+    `${l("network", 12)} ${p("events", 8)} ${p("tokenIn", 8)} ${p("unlisted", 9)} ` +
+      `${p("unseeded", 9)} ${p("HELD", 5)}  status`,
   );
-  console.log("-".repeat(118));
-
-  let tFound = 0;
-  let tFresh = 0;
-  let tLogsOnly = 0;
-  let tCalls = 0;
-  let tUsd = 0;
-  let tUnchecked = 0;
+  console.log("-".repeat(80));
+  let tHeld = 0;
+  let tUnseeded = 0;
+  let tTokenIn = 0;
   for (const r of rows) {
-    tFound += r.found;
-    tFresh += r.fresh;
-    tLogsOnly += r.logsOnly;
-    tCalls += r.calls;
-    tUnchecked += r.unchecked;
-    tUsd += r.usd ?? 0;
+    tHeld += r.heldUnlisted;
+    tUnseeded += r.unseeded;
+    tTokenIn += r.tokenIn;
     console.log(
-      `${l(r.network, 12)} ${p(r.cacheTokens, 6)} ${p(r.listed, 7)} ${p(r.universe, 7)} ${p(r.calls, 6)} ` +
-        `${p(r.found, 6)} ${p(r.fresh, 5)} ${p(r.logsOnly, 9)} ${p(r.unchecked, 6)} ` +
-        `${p(r.usd === null ? "-" : `$${r.usd.toFixed(2)}`, 11)}  ${l(r.pricedOf, 7)} ${r.status}`,
+      `${l(r.network, 12)} ${p(r.events, 8)} ${p(r.tokenIn, 8)} ${p(r.unlisted, 9)} ` +
+        `${p(r.unseeded, 9)} ${p(r.heldUnlisted || "", 5)}  ${r.status}`,
     );
   }
-
-  console.log("-".repeat(118));
+  console.log("-".repeat(80));
   console.log(
-    `${l("TOTAL", 12)} ${p("", 6)} ${p("", 7)} ${p("", 7)} ${p(tCalls, 6)} ` +
-      `${p(tFound, 6)} ${p(tFresh, 5)} ${p(tLogsOnly, 9)} ${p(tUnchecked, 6)} ${p(`$${tUsd.toFixed(2)}`, 11)}`,
+    `${l("TOTAL", 12)} ${p("", 8)} ${p(tTokenIn, 8)} ${p("", 9)} ${p(tUnseeded, 9)} ${p(tHeld, 5)}`,
   );
 
   console.log("");
-  console.log(`Total eth_calls for the whole probe : ${tCalls}`);
-  console.log(`Non-zero balances found             : ${tFound}`);
-  console.log(`  ...never seen by log discovery    : ${tFresh}   <- what the probe adds`);
-  console.log(`  ...in no published token list     : ${tLogsOnly}   <- why getLogs must stay`);
-  if (tUnchecked > 0) {
-    console.log(`Candidates NOT checked              : ${tUnchecked}   <- not evidence of zero`);
-  }
+  console.log(`Distinct tokenIn ever seen        : ${tTokenIn}`);
+  console.log(`  ...in neither the list nor seed : ${tUnseeded}  <- invisible to fees:scan`);
+  console.log(`  ...of those, HELD right now     : ${tHeld}  <- value being left behind`);
 
-  const noisy = rows.filter((r) => r.warnings.length > 0);
-  if (noisy.length) {
-    console.log("\nWarnings:");
-    for (const r of noisy) {
-      for (const w of r.warnings) console.log(`  ${r.network}: ${w}`);
+  const withMissing = rows.filter((r) => r.missing.length);
+  if (withMissing.length) {
+    console.log("\nAdd these to data/known-fee-assets.json to make them visible again:\n");
+    for (const r of withMissing) {
+      console.log(`  "${r.chainId}": [   // ${r.network}`);
+      for (const a of r.missing) console.log(`    "${a}",`);
+      console.log("  ],");
     }
+  } else {
+    console.log("\nNothing held is invisible to the candidate set.");
   }
 }
 

@@ -6,20 +6,17 @@
  *
  * This exists because the router has no fee accounting of any kind: there is
  * no `collectableFees()` view, no per-token mapping, nothing. Fees are simply
- * the contract's own balance, so the only way to know what is there is to
- * discover which assets have flowed through and read each balance. See
- * util/feeScan.ts for the discovery rules.
+ * the contract's own balance, so the only way to know what is there is to ask
+ * a candidate set of tokens for their balance. See util/tokenUniverse.ts for
+ * where the candidates come from and util/balanceProbe.ts for how they are
+ * read.
  *
- * Two distinct totals are printed and they are NOT interchangeable:
- *   - notional   : spot price x balance, summed.
- *   - realizable : the same, but each asset capped at a fraction of its pool
- *                  depth. Long-tail tokens routinely quote a real-looking
- *                  price against a pool with no quote liquidity, so notional
- *                  overstates badly. Make decisions on realizable.
- *
- * Discovery resumes from a local, gitignored cache (util/feeAssetCache.ts),
- * so a regular cadence pays for new blocks only. `--no-cache` forces a cold
- * scan. Per-chain log endpoints come from `<NET>_LOGS_URL`.
+ * ONE total is printed: notional, price x balance, from DefiLlama. There is
+ * no realizable figure -- valuation no longer reads pool depth, so nothing
+ * here knows whether an asset can actually be sold. Assets with no quote are
+ * reported unpriced and contribute $0, and the count is always stated: a
+ * "$0.00" meaning "we could not value this" must stay distinguishable from
+ * one meaning "there is nothing here".
  *
  * For the full collect-and-sign workflow use `fees:cycle`, which wraps this
  * scan, writes a snapshot, and builds the sweep bundle from it.
@@ -32,7 +29,7 @@
  */
 import * as fs from "fs";
 import { task } from "hardhat/config";
-import { listSafeChains, logsEnvVar, mapLimit, pad } from "../util/safeChains";
+import { listSafeChains, mapLimit, pad } from "../util/safeChains";
 import { NATIVE_SENTINEL } from "../util/feeScan";
 import { scanChainForSnapshot } from "../util/feeSweepScan";
 import { buildSnapshot } from "../util/feeSnapshot";
@@ -46,27 +43,22 @@ function usd(n: number | undefined): string {
 task("fees:scan", "Report idle protocol fees held by each OkuRouter")
   .addOptionalParam("networks", "Comma-separated hardhat network names")
   .addOptionalParam("json", "Write the full result to this path as JSON")
-  .addOptionalParam("maxRequests", "Per-chain eth_getLogs request budget (default 400)")
   .addOptionalParam(
     "rpc",
     "Override RPC URL (requires a single --networks entry). For multi-chain runs " +
-      "set <NET>_LOGS_URL instead, e.g. WORLDCHAIN_LOGS_URL.",
+      "set <NET>_URL per chain.",
   )
   .addFlag("noPrice", "Skip USD valuation (much faster)")
-  .addFlag("noCache", "Ignore the discovery cache and re-scan full history")
-  .addFlag("noProbe", "Skip the Multicall3 balance probe (log discovery only)")
   .setAction(async (args, hre) => {
     const only = args.networks
       ? new Set(String(args.networks).split(",").map((s: string) => s.trim()))
       : undefined;
-    const maxRequests = args.maxRequests ? Number(args.maxRequests) : undefined;
     const chains = listSafeChains(hre, only).filter((c) => c.router);
 
     if (args.rpc && chains.length !== 1) {
       throw new Error(
         `--rpc applies to one chain, but ${chains.length} were selected. ` +
-          `Pass --networks <single network> alongside --rpc, or set ${logsEnvVar("<net>")} ` +
-          `per chain for a multi-chain run.`,
+          `Pass --networks <single network> alongside --rpc for a multi-chain run.`,
       );
     }
 
@@ -79,21 +71,16 @@ task("fees:scan", "Report idle protocol fees held by each OkuRouter")
 
     // Loaded once and shared across chains: the published list is ~8 MB, so
     // parsing it per chain would cost more than the probe it feeds.
-    let tokenListByChain: Map<number, Set<string>> | undefined;
-    if (!args.noProbe) {
-      const list = await loadOkuTokenList();
-      for (const w of list.warnings) console.log(`  ! ${w}`);
-      tokenListByChain = indexByChain(list.tokens);
-      console.log(
-        `Candidate token list: ${list.tokens.length} entries ` +
-          `(${list.fromCache ? "cached" : "fetched"})\n`,
-      );
-    }
+    const list = await loadOkuTokenList();
+    for (const w of list.warnings) console.log(`  ! ${w}`);
+    const tokenListByChain = indexByChain(list.tokens);
+    console.log(
+      `Candidate token list: ${list.tokens.length} entries ` +
+        `(${list.fromCache ? "cached" : "fetched"})\n`,
+    );
 
     const results = await mapLimit(chains, 4, (chain) =>
       scanChainForSnapshot(chain, {
-        maxRequests,
-        useCache: !args.noCache,
         price: !args.noPrice,
         tokenListByChain,
         rpcOverride: args.rpc ? String(args.rpc) : undefined,
@@ -109,35 +96,30 @@ task("fees:scan", "Report idle protocol fees held by each OkuRouter")
         continue;
       }
 
+      const unp = r.totals.unpricedCount
+        ? `  (${r.totals.unpricedCount} unpriced)`
+        : "";
       console.log(
         `=== ${r.network} (${r.chainId})  router ${r.router}  ` +
-          `${r.totals.assetCount} asset(s)  notional ${usd(r.totals.usdNotional)}  ` +
-          `realizable ${usd(r.totals.usdRealizable)}`,
+          `${r.totals.assetCount} asset(s)  notional ${usd(r.totals.usdNotional)}${unp}`,
       );
-      if (r.coverage) {
-        console.log(
-          `    scan: blocks ${r.coverage.fromBlock}-${r.coverage.toBlock} ` +
-            `(range ${r.coverage.rangeUsed}${r.coverage.partial ? ", PARTIAL" : ", full"}), ` +
-            `${r.coverage.events} OrderFilled, ${r.coverage.everSeen} assets ever seen` +
-            `${r.cacheHit ? ", resumed from cache" : ""}` +
-            `${r.usedLogsRpc ? `, via ${logsEnvVar(r.network)}` : ""}`,
-        );
-      }
       if (r.probe) {
+        const s = r.probe.sources;
         console.log(
-          `    probe: ${r.probe.calls} eth_call(s) over ${r.probe.candidates} candidate(s), ` +
-            `${r.probe.found} holding a balance, ${r.probe.newToDiscovery} new to log discovery`,
+          `    probe: ${r.probe.calls} eth_call(s) over ${r.probe.candidates} candidate(s) ` +
+            `(list ${s.tokenList}, seed ${s.seed}, config ${s.chainConfig})` +
+            `${r.probe.unchecked ? `, ${r.probe.unchecked} UNCHECKED` : ""}`,
         );
       }
       if (r.assets.length) {
         console.log(
-          `    ${pad("symbol", 12)}${pad("amount", 26)}${pad("usd", 12)}${pad("depth", 12)}address`,
+          `    ${pad("symbol", 12)}${pad("amount", 26)}${pad("usd", 12)}price source`,
         );
       }
       for (const a of r.assets) {
         console.log(
           `    ${pad(a.symbol.slice(0, 11), 12)}${pad(a.amount, 26)}` +
-            `${pad(usd(a.usdValue), 12)}${pad(usd(a.poolDepthUsd), 12)}` +
+            `${pad(usd(a.usdValue), 12)}${pad(a.priceSource ?? "-", 22)}` +
             `${a.token === NATIVE_SENTINEL ? "(native)" : a.token}`,
         );
       }
@@ -148,23 +130,28 @@ task("fees:scan", "Report idle protocol fees held by each OkuRouter")
     const snap = buildSnapshot(results);
 
     console.log("-".repeat(92));
+    const totalAssets = results.reduce((s, r) => s + r.totals.assetCount, 0);
+    const pricedAssets = totalAssets - snap.totals.unpricedCount;
+    const pct = totalAssets ? ((100 * pricedAssets) / totalAssets).toFixed(1) : "0.0";
     console.log(
       `TOTAL across ${snap.totals.chainsScanned} chain(s):  ` +
-        `notional ${usd(snap.totals.usdNotional)}   realizable ${usd(snap.totals.usdRealizable)}`,
+        `notional ${usd(snap.totals.usdNotional)}`,
     );
     console.log(
-      "Notional is spot x balance and overstates long-tail tokens; realizable caps each\n" +
-        "asset at a fraction of its pool depth. Decide on realizable.",
+      `Price coverage: ${pricedAssets}/${totalAssets} asset(s) priced (${pct}%)`,
     );
     if (snap.totals.unpricedCount > 0) {
-      // Without this line the totals above read as a valuation. They are not:
-      // an asset nobody could price contributes $0 to both, which is
-      // indistinguishable from an asset that is genuinely worthless.
+      // Without this line the total above reads as a valuation. It is not: an
+      // asset nobody could price contributes $0, which is indistinguishable
+      // from an asset that is genuinely worthless.
       console.log(
-        `\n${snap.totals.unpricedCount} asset(s) carry NO price and contributed $0 to both ` +
-          `totals.\nThe figures above are a lower bound, not a valuation.`,
+        `${snap.totals.unpricedCount} asset(s) carry NO price and contributed $0.\n` +
+          `The figure above is a lower bound, not a valuation.`,
       );
     }
+    console.log(
+      "There is no liquidity signal: nothing here says whether an asset can be sold.",
+    );
 
     if (snap.totals.chainsErrored > 0) {
       // These chains were not proven empty -- they could not be read at all.

@@ -209,13 +209,26 @@ export async function accountForSweepTx(opts: {
     );
   }
 
-  // Price at the execution block so the record reflects value at the time of
-  // the sweep, not whenever the report happened to be generated.
+  // Price AS OF THE EXECUTION BLOCK, not now.
+  //
+  // This is a permanent record of what a collection was worth when it
+  // happened. Pricing it at report-generation time would silently restate
+  // history every time the report was rebuilt -- `fees:report --rebuild`
+  // exists, so that is not hypothetical. DefiLlama's historical endpoint
+  // takes the block's own timestamp.
   let nativeUsdPrice: number | undefined;
   const cfg = NETWORK_CONFIGS[opts.network];
   if (cfg) {
     try {
-      const { priced, nativeUsd, warnings: pw } = await priceAssets(provider, cfg, forPricing);
+      if (!block) {
+        warnings.push(
+          "could not read the execution block timestamp, so assets are priced at CURRENT " +
+            "prices rather than as of the sweep",
+        );
+      }
+      const { priced, nativeUsd, warnings: pw } = await priceAssets(provider, cfg, forPricing, {
+        at: block ? block.timestamp : undefined,
+      });
       nativeUsdPrice = nativeUsd ?? undefined;
       warnings.push(...pw);
       for (const p of priced) {
@@ -223,8 +236,6 @@ export async function accountForSweepTx(opts: {
         if (!a) continue;
         a.usdPrice = p.usdPrice;
         a.usdValue = p.usdValue;
-        a.poolDepthUsd = p.poolDepthUsd;
-        a.realizableUsd = p.realizableUsd;
         a.priceSource = p.priceSource;
       }
     } catch (e) {
@@ -368,10 +379,9 @@ function usd(n: number | undefined): string {
 export function writeDateSummary(date: string): string | null {
   const reports = readAllReports().filter((r) => r.date === date);
   if (reports.length === 0) return null;
-  reports.sort((a, b) => b.totals.usdRealizable - a.totals.usdRealizable);
+  reports.sort((a, b) => b.totals.usdNotional - a.totals.usdNotional);
 
   const notional = reports.reduce((s, r) => s + r.totals.usdNotional, 0);
-  const realizable = reports.reduce((s, r) => s + r.totals.usdRealizable, 0);
   const gasUsd = reports.reduce((s, r) => s + (r.execution.gasCostUsd ?? 0), 0);
   const assets = reports.reduce((s, r) => s + r.totals.assetCount, 0);
   const unreconciled = reports.filter(
@@ -386,7 +396,6 @@ export function writeDateSummary(date: string): string | null {
   L.push(`| Chains swept | ${reports.length} |`);
   L.push(`| Assets moved | ${assets} |`);
   L.push(`| Notional | ${usd(notional)} |`);
-  L.push(`| **Realizable** | **${usd(realizable)}** |`);
   L.push(`| Gas spent | ${usd(gasUsd)} |`);
   L.push(`| Fully reconciled | ${unreconciled.length === 0 ? "yes" : `NO — ${unreconciled.length} chain(s)`} |`);
   L.push("");
@@ -460,8 +469,7 @@ task("fees:report", "Roll up fee collection across dates, weeks or chains")
     reports.sort((a, b) => (a.date === b.date ? a.network.localeCompare(b.network) : a.date.localeCompare(b.date)));
 
     const notional = reports.reduce((s, r) => s + r.totals.usdNotional, 0);
-    const realizable = reports.reduce((s, r) => s + r.totals.usdRealizable, 0);
-    const gas = reports.reduce((s, r) => s + (r.execution.gasCostUsd ?? 0), 0);
+      const gas = reports.reduce((s, r) => s + (r.execution.gasCostUsd ?? 0), 0);
     const assets = reports.reduce((s, r) => s + r.totals.assetCount, 0);
     const bad = reports.filter(
       (r) => !r.reconciliation.allRouterBalancesZero || !r.reconciliation.eventsMatchBalanceDeltas,
@@ -484,7 +492,7 @@ task("fees:report", "Roll up fee collection across dates, weeks or chains")
     console.log("-".repeat(75));
     console.log(
       `${reports.length} sweep(s), ${assets} asset(s):  notional ${usd(notional)}   ` +
-        `realizable ${usd(realizable)}   gas ${usd(gas)}`,
+        `gas ${usd(gas)}`,
     );
     if (bad.length) {
       console.log(`\n${bad.length} sweep(s) did NOT fully reconcile:`);

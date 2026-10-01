@@ -1,56 +1,33 @@
 /**
  * rpcEndpoints.ts
  *
- * Curated per-chain RPC endpoints, split into two independent choices:
+ * Curated per-chain general-RPC endpoints.
  *
- *   - `rpc`  — general JSON-RPC: balance reads, historical (archive) state,
- *              and transaction broadcast.
- *   - `logs` — the `eth_getLogs` endpoint used for fee-asset discovery.
+ * These are the endpoints used for balance reads, historical (archive) state,
+ * and transaction broadcast. They are consulted BEFORE Alchemy, because
+ * Alchemy's free tier is not uniformly the best option on these chains and on
+ * several it is materially worse.
  *
- * Why these are separate
- * ----------------------
- * They have different winners. On `xdc` and `goat` the public endpoint serves
- * a far wider `eth_getLogs` range than Ankr, while Ankr serves archive state
- * that the public endpoint does not (xdc: 10 blocks deep vs 1,000,000). Being
- * forced to pick one endpoint for both would mean giving up discovery depth to
- * get archive depth, or the reverse.
- *
- * Why this file exists at all
- * ---------------------------
- * Fee-asset discovery walks `OrderFilled` history, so the largest block span
- * an endpoint accepts for `eth_getLogs` directly bounds how much of the fee
- * history is visible. Before this map, `hardhat.config.ts` resolved endpoints
- * as `env var -> Alchemy -> curated public -> chain-config`, which put Alchemy
- * FIRST on every chain it supports.
- *
- * Alchemy's free tier caps `eth_getLogs` at **10 blocks**. Measured against
- * the router on each chain, that produced:
- *
- *     chain      Alchemy    official public endpoint
- *     base            10    10,000,000  (via Ankr)
- *     arbitrum        10    10,000,000  (via Ankr)
- *     avax            10    10,000,000  (via Ankr)
- *     op              10     1,000,000  (https://mainnet.optimism.io)
- *     scroll          10    10,000,000  (https://rpc.scroll.io)
- *     linea           10        10,000  (https://rpc.linea.build)
- *     mantle          10        10,000  (https://rpc.mantle.xyz)
- *     unichain        10        10,000  (https://mainnet.unichain.org)
- *
- * The consequence was not theoretical. On the 2026-09-29 sweep, avax
- * discovered ONE token and reported $0.00, while the router actually held
- * nine tokens including USDC 1,173. Arbitrum discovered zero and swept only
- * the hardcoded WETH/WBTC/USDC fallback, leaving 33 tokens behind.
- *
- * So the curated map is consulted BEFORE Alchemy. Explicit `<NET>_URL` /
- * `<NET>_LOGS_URL` env vars still win over everything, so any endpoint here
+ * Explicit `<NET>_URL` env vars still win over everything here, so any entry
  * can be overridden per-run without a code change.
+ *
+ * WHAT USED TO BE HERE
+ *
+ * A second, parallel map of `eth_getLogs` endpoints, because fee discovery
+ * walked `OrderFilled` history and the largest block span an endpoint would
+ * serve directly bounded how much of that history was visible. Alchemy capped
+ * getLogs at 10 blocks, which on 2026-09-29 reduced arbitrum to zero
+ * discovered assets while the router held 34, and reported avax as $0.00 while
+ * it held USDC 1,173.
+ *
+ * Discovery no longer reads logs at all -- it reads balances for a candidate
+ * token list -- so that entire apparatus, and the class of failure it existed
+ * to work around, is gone.
  *
  * Keeping this current
  * --------------------
- * These values were measured, not assumed -- each is the best result from
- * probing several candidates per chain with the same ladder
- * `util/feeScan.ts:probeLogRange` uses. Endpoints degrade over time; re-probe
- * before trusting a number here that matters.
+ * These values were measured, not assumed. Endpoints degrade over time;
+ * re-probe before trusting a number here that matters.
  */
 
 /**
@@ -106,89 +83,32 @@ const ANKR_FOR_RPC = new Set([
   "filecoin",
   "redbelly",
   "etherlink",
-  "xdc", // archive depth 10 -> 1,000,000 (but NOT for logs; see below)
-  "goat", // archive depth 128 -> 1,000,000 (but NOT for logs; see below)
+  "xdc", // archive depth 10 -> 1,000,000
+  "goat", // archive depth 128 -> 1,000,000
   // `monad` deliberately absent: Ankr's archive depth there is 100,000 vs
   // 1,000,000 on the chain-config endpoint, so Ankr would be a downgrade.
-]);
-
-/** Which chains should prefer Ankr for eth_getLogs. */
-const ANKR_FOR_LOGS = new Set([
-  "mainnet", // 100 -> 10,000,000
-  "bsc", // 10,000 -> 10,000,000
-  "polygon", // 10,000 -> 10,000,000
-  "base", // 10 -> 10,000,000
-  "arbitrum", // 10 -> 10,000,000
-  "avax", // 10 -> 10,000,000
-  "redbelly", // 100 -> 2,000
-  "etherlink", // 500 -> 1,000
-  // Deliberately absent, because the incumbent endpoint is strictly better:
-  //   xdc   public 10,000     vs Ankr 2,000
-  //   goat  public 10,000,000 vs Ankr 2,000
-  //   monad both 100
-  //   gnosis public 10,000,000 vs Ankr 10,000,000 (equal; no reason to move)
-  //   celo/filecoin equal
 ]);
 
 export interface ChainEndpoints {
   /** General JSON-RPC (reads, archive state, broadcast). */
   rpc?: string;
-  /** eth_getLogs endpoint for fee-asset discovery. */
-  logs?: string;
 }
 
 /**
  * Non-Ankr curated endpoints, measured as the best available per chain.
  *
- * `logs` is only set where it beats what the default resolution would pick.
- * `rpc` is only set where the default would pick something with worse archive
- * depth or reliability.
+ * Only set where the default resolution would otherwise pick something with
+ * worse archive depth or reliability.
  */
 const CURATED: Record<string, ChainEndpoints> = {
-  // --- Alchemy was capping eth_getLogs at 10 blocks on all of these ---
-  op: { rpc: "https://mainnet.optimism.io", logs: "https://mainnet.optimism.io" }, // logs 10 -> 1,000,000
-  scroll: { rpc: "https://rpc.scroll.io", logs: "https://rpc.scroll.io" }, // logs 10 -> 10,000,000
-  linea: { rpc: "https://rpc.linea.build", logs: "https://rpc.linea.build" }, // logs 10 -> 10,000
-  mantle: { rpc: "https://rpc.mantle.xyz", logs: "https://rpc.mantle.xyz" }, // logs 10 -> 10,000
-  unichain: { rpc: "https://mainnet.unichain.org", logs: "https://mainnet.unichain.org" }, // logs 10 -> 10,000
-
-  // --- the general/logs split (see ANKR_FOR_RPC vs ANKR_FOR_LOGS) ---
-  //
-  // These MUST be set explicitly rather than left undefined. `resolveLogsRpc`
-  // falls back to the chain's general RPC when there is no logs entry, and
-  // the general RPC for these two is now Ankr -- so omitting them would route
-  // discovery through Ankr's narrower window and silently undo the split.
-  //   xdc:  public 10,000     vs Ankr 2,000
-  //   goat: public 10,000,000 vs Ankr 2,000
-  xdc: { logs: "https://rpc.xdcrpc.com" },
-  goat: { logs: "https://rpc.goat.network" },
-
-  // --- better than the incumbent public endpoint ---
-  worldchain: { logs: "https://480.rpc.thirdweb.com" }, // logs 100 -> 1,000
-  hyperevm: { logs: "https://rpc.hypurrscan.io" }, // logs 100 -> 1,000 (drpc gave 100, official 500)
-  sei: { logs: "https://evm-rpc.sei-apis.com" }, // 2,000, and full archive unlike publicnode
-  boba: { logs: "https://mainnet.boba.network" }, // 10,000,000
-  bob: { logs: "https://rpc.gobob.xyz" }, // 10,000,000
-  hemi: { logs: "https://rpc.hemi.network/rpc" }, // 1,000,000
-  telos: { logs: "https://rpc.telos.net" }, // 100,000
-  zerog: { logs: "https://evmrpc.0g.ai" }, // 100,000
-  plasma: { logs: "https://rpc.plasma.to" }, // 10,000
-  saga: { logs: "https://sagaevm.jsonrpc.sagarpc.io" }, // 10,000 (archive only 1,000)
-  nibiru: { logs: "https://evm-rpc.nibiru.fi" }, // 10,000 (archive only 1,000)
+  // Alchemy is a poorer general endpoint than the official public one on each
+  // of these, so the curated entry takes precedence.
+  op: { rpc: "https://mainnet.optimism.io" },
+  scroll: { rpc: "https://rpc.scroll.io" },
+  linea: { rpc: "https://rpc.linea.build" },
+  mantle: { rpc: "https://rpc.mantle.xyz" },
+  unichain: { rpc: "https://mainnet.unichain.org" },
 };
-
-/**
- * Chains where no endpoint we could find serves `eth_getLogs` at all.
- *
- * Discovery is impossible on these: the scan falls back to the hardcoded
- * well-known token set (WETH/WBTC/USDC) plus the native balance, and any
- * other asset the router holds is invisible. This is a real, permanent gap
- * until a logs-capable endpoint exists, and it is recorded here so it can be
- * reported honestly instead of being mistaken for "this chain has no fees".
- *
- * Probed and refused: public-node.rsk.co, rootstock.drpc.org, mycrypto.rsk.co.
- */
-export const NO_LOGS_ENDPOINT = new Set(["rootstock"]);
 
 /**
  * Chains whose best available endpoint serves only shallow historical state.
@@ -198,6 +118,9 @@ export const NO_LOGS_ENDPOINT = new Set(["rootstock"]);
  * fails and the accounting degrades to event-derived amounts only -- which a
  * fee-on-transfer token can overstate. Observed live on bsc during the
  * 2026-09-29 sweep; bsc is now fixed via Ankr, but these are not.
+ *
+ * This is the one place historical state still matters: discovery no longer
+ * reads the past at all.
  *
  * Depth measured with eth_getBalance against the router, in blocks below head.
  */
@@ -229,22 +152,10 @@ export function curatedRpc(network: string): string | undefined {
   return CURATED[network]?.rpc;
 }
 
-/**
- * Curated eth_getLogs endpoint for a network, or undefined to fall back to
- * the general RPC.
- */
-export function curatedLogsRpc(network: string): string | undefined {
-  if (ANKR_FOR_LOGS.has(network)) {
-    const a = ankrUrl(network);
-    if (a) return a;
-  }
-  return CURATED[network]?.logs;
-}
-
 /** True when this network is served by Ankr under the configured key. */
 export function isAnkrEntitled(network: string): boolean {
   return ANKR_SLUGS[network] !== undefined;
 }
 
 /** Exposed for tests and for `fees:scan --help`-style diagnostics. */
-export const _internal = { ANKR_SLUGS, ANKR_FOR_RPC, ANKR_FOR_LOGS, CURATED };
+export const _internal = { ANKR_SLUGS, ANKR_FOR_RPC, CURATED };

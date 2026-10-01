@@ -261,8 +261,6 @@ async function main() {
         if (!t) continue;
         t.usdPrice = p.usdPrice;
         t.usdValue = p.usdValue;
-        t.poolDepthUsd = p.poolDepthUsd;
-        t.realizableUsd = p.realizableUsd;
         t.priceSource = p.priceSource;
       }
     } catch (e) {

@@ -1,0 +1,570 @@
+{
+  "name": "whitelist-akka-2026-10-01",
+  "intent": "swap-targets",
+  "params": {},
+  "safe": "0xdC91978e0617CcA2EE1E658d0A1CA3F63CF10f1F",
+  "threshold": 2,
+  "owners": [
+    "0x9B68c14e936104e9a7a24c712BEecdc220002984",
+    "0x5227a7404631Eb7De411232535E36dE8dad318f0",
+    "0x43A9beCdC1323c1dFcfA776cE9bF57F9F8Ce8200"
+  ],
+  "createdAt": "2026-10-01T17:26:23.831Z",
+  "chains": [
+    {
+      "network": "mainnet",
+      "chainId": 1,
+      "router": "0xb1f3a7B816B0681188F54dFa400991B93ADf00ed",
+      "nonce": "3",
+      "chainMeta": {
+        "chainName": "Ethereum",
+        "rpcUrl": "https://eth.drpc.org",
+        "nativeCurrency": {
+          "name": "Ether",
+          "symbol": "ETH",
+          "decimals": 18
+        },
+        "blockExplorerUrl": "https://etherscan.io"
+      },
+      "calls": [
+        {
+          "to": "0xb1f3a7B816B0681188F54dFa400991B93ADf00ed",
+          "data": "0x97bbda0e0000000000000000000000000b00004ccc39408fa289e9f6853bfe4eac3e52c80000000000000000000000000000000000000000000000000000000000000001",
+          "value": "0",
+          "label": "updateSwapTargets(0x0B00004Ccc39408Fa289e9F6853BFE4eac3E52c8, true)  akka [akka]"
+        }
+      ],
+      "tx": {
+        "to": "0xb1f3a7B816B0681188F54dFa400991B93ADf00ed",
+        "value": "0",
+        "data": "0x97bbda0e0000000000000000000000000b00004ccc39408fa289e9f6853bfe4eac3e52c80000000000000000000000000000000000000000000000000000000000000001",
+        "operation": 0,
+        "safeTxGas": "0",
+        "baseGas": "0",
+        "gasPrice": "0",
+        "gasToken": "0x0000000000000000000000000000000000000000",
+        "refundReceiver": "0x0000000000000000000000000000000000000000",
+        "nonce": "3"
+      },
+      "safeTxHash": "0x0cbd3eec2b6259bb45439c8dcf4e82763e3c944e204452a01385880e2608c091",
+      "eip712": {
+        "types": {
+          "SafeTx": [
+            {
+              "name": "to",
+              "type": "address"
+            },
+            {
+              "name": "value",
+              "type": "uint256"
+            },
+            {
+              "name": "data",
+              "type": "bytes"
+            },
+            {
+              "name": "operation",
+              "type": "uint8"
+            },
+            {
+              "name": "safeTxGas",
+              "type": "uint256"
+            },
+            {
+              "name": "baseGas",
+              "type": "uint256"
+            },
+            {
+              "name": "gasPrice",
+              "type": "uint256"
+            },
+            {
+              "name": "gasToken",
+              "type": "address"
+            },
+            {
+              "name": "refundReceiver",
+              "type": "address"
+            },
+            {
+              "name": "nonce",
+              "type": "uint256"
+            }
+          ],
+          "EIP712Domain": [
+            {
+              "name": "chainId",
+              "type": "uint256"
+            },
+            {
+              "name": "verifyingContract",
+              "type": "address"
+            }
+          ]
+        },
+        "domain": {
+          "chainId": "0x1",
+          "verifyingContract": "0xdc91978e0617cca2ee1e658d0a1ca3f63cf10f1f"
+        },
+        "primaryType": "SafeTx",
+        "message": {
+          "to": "0xb1f3a7b816b0681188f54dfa400991b93adf00ed",
+          "value": "0",
+          "data": "0x97bbda0e0000000000000000000000000b00004ccc39408fa289e9f6853bfe4eac3e52c80000000000000000000000000000000000000000000000000000000000000001",
+          "operation": "0",
+          "safeTxGas": "0",
+          "baseGas": "0",
+          "gasPrice": "0",
+          "gasToken": "0x0000000000000000000000000000000000000000",
+          "refundReceiver": "0x0000000000000000000000000000000000000000",
+          "nonce": "3"
+        }
+      },
+      "signatures": []
+    },
+    {
+      "network": "xdc",
+      "chainId": 50,
+      "router": "0x7B060A98BA242Ae42D6027a60937787eBe33DEBe",
+      "nonce": "3",
+      "chainMeta": {
+        "chainName": "XDC",
+        "rpcUrl": "https://erpc.xinfin.network",
+        "nativeCurrency": {
+          "name": "XDC",
+          "symbol": "XDC",
+          "decimals": 18
+        },
+        "blockExplorerUrl": "https://xdcscan.com"
+      },
+      "calls": [
+        {
+          "to": "0x7B060A98BA242Ae42D6027a60937787eBe33DEBe",
+          "data": "0x97bbda0e0000000000000000000000000b00004ccc39408fa289e9f6853bfe4eac3e52c80000000000000000000000000000000000000000000000000000000000000001",
+          "value": "0",
+          "label": "updateSwapTargets(0x0B00004Ccc39408Fa289e9F6853BFE4eac3E52c8, true)  akka [akka]"
+        }
+      ],
+      "tx": {
+        "to": "0x7B060A98BA242Ae42D6027a60937787eBe33DEBe",
+        "value": "0",
+        "data": "0x97bbda0e0000000000000000000000000b00004ccc39408fa289e9f6853bfe4eac3e52c80000000000000000000000000000000000000000000000000000000000000001",
+        "operation": 0,
+        "safeTxGas": "0",
+        "baseGas": "0",
+        "gasPrice": "0",
+        "gasToken": "0x0000000000000000000000000000000000000000",
+        "refundReceiver": "0x0000000000000000000000000000000000000000",
+        "nonce": "3"
+      },
+      "safeTxHash": "0x304bc4e917c3d98b6250e61e390b5358892e864fa92d79db96b2c2298b533639",
+      "eip712": {
+        "types": {
+          "SafeTx": [
+            {
+              "name": "to",
+              "type": "address"
+            },
+            {
+              "name": "value",
+              "type": "uint256"
+            },
+            {
+              "name": "data",
+              "type": "bytes"
+            },
+            {
+              "name": "operation",
+              "type": "uint8"
+            },
+            {
+              "name": "safeTxGas",
+              "type": "uint256"
+            },
+            {
+              "name": "baseGas",
+              "type": "uint256"
+            },
+            {
+              "name": "gasPrice",
+              "type": "uint256"
+            },
+            {
+              "name": "gasToken",
+              "type": "address"
+            },
+            {
+              "name": "refundReceiver",
+              "type": "address"
+            },
+            {
+              "name": "nonce",
+              "type": "uint256"
+            }
+          ],
+          "EIP712Domain": [
+            {
+              "name": "chainId",
+              "type": "uint256"
+            },
+            {
+              "name": "verifyingContract",
+              "type": "address"
+            }
+          ]
+        },
+        "domain": {
+          "chainId": "0x32",
+          "verifyingContract": "0xdc91978e0617cca2ee1e658d0a1ca3f63cf10f1f"
+        },
+        "primaryType": "SafeTx",
+        "message": {
+          "to": "0x7b060a98ba242ae42d6027a60937787ebe33debe",
+          "value": "0",
+          "data": "0x97bbda0e0000000000000000000000000b00004ccc39408fa289e9f6853bfe4eac3e52c80000000000000000000000000000000000000000000000000000000000000001",
+          "operation": "0",
+          "safeTxGas": "0",
+          "baseGas": "0",
+          "gasPrice": "0",
+          "gasToken": "0x0000000000000000000000000000000000000000",
+          "refundReceiver": "0x0000000000000000000000000000000000000000",
+          "nonce": "3"
+        }
+      },
+      "signatures": []
+    },
+    {
+      "network": "hyperevm",
+      "chainId": 999,
+      "router": "0xb1f3a7B816B0681188F54dFa400991B93ADf00ed",
+      "nonce": "3",
+      "chainMeta": {
+        "chainName": "HyperEVM",
+        "rpcUrl": "https://rpc.hyperliquid.xyz/evm",
+        "nativeCurrency": {
+          "name": "HYPE",
+          "symbol": "HYPE",
+          "decimals": 18
+        },
+        "blockExplorerUrl": "https://hyperevmscan.io"
+      },
+      "calls": [
+        {
+          "to": "0xb1f3a7B816B0681188F54dFa400991B93ADf00ed",
+          "data": "0x97bbda0e000000000000000000000000cce7452db4392b40aa0e1592a7c486e13bf696540000000000000000000000000000000000000000000000000000000000000001",
+          "value": "0",
+          "label": "updateSwapTargets(0xcCe7452Db4392b40Aa0E1592A7C486e13Bf69654, true)  akka [akka]"
+        }
+      ],
+      "tx": {
+        "to": "0xb1f3a7B816B0681188F54dFa400991B93ADf00ed",
+        "value": "0",
+        "data": "0x97bbda0e000000000000000000000000cce7452db4392b40aa0e1592a7c486e13bf696540000000000000000000000000000000000000000000000000000000000000001",
+        "operation": 0,
+        "safeTxGas": "0",
+        "baseGas": "0",
+        "gasPrice": "0",
+        "gasToken": "0x0000000000000000000000000000000000000000",
+        "refundReceiver": "0x0000000000000000000000000000000000000000",
+        "nonce": "3"
+      },
+      "safeTxHash": "0xa2b587183099799ffca36651fcd155580a079294b62ccb1b8384c212d603fa50",
+      "eip712": {
+        "types": {
+          "SafeTx": [
+            {
+              "name": "to",
+              "type": "address"
+            },
+            {
+              "name": "value",
+              "type": "uint256"
+            },
+            {
+              "name": "data",
+              "type": "bytes"
+            },
+            {
+              "name": "operation",
+              "type": "uint8"
+            },
+            {
+              "name": "safeTxGas",
+              "type": "uint256"
+            },
+            {
+              "name": "baseGas",
+              "type": "uint256"
+            },
+            {
+              "name": "gasPrice",
+              "type": "uint256"
+            },
+            {
+              "name": "gasToken",
+              "type": "address"
+            },
+            {
+              "name": "refundReceiver",
+              "type": "address"
+            },
+            {
+              "name": "nonce",
+              "type": "uint256"
+            }
+          ],
+          "EIP712Domain": [
+            {
+              "name": "chainId",
+              "type": "uint256"
+            },
+            {
+              "name": "verifyingContract",
+              "type": "address"
+            }
+          ]
+        },
+        "domain": {
+          "chainId": "0x3e7",
+          "verifyingContract": "0xdc91978e0617cca2ee1e658d0a1ca3f63cf10f1f"
+        },
+        "primaryType": "SafeTx",
+        "message": {
+          "to": "0xb1f3a7b816b0681188f54dfa400991b93adf00ed",
+          "value": "0",
+          "data": "0x97bbda0e000000000000000000000000cce7452db4392b40aa0e1592a7c486e13bf696540000000000000000000000000000000000000000000000000000000000000001",
+          "operation": "0",
+          "safeTxGas": "0",
+          "baseGas": "0",
+          "gasPrice": "0",
+          "gasToken": "0x0000000000000000000000000000000000000000",
+          "refundReceiver": "0x0000000000000000000000000000000000000000",
+          "nonce": "3"
+        }
+      },
+      "signatures": []
+    },
+    {
+      "network": "robinhood",
+      "chainId": 4663,
+      "router": "0xb1f3a7B816B0681188F54dFa400991B93ADf00ed",
+      "nonce": "3",
+      "chainMeta": {
+        "chainName": "Robinhood",
+        "rpcUrl": "https://rpc.mainnet.chain.robinhood.com",
+        "nativeCurrency": {
+          "name": "Ether",
+          "symbol": "ETH",
+          "decimals": 18
+        },
+        "blockExplorerUrl": "https://robinhoodchain.blockscout.com"
+      },
+      "calls": [
+        {
+          "to": "0xb1f3a7B816B0681188F54dFa400991B93ADf00ed",
+          "data": "0x97bbda0e0000000000000000000000000b00004ccc39408fa289e9f6853bfe4eac3e52c80000000000000000000000000000000000000000000000000000000000000001",
+          "value": "0",
+          "label": "updateSwapTargets(0x0B00004Ccc39408Fa289e9F6853BFE4eac3E52c8, true)  akka [akka]"
+        }
+      ],
+      "tx": {
+        "to": "0xb1f3a7B816B0681188F54dFa400991B93ADf00ed",
+        "value": "0",
+        "data": "0x97bbda0e0000000000000000000000000b00004ccc39408fa289e9f6853bfe4eac3e52c80000000000000000000000000000000000000000000000000000000000000001",
+        "operation": 0,
+        "safeTxGas": "0",
+        "baseGas": "0",
+        "gasPrice": "0",
+        "gasToken": "0x0000000000000000000000000000000000000000",
+        "refundReceiver": "0x0000000000000000000000000000000000000000",
+        "nonce": "3"
+      },
+      "safeTxHash": "0x932d045de76881248fe664868edfc72139f93ad65ce5f2011cb0f28e1b4b0af8",
+      "eip712": {
+        "types": {
+          "SafeTx": [
+            {
+              "name": "to",
+              "type": "address"
+            },
+            {
+              "name": "value",
+              "type": "uint256"
+            },
+            {
+              "name": "data",
+              "type": "bytes"
+            },
+            {
+              "name": "operation",
+              "type": "uint8"
+            },
+            {
+              "name": "safeTxGas",
+              "type": "uint256"
+            },
+            {
+              "name": "baseGas",
+              "type": "uint256"
+            },
+            {
+              "name": "gasPrice",
+              "type": "uint256"
+            },
+            {
+              "name": "gasToken",
+              "type": "address"
+            },
+            {
+              "name": "refundReceiver",
+              "type": "address"
+            },
+            {
+              "name": "nonce",
+              "type": "uint256"
+            }
+          ],
+          "EIP712Domain": [
+            {
+              "name": "chainId",
+              "type": "uint256"
+            },
+            {
+              "name": "verifyingContract",
+              "type": "address"
+            }
+          ]
+        },
+        "domain": {
+          "chainId": "0x1237",
+          "verifyingContract": "0xdc91978e0617cca2ee1e658d0a1ca3f63cf10f1f"
+        },
+        "primaryType": "SafeTx",
+        "message": {
+          "to": "0xb1f3a7b816b0681188f54dfa400991b93adf00ed",
+          "value": "0",
+          "data": "0x97bbda0e0000000000000000000000000b00004ccc39408fa289e9f6853bfe4eac3e52c80000000000000000000000000000000000000000000000000000000000000001",
+          "operation": "0",
+          "safeTxGas": "0",
+          "baseGas": "0",
+          "gasPrice": "0",
+          "gasToken": "0x0000000000000000000000000000000000000000",
+          "refundReceiver": "0x0000000000000000000000000000000000000000",
+          "nonce": "3"
+        }
+      },
+      "signatures": []
+    },
+    {
+      "network": "arbitrum",
+      "chainId": 42161,
+      "router": "0xb1f3a7B816B0681188F54dFa400991B93ADf00ed",
+      "nonce": "3",
+      "chainMeta": {
+        "chainName": "Arbitrum",
+        "rpcUrl": "https://arb1.arbitrum.io/rpc",
+        "nativeCurrency": {
+          "name": "Ether",
+          "symbol": "ETH",
+          "decimals": 18
+        },
+        "blockExplorerUrl": "https://arbiscan.io"
+      },
+      "calls": [
+        {
+          "to": "0xb1f3a7B816B0681188F54dFa400991B93ADf00ed",
+          "data": "0x97bbda0e000000000000000000000000fb33e11e44547f31f55caa5e77028b844a6d6fe30000000000000000000000000000000000000000000000000000000000000001",
+          "value": "0",
+          "label": "updateSwapTargets(0xfB33E11e44547f31f55CAa5e77028b844a6d6fE3, true)  akka [akka]"
+        }
+      ],
+      "tx": {
+        "to": "0xb1f3a7B816B0681188F54dFa400991B93ADf00ed",
+        "value": "0",
+        "data": "0x97bbda0e000000000000000000000000fb33e11e44547f31f55caa5e77028b844a6d6fe30000000000000000000000000000000000000000000000000000000000000001",
+        "operation": 0,
+        "safeTxGas": "0",
+        "baseGas": "0",
+        "gasPrice": "0",
+        "gasToken": "0x0000000000000000000000000000000000000000",
+        "refundReceiver": "0x0000000000000000000000000000000000000000",
+        "nonce": "3"
+      },
+      "safeTxHash": "0xa8792751c1672f01e09d47fc9d1960e9b3003c322d426b1601eab5678c74ca25",
+      "eip712": {
+        "types": {
+          "SafeTx": [
+            {
+              "name": "to",
+              "type": "address"
+            },
+            {
+              "name": "value",
+              "type": "uint256"
+            },
+            {
+              "name": "data",
+              "type": "bytes"
+            },
+            {
+              "name": "operation",
+              "type": "uint8"
+            },
+            {
+              "name": "safeTxGas",
+              "type": "uint256"
+            },
+            {
+              "name": "baseGas",
+              "type": "uint256"
+            },
+            {
+              "name": "gasPrice",
+              "type": "uint256"
+            },
+            {
+              "name": "gasToken",
+              "type": "address"
+            },
+            {
+              "name": "refundReceiver",
+              "type": "address"
+            },
+            {
+              "name": "nonce",
+              "type": "uint256"
+            }
+          ],
+          "EIP712Domain": [
+            {
+              "name": "chainId",
+              "type": "uint256"
+            },
+            {
+              "name": "verifyingContract",
+              "type": "address"
+            }
+          ]
+        },
+        "domain": {
+          "chainId": "0xa4b1",
+          "verifyingContract": "0xdc91978e0617cca2ee1e658d0a1ca3f63cf10f1f"
+        },
+        "primaryType": "SafeTx",
+        "message": {
+          "to": "0xb1f3a7b816b0681188f54dfa400991b93adf00ed",
+          "value": "0",
+          "data": "0x97bbda0e000000000000000000000000fb33e11e44547f31f55caa5e77028b844a6d6fe30000000000000000000000000000000000000000000000000000000000000001",
+          "operation": "0",
+          "safeTxGas": "0",
+          "baseGas": "0",
+          "gasPrice": "0",
+          "gasToken": "0x0000000000000000000000000000000000000000",
+          "refundReceiver": "0x0000000000000000000000000000000000000000",
+          "nonce": "3"
+        }
+      },
+      "signatures": []
+    }
+  ]
+}

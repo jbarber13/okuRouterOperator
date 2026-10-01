@@ -14,162 +14,76 @@
  */
 import { makeProvider, type SafeChain } from "./safeChains";
 import { NETWORK_CONFIGS } from "./deploymentConfig";
-import { coverageFraction, discoveryQuality, scanChainFees, totalUsd } from "./feeScan";
-import { discoverFeeAssets } from "./feeAssetCache";
+import { scanChainFees, totalUsd } from "./feeScan";
 import { toSnapshotAsset, type SnapshotChain } from "./feeSnapshot";
-import { buildTokenUniverse, type TokenUniverse } from "./tokenUniverse";
-import { multicallAddressFor, probeBalances } from "./balanceProbe";
+import { buildTokenUniverse } from "./tokenUniverse";
 
 export interface ChainScanOptions {
-  /** Per-chain eth_getLogs request budget. */
-  maxRequests?: number;
-  /** Cap on the backfill half of that budget. */
-  maxBackfillRequests?: number;
   /**
-   * Per-chain candidate token set for the Multicall3 balance probe, indexed
-   * by chainId. Built once by the caller and shared, because the published
-   * token list is 8 MB and parsing it per chain would dominate the run.
-   *
-   * Omit to skip the probe entirely and rely on log discovery alone.
+   * Per-chain candidate token set, indexed by chainId. Built once by the
+   * caller and shared, because the published list is ~8 MB and re-parsing it
+   * per chain would cost more than the probe it feeds.
    */
-  tokenListByChain?: Map<number, Set<string>>;
-  /** Use DefiLlama to fill pricing gaps. Default true. */
-  llama?: boolean;
-  /**
-   * Resume from the cached block interval. Default true. When false the scan
-   * re-walks history from scratch; already-known token addresses are retained
-   * either way, since an address that once took a fee always did.
-   */
-  useCache?: boolean;
-  /** Persist the updated discovery cache. Default true. */
-  writeCache?: boolean;
+  tokenListByChain: Map<number, Set<string>>;
   /** USD valuation. Default true. */
   price?: boolean;
-  /** Explicit RPC, overriding both logsRpcUrl and rpcUrl. Single-chain use. */
+  /** Explicit RPC, overriding the chain's configured one. Single-chain use. */
   rpcOverride?: string;
 }
 
-/**
- * Scan one chain and return its snapshot entry.
- *
- * The logs endpoint (`<NET>_LOGS_URL`) is used for the whole chain when set,
- * not just for eth_getLogs. A logs-capable endpoint is by definition a
- * superset of a plain one, and running balance reads through a second
- * provider would double the connection count across 34 chains for no gain.
- */
+/** Scan one chain and return its snapshot entry. */
 export async function scanChainForSnapshot(
   chain: SafeChain,
-  opts: ChainScanOptions = {},
+  opts: ChainScanOptions,
 ): Promise<SnapshotChain> {
   const base: SnapshotChain = {
     network: chain.network,
     chainId: chain.chainId,
     router: chain.router,
     status: "empty",
-    coverage: null,
-    cacheHit: false,
-    usedLogsRpc: false,
     warnings: [],
     assets: [],
-    totals: {
-      assetCount: 0,
-      usdNotional: 0,
-      usdRealizable: 0,
-      unpricedCount: 0,
-      noDepthCount: 0,
-    },
+    totals: { assetCount: 0, usdNotional: 0, unpricedCount: 0 },
   };
 
-  const rpc = opts.rpcOverride ?? chain.logsRpcUrl ?? chain.rpcUrl;
+  const rpc = opts.rpcOverride ?? chain.rpcUrl;
   if (!rpc) return { ...base, status: "no-rpc" };
   if (!chain.router) return { ...base, status: "no-rpc", error: "no OkuRouter in deployments/" };
 
   const cfg = NETWORK_CONFIGS[chain.network];
   if (!cfg) return { ...base, status: "no-config" };
 
-  const usedLogsRpc = !opts.rpcOverride && Boolean(chain.logsRpcUrl);
+  const universe = buildTokenUniverse(chain, opts.tokenListByChain, cfg);
   const provider = makeProvider(rpc, chain.chainId);
   try {
-    // ---- cheap pass first: who actually holds a balance right now ----
-    //
-    // Ordered before log discovery deliberately. It costs a handful of
-    // eth_calls, it is immune to whatever eth_getLogs range this endpoint
-    // allows, and on a chain that serves no logs at all it is the only
-    // source there is. Its results are then fed INTO discovery so they are
-    // persisted and survive a future run where multicall is unavailable.
-    const probeWarnings: string[] = [];
-    let universe: TokenUniverse | undefined;
-    let probed: string[] = [];
-    let probeCalls = 0;
-    if (opts.tokenListByChain) {
-      universe = buildTokenUniverse(chain, opts.tokenListByChain, cfg);
-      probeWarnings.push(...universe.warnings);
-      const probe = await probeBalances(provider, chain.router, universe.tokens, {
-        multicall: multicallAddressFor(cfg),
-      });
-      probeWarnings.push(...probe.warnings);
-      probed = [...probe.balances.keys()];
-      probeCalls = probe.calls;
-    }
-
-    const discovery = await discoverFeeAssets(
-      provider,
-      { network: chain.network, chainId: chain.chainId, router: chain.router },
-      {
-        maxRequests: opts.maxRequests,
-        maxBackfillRequests: opts.maxBackfillRequests,
-        useCache: opts.useCache,
-        write: opts.writeCache,
-        extraTokens: probed,
-      },
-    );
-
     const res = await scanChainFees(provider, cfg, chain.router, {
+      candidates: universe.tokens,
       price: opts.price !== false,
-      llama: opts.llama,
-      discovery: { tokens: discovery.tokens, coverage: discovery.coverage },
     });
 
-    const { notional, realizable, unpriced, noDepth } = totalUsd(res.assets);
-
-    // Judge how much of history we actually saw. `historySpan` uses the chain
-    // head as the denominator: we do not know the router's deploy block here,
-    // so this over-estimates history and therefore errs toward a WORSE
-    // verdict. That is the safe direction -- over-reporting coverage is what
-    // caused avax to be swept as "$0.00" while holding USDC 1,173.
-    const head = discovery.coverage?.scannedThrough ?? discovery.coverage?.toBlock ?? 0;
-    const quality = discoveryQuality(discovery.coverage, head);
-    const fraction = coverageFraction(discovery.coverage, head);
+    const { notional, unpriced } = totalUsd(res.assets);
 
     return {
       ...base,
       status: res.assets.length > 0 ? "has-fees" : "empty",
-      coverage: discovery.coverage,
-      discovery: quality,
-      coverageFraction: fraction,
-      cacheHit: discovery.cacheHit,
-      usedLogsRpc,
-      probe: opts.tokenListByChain
-        ? {
-            candidates: universe?.tokens.size ?? 0,
-            calls: probeCalls,
-            found: probed.length,
-            newToDiscovery: discovery.fromProbe,
-          }
-        : undefined,
-      warnings: [...probeWarnings, ...res.warnings],
+      probe: {
+        candidates: res.candidates,
+        calls: res.calls,
+        found: res.assets.length,
+        unchecked: res.unchecked,
+        sources: universe.sources,
+      },
+      warnings: [...universe.warnings, ...res.warnings],
       assets: res.assets.map(toSnapshotAsset),
       totals: {
         assetCount: res.assets.length,
         usdNotional: notional,
-        usdRealizable: realizable,
         unpricedCount: unpriced,
-        noDepthCount: noDepth,
       },
     };
   } catch (e) {
     const msg = String((e as { message?: string }).message ?? e);
-    return { ...base, status: "error", usedLogsRpc, error: msg.slice(0, 200) };
+    return { ...base, status: "error", error: msg.slice(0, 200) };
   } finally {
     provider.destroy();
   }

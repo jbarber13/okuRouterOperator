@@ -21,13 +21,21 @@
  *
  * WHAT THIS IS NOT
  *
- * It is not a replacement for log discovery, and must never be treated as
- * one. Measured against what `OrderFilled` scanning has actually found, the
- * published list covers 79.7% of it -- 301 of 1,482 known fee assets appear
- * in no list (robinhood alone accounts for 146). A candidate-set probe cannot
- * find a token nobody enumerated; only the log scan can. The two are unioned,
- * and the probe's job is to make the log scan's gaps survivable rather than
- * to make it unnecessary.
+ * A complete picture. A candidate set cannot contain a token nobody ever
+ * enumerated, and the router accepts ANY ERC20 as `tokenIn` -- there is no
+ * on-chain token allowlist, only an allowlist of aggregator targets. Measured
+ * on base: 63 of 300 distinct `tokenIn` addresses (21%) appear in no published
+ * list.
+ *
+ * That gap is why data/known-fee-assets.json exists. It is a one-time export
+ * of every address `OrderFilled` log scanning had discovered before indexing
+ * was removed -- 1,496 addresses, 301 of them unlisted -- carried forward as a
+ * static seed so the pivot to list-based discovery cost nothing that was
+ * already known. It is not a cache and nothing regenerates it.
+ *
+ * What remains unsolved: a token first traded AFTER that export, by direct
+ * contract call, and never added to any list, is invisible here.
+ * `scripts/dryRunDiscovery.ts` measures that drift against real logs.
  *
  * SAFETY PROPERTY
  *
@@ -38,8 +46,7 @@
  */
 import * as fs from "fs";
 import * as path from "path";
-import { toChecksum } from "./feeScan";
-import { readCache } from "./feeAssetCache";
+import { toChecksum } from "./address";
 import type { NetworkConfig } from "./deploymentConfig";
 
 /** Oku's published routing token list: exactly the tokens that can become fees. */
@@ -82,12 +89,51 @@ export interface TokenUniverse {
   tokens: Set<string>;
   /** Where each source contributed, for reporting. Counts, not sets. */
   sources: {
-    cache: number;
+    seed: number;
     tokenList: number;
     chainConfig: number;
   };
   /** Non-fatal problems (stale list, fetch failure, …). */
   warnings: string[];
+}
+
+/** Committed one-time export of assets discovered before indexing was removed. */
+interface KnownFeeAssets {
+  kind: string;
+  schemaVersion: number;
+  tokensByChainId: Record<string, string[]>;
+}
+
+let seedCache: Map<number, Set<string>> | undefined;
+
+/**
+ * Load the committed seed of previously-observed fee assets.
+ *
+ * Read once and memoized. A missing or malformed file is NOT fatal -- it
+ * degrades the candidate set to the published list, which is the same
+ * situation as a chain the seed never covered.
+ */
+export function loadKnownFeeAssets(): Map<number, Set<string>> {
+  if (seedCache) return seedCache;
+  const out = new Map<number, Set<string>>();
+  try {
+    const file = path.resolve(__dirname, "..", "data", "known-fee-assets.json");
+    const raw = JSON.parse(fs.readFileSync(file, "utf8")) as KnownFeeAssets;
+    for (const [chainId, tokens] of Object.entries(raw?.tokensByChainId ?? {})) {
+      const id = Number(chainId);
+      if (!Number.isInteger(id) || !Array.isArray(tokens)) continue;
+      const set = new Set<string>();
+      for (const t of tokens) {
+        const a = toChecksum(t);
+        if (a && !NOT_A_TOKEN.has(a)) set.add(a);
+      }
+      if (set.size) out.set(id, set);
+    }
+  } catch {
+    // Absent seed: the published list still stands on its own.
+  }
+  seedCache = out;
+  return out;
 }
 
 interface CachedList {
@@ -129,7 +175,21 @@ function writeCachedList(list: CachedList): void {
  * the list only grows, and balances are read live regardless.
  */
 export async function loadOkuTokenList(
-  opts: { ttlMs?: number; timeoutMs?: number; offline?: boolean } = {},
+  opts: {
+    ttlMs?: number;
+    timeoutMs?: number;
+    offline?: boolean;
+    /**
+     * Throw rather than return an empty list.
+     *
+     * Since indexing was removed this list is the only DYNAMIC discovery
+     * source there is. An empty one does not produce an error anywhere
+     * downstream -- it produces a scan that finds almost nothing, on every
+     * chain at once, which reads exactly like a set of empty routers. Any
+     * path that decides what to sweep must set this.
+     */
+    strict?: boolean;
+  } = {},
 ): Promise<{ tokens: TokenListEntry[]; warnings: string[]; fromCache: boolean }> {
   const ttlMs = opts.ttlMs ?? DEFAULT_TTL_MS;
   const warnings: string[] = [];
@@ -140,7 +200,13 @@ export async function loadOkuTokenList(
   }
   if (opts.offline) {
     if (cached) return { tokens: cached.tokens, warnings, fromCache: true };
-    warnings.push("token list: offline and no cached copy; candidate set is cache + chain-config only");
+    if (opts.strict) {
+      throw new Error(
+        "token list: --offline with no cached copy. Discovery would run against the seed " +
+          "and chain-config alone, which is not a basis for deciding what to sweep.",
+      );
+    }
+    warnings.push("token list: offline and no cached copy; candidate set is seed + chain-config only");
     return { tokens: [], warnings, fromCache: false };
   }
 
@@ -166,9 +232,16 @@ export async function loadOkuTokenList(
       warnings.push(`token list: fetch failed (${msg}); using cached copy ${ageH}h old`);
       return { tokens: cached.tokens, warnings, fromCache: true };
     }
+    if (opts.strict) {
+      throw new Error(
+        `token list: fetch failed (${msg}) and no cached copy is available. Since log ` +
+          `indexing was removed this list is the only dynamic discovery source, so a scan ` +
+          `would silently find almost nothing on every chain. Refusing to continue.`,
+      );
+    }
     warnings.push(
       `token list: fetch failed (${msg}) and no cached copy; candidate set is ` +
-        `cache + chain-config only, so probe coverage is reduced`,
+        `seed + chain-config only, so probe coverage is badly reduced`,
     );
     return { tokens: [], warnings, fromCache: false };
   }
@@ -221,10 +294,10 @@ export function chainConfigTokens(cfg: NetworkConfig | undefined): Set<string> {
 /**
  * Build the candidate set for one chain.
  *
- * The discovery cache is included deliberately even though its tokens are
- * already known: the probe re-reads their balances live, and a token that
- * went to zero and was later re-funded must reappear. Membership of this set
- * is not a claim that the router holds anything.
+ * The seed is included even though those addresses are already "known": the
+ * probe reads balances live, so a token that went to zero and was later
+ * re-funded must reappear. Membership of this set is never a claim that the
+ * router holds anything.
  */
 export function buildTokenUniverse(
   chain: { network: string; chainId: number },
@@ -234,15 +307,8 @@ export function buildTokenUniverse(
   const tokens = new Set<string>();
   const warnings: string[] = [];
 
-  const cached = readCache(chain.network);
-  let fromCache = 0;
-  for (const t of cached?.tokens ?? []) {
-    const a = toChecksum(t);
-    if (a && !NOT_A_TOKEN.has(a)) {
-      tokens.add(a);
-      fromCache++;
-    }
-  }
+  const seeded = loadKnownFeeAssets().get(chain.chainId) ?? new Set<string>();
+  for (const a of seeded) tokens.add(a);
 
   const listed = listByChain.get(chain.chainId) ?? new Set<string>();
   for (const a of listed) tokens.add(a);
@@ -253,13 +319,13 @@ export function buildTokenUniverse(
   if (listed.size === 0) {
     warnings.push(
       `${chain.network}: no published token-list entries for chainId ${chain.chainId}; ` +
-        `the probe can only re-check already-known and well-known tokens`,
+        `the probe can only check seeded and well-known tokens`,
     );
   }
 
   return {
     tokens,
-    sources: { cache: fromCache, tokenList: listed.size, chainConfig: cc.size },
+    sources: { seed: seeded.size, tokenList: listed.size, chainConfig: cc.size },
     warnings,
   };
 }

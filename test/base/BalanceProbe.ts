@@ -188,7 +188,9 @@ describe("balanceProbe: failure is never reported as an empty router", () => {
     const res = await probeBalances(provider, HOLDER, tokens, { batchSize: MIN_BATCH_SIZE * 2 });
     expect(res.balances.size).to.equal(0);
     expect(res.unchecked).to.equal(tokens.length);
-    expect(res.warnings.join(" ")).to.match(/NOT checked/i);
+    expect(res.warnings.join(" ")).to.match(/could not be checked/i);
+    // The distinction that matters: "not looked at" must not read as "empty".
+    expect(res.warnings.join(" ")).to.match(/not looked at/i);
   });
 
   it("stops halving at MIN_BATCH_SIZE rather than hammering a failing node", async () => {

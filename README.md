@@ -626,7 +626,7 @@ npx hardhat fees:cycle --networks base,arbitrum,worldchain   # or pick by hand
 ```
 
 Useful flags: `--name` (bundle name, default `sweep-<date>`), `--scan-only`,
-`--no-cache`, `--no-eth`, `--max-requests`, `--concurrency`, `--force`.
+`--no-eth`, `--concurrency`, `--force`, `--accept-partial`.
 
 Rebuilding an existing bundle name is refused unless `--force`. A rebuild picks
 up fresh Safe nonces, which changes every `safeTxHash` and silently kills any
@@ -637,129 +637,73 @@ nothing to collect, and set a non-zero exit code. Previously both simply
 vanished from the bundle, which on a 34-chain sweep is indistinguishable from
 a silent loss of collectable fees.
 
-### Endpoints — why discovery depends on them
+### Discovery — how assets are found
 
-Asset discovery walks `OrderFilled` history, so **the largest block span an
-endpoint accepts for `eth_getLogs` directly bounds how much of the fee history
-is visible**. This is the single highest-leverage configuration in the repo,
-and getting it wrong is silent.
+The router has no fee accounting, so the only way to know what is collectable
+is to read `balanceOf(router)`. The question is *which tokens to ask about*.
 
-`util/rpcEndpoints.ts` holds a curated per-chain map, consulted *before*
-Alchemy. It splits two choices that have different winners:
+A candidate set is assembled per chain from three sources and probed in one
+batched **Multicall3** round:
 
-- **`rpc`** — balance reads, archive state, transaction broadcast
-- **`logs`** — the `eth_getLogs` endpoint used for discovery
+| source | what it is |
+|---|---|
+| `cdn.oku.trade/tokenlist.json` | Oku's published routing list — ~35,500 addresses across our chains |
+| `data/known-fee-assets.json` | committed one-time export of every address log indexing had found (1,496, of which 301 are in no list) |
+| chain-config | `tokenList`, `stables`, `token.*`, and the wrapped native |
 
-On `xdc` and `goat` the public endpoint serves a far wider log range while
-Ankr serves archive state the public endpoint does not, so those two are
-deliberately split across providers.
+The whole 34-chain scan costs roughly **180 `eth_call`s and ~24 seconds**.
 
-> **Why the map sits above Alchemy.** Alchemy's free tier caps `eth_getLogs`
-> at **10 blocks**. Because endpoint resolution used to try Alchemy first,
-> that cap silently became the discovery window on every chain Alchemy serves
-> — base, arbitrum, avax, op, linea, scroll, mantle, unichain. The 2026-09-29
-> sweep therefore reported avax as `$0.00` while the router held nine tokens
-> including **USDC 1,173**, and swept arbitrum with only the hardcoded
-> WETH/WBTC/USDC fallback, leaving 33 tokens behind. Measured spans, same
-> chain, same router: Alchemy `10` vs official endpoint `1,000,000`–`10,000,000`.
+> **What this replaced.** Discovery used to walk `OrderFilled` history with
+> `eth_getLogs`. That made it hostage to whatever block range an endpoint felt
+> like serving — a cap that is undiscoverable except by being rejected. On
+> 2026-09-29 Alchemy's 10-block cap silently reduced arbitrum to zero
+> discovered assets while the router held 34, and reported avax as `$0.00`
+> while it held USDC 1,173. There is no longer a logs endpoint, a
+> `<NET>_LOGS_URL`, a discovery cache, a request budget, or a coverage verdict.
 
-Per-chain overrides still win over the map, and are the right tool for a
-key-bearing or private endpoint:
+#### The known limitation
+
+The router accepts **any** ERC-20 as `tokenIn` — the only on-chain allowlist is
+of aggregator targets, not tokens — so a candidate set can never be complete.
+Measured on base before the pivot, 63 of 300 distinct `tokenIn` addresses (21%)
+appeared in no published list.
+
+`data/known-fee-assets.json` carries forward everything indexing had already
+found, so the pivot cost nothing that was known at the time. What remains
+exposed is a token first traded *after* that export, by direct contract call,
+and never listed anywhere.
+
+That gap is deliberately measurable rather than assumed:
 
 ```bash
-WORLDCHAIN_LOGS_URL=https://...
-BASE_LOGS_URL=https://...
+npx hardhat run scripts/dryRunDiscovery.ts
 ```
 
-Same naming as the `<NET>_URL` family, including the `arbitrum` →
-`ARB_LOGS_URL` deviation. Unset chains fall back to the curated map, then to
-their normal RPC. These URLs carry API keys, so they live in `.env` and are
-never written into a snapshot — only a boolean `usedLogsRpc` is recorded.
+It walks real `OrderFilled` history, reports how many held tokens the candidate
+set would have missed, and prints them ready to paste into
+`data/known-fee-assets.json`. It is an audit tool — nothing in `fees:scan` or
+`fees:cycle` depends on it.
 
-#### Ankr
+#### Failure modes that are reported, not swallowed
 
-`ANKR_FREEMIUM_API_KEY` covers **14 of 34 chains** on the Freemium plan, and
-is the best available option on 8 of them. The remaining 20 split into:
-
-- **Premium-gated (7)** — `linea` `op` `mantle` `telos` `sei` `scroll` `zerog`.
-  A $10 pay-as-you-go upgrade would unlock these, but the public endpoints in
-  the curated map already match or beat Ankr on all of them for log range, so
-  the upgrade buys reliability rather than reach.
-- **Not offered by Ankr at any tier (13)** — `rootstock` `unichain` `boba`
-  `worldchain` `hyperevm` `pharos` `robinhood` `saga` `nibiru` `plasma`
-  `hemi` `bob` `gensyn`.
-
-Note four chains need a `_mainnet` slug suffix (`monad_mainnet`,
-`redbelly_mainnet`, `goat_mainnet`, `etherlink_mainnet`); the bare slug 403s.
-
-#### Known permanent gaps
-
-Recorded rather than hidden, because a chain that cannot be scanned is not a
-chain with nothing on it:
-
-| chain | limitation |
-| --- | --- |
-| `rootstock` | No known endpoint serves `eth_getLogs` at all. Discovery is impossible; only well-known tokens are ever checked. |
-| `monad` | Provider-side cap of 100 blocks per `eth_getLogs`, on both Ankr and the public endpoint. |
-| `sei`, `gensyn` | Log span too narrow relative to chain history to walk it fully within any sane request budget. |
-| `filecoin`, `saga`, `nibiru`, `robinhood` | Archive state only ~1,000 blocks deep, so `fees:account` falls back to event-derived amounts. |
-
-### Discovery quality — `complete` / `partial` / `unreliable`
-
-Every scanned chain is now assigned a discovery verdict, reported next to
-`ever seen` (assets ever discovered) and `hist%` (fraction of history walked):
-
-- **`complete`** — full history walked, no refused windows.
-- **`partial`** — a meaningful fraction walked. Assets first traded outside
-  the window are invisible, but the result is real evidence.
-- **`unreliable`** — under 1% of history seen, or logs refused outright. The
-  asset list is the hardcoded well-known set plus whatever was cached. **A
-  `$0.00` here means "we could not look", not "there is nothing there."**
-
-`fees:cycle` **exits non-zero and refuses to build a bundle** when any chain
-is `unreliable`, unless `--accept-partial` is passed. That gate exists because
-the failure it guards against already happened: avax scanned 0.004% of its
-history, reported `$0.00`, and was swept — the scan *did* warn, but the
-warning was one line among 34 chains and was read straight past. Sweeping a
-blind chain is worse than skipping it, because it burns a Safe nonce and a
-2-of-3 ceremony to collect three tokens while producing an accounting record
-that looks like a complete collection.
-
-### Discovery cache
-
-Discovery is the expensive half of a scan, and re-walking full history on
-every run across 34 chains is the difference between minutes and hours. The
-scan therefore resumes from a local cache in `.cache/fee-assets/<network>.json`
-(gitignored, derived state).
-
-Only the **set of token addresses** ever observed is cached — never balances,
-which are re-read live every time. That is what makes it safe: a stale cache
-can omit a newly-traded asset, which the next run picks up; it can never
-produce a wrong amount.
-
-Each run spends its budget scanning forward from the resume point, then uses
-whatever is left to extend coverage *backward*, so a chain converges to full
-history over repeated runs instead of being re-decided by whichever endpoint
-answered today. A refused log window does **not** advance the resume point:
-recording the chain head after a mid-scan refusal would skip those blocks on
-every future run, and an asset first traded inside the hole would be
-permanently invisible. The hole is re-scanned instead.
-
-The cache is invalidated automatically when the router address changes
-(redeployment) or when the stored resume point is ahead of the chain head
-(wrong endpoint). `--no-cache` re-walks history from scratch but still retains
-known addresses: that an address once took a fee is an append-only fact, and
-dropping it would let a budget-limited re-scan quietly shrink the asset list.
+- **Multicall3 missing** (xdc deploys it at a non-canonical address, read from
+  chain-config) — the scan degrades to well-known tokens only and says so.
+- **A batch the node refuses** is split and retried; anything still failing is
+  counted as `unchecked`. `fees:cycle` exits non-zero on it, because "we could
+  not look" must not read as "there is nothing there".
+- **An empty token list** is a hard failure on any path that decides what to
+  sweep. It would not error anywhere downstream — it would just find nothing on
+  every chain at once.
 
 ### Single chain
 
 ```bash
 # read-only, any single chain
-npx hardhat fees:scan --networks worldchain --rpc <logs-capable-endpoint>
+npx hardhat fees:scan --networks worldchain
 
 # build by hand, without a cycle snapshot
 npx hardhat safe:build --intent sweep --networks worldchain \
-  --name sweep-worldchain --rpc <logs-capable-endpoint>
+  --name sweep-worldchain
 
 # rehearse against a fork of the real chain, impersonating the Safe
 npm run test:fork-sweep
@@ -768,11 +712,32 @@ npm run test:fork-sweep
 `fees:scan --json <path>` writes the same snapshot format `fees:cycle`
 produces, so it can be fed straight to `safe:build --from-scan <path>`.
 
-`fees:scan` and `fees:cycle` report two totals and they are not
-interchangeable. **Notional** is spot price times balance. **Realizable** caps
-each asset at a fraction of its pool depth, because long-tail tokens routinely
-quote a real-looking price against a pool holding no quote liquidity. Decide on
-realizable.
+### Valuation
+
+Prices come from **DefiLlama** (`coins.llama.fi`), free and keyless. ERC-20s are
+priced by address on their own chain; quotes below 0.9 confidence or older than
+24h are rejected rather than used.
+
+The native asset is priced through its wrapped form from
+`oku.pricing.nativeWrappedToken`, but only after confirming on chain that the
+wrapped token's symbol actually matches the native symbol. That check is not
+optional: chain-config's `token.wethAddress` on Polygon is bridged WETH while
+the native asset is POL, and conflating them once priced 9.6 POL at $26,447.
+`oracles.coingecko.native` is deliberately **not** used — chain-config records
+it as `"ethereum"` for celo, whose native asset is CELO, a 27,000x error.
+
+Live coverage is around **88% of held assets**. Assets with no quote are
+reported `unpriced` and contribute `$0`, and every total states how many —
+because a `$0.00` that means "we could not value this" must not read as "there
+is nothing here".
+
+> **There is no liquidity signal.** Valuation used to derive prices from
+> Uniswap V3 pool reserves, which also yielded a pool depth and hence a
+> `realizable` figure capped by it. That is gone. Deriving prices from reserves
+> is what once produced a `$2.1e50` line item from a token quoted against $1.25
+> of liquidity, so losing it removes a real class of failure — but nothing now
+> distinguishes an asset that can be sold from one that merely quotes a price.
+> `--min-usd` gates on notional, so a chain can clear it on paper value.
 
 ### Accounting artifacts
 

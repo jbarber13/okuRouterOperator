@@ -89,7 +89,7 @@ import {
   totalUsd,
   type PricedFeeAsset,
 } from "../util/feeScan";
-import { discoverFeeAssets } from "../util/feeAssetCache";
+import { buildTokenUniverse, indexByChain, loadOkuTokenList } from "../util/tokenUniverse";
 import { readSnapshot, type SnapshotAsset } from "../util/feeSnapshot";
 import { OKU_FEE_RECIPIENT } from "../util/safeConfig";
 import { accountForSweepTx, writeAccounting } from "./feeAccounting";
@@ -126,7 +126,6 @@ interface SweepAssetSnapshot {
   amountRaw: string;
   amount: string;
   usdValue?: number;
-  realizableUsd?: number;
 }
 
 interface BundleCall {
@@ -194,7 +193,8 @@ interface BundleChain {
     includeEth: boolean;
     assets: SweepAssetSnapshot[];
     usdNotional: number;
-    usdRealizable: number;
+    /** Assets in this manifest carrying no USD value; they contribute $0. */
+    unpricedCount: number;
   };
 }
 
@@ -387,11 +387,11 @@ async function callsForIntent(
       //   1. --tokens    : honoured verbatim, minus zero balances
       //   2. --from-scan : the list the operator just reviewed. Reused as-is,
       //                    including its valuations -- re-reading balances and
-      //                    re-probing pools here would repeat the scan that
+      //                    re-pricing here would repeat the scan that
       //                    finished seconds ago to produce figures that are
       //                    equally stale by signing time and equally absent
       //                    from the transaction.
-      //   3. incremental discovery over OrderFilled history
+      //   3. a fresh balance probe over the published token list
       const explicit = params.tokens as string[] | undefined;
       const fromScan = scanAssetsByNetwork.get(chain.network);
       let assets: PricedFeeAsset[];
@@ -415,8 +415,6 @@ async function callsForIntent(
           balance: BigInt(a.amountRaw),
           usdPrice: a.usdPrice,
           usdValue: a.usdValue,
-          poolDepthUsd: a.poolDepthUsd,
-          realizableUsd: a.realizableUsd,
           priceSource: a.priceSource,
         });
         assets = fromScan.filter((a) => a.token !== NATIVE_SENTINEL).map(toPriced);
@@ -426,14 +424,14 @@ async function callsForIntent(
           nativeBalance = nativeValue.balance;
         }
       } else {
-        const discovery = await discoverFeeAssets(
-          provider,
-          { network: chain.network, chainId: chain.chainId, router: chain.router! },
-          {},
+        const universe = buildTokenUniverse(
+          { network: chain.network, chainId: chain.chainId },
+          sweepTokenList,
+          cfg,
         );
         const scan = await scanChainFees(provider, cfg, chain.router!, {
           price: true,
-          discovery: { tokens: discovery.tokens, coverage: discovery.coverage },
+          candidates: universe.tokens,
         });
         assets = scan.assets.filter((a) => a.token !== NATIVE_SENTINEL);
         const nat = scan.assets.find((a) => a.token === NATIVE_SENTINEL);
@@ -453,17 +451,21 @@ async function callsForIntent(
 
       // Optional economic floor. Defaults to 0 (build everything): what is
       // worth a hardware-wallet ceremony is the operator's call, not a
-      // constant here. When it IS set, the comparison is against realizable,
-      // and the note reports how many assets carried no price at all -- those
-      // contribute 0 and would otherwise silently drag a chain under.
+      // constant here.
+      //
+      // The comparison is against NOTIONAL, because there is no longer a
+      // realizable figure -- valuation no longer reads pool depth, so nothing
+      // here knows whether an asset can be sold. A chain can therefore clear
+      // this floor on paper value it cannot actually exit. The note reports
+      // how many assets carried no price at all, since those contribute 0 and
+      // would otherwise silently drag a chain under.
       if (minUsd > 0) {
-        const { realizable } = totalUsd(assets);
-        if (realizable < minUsd) {
-          const unpriced = assets.filter((a) => a.usdValue === undefined).length;
+        const { notional, unpriced } = totalUsd(assets);
+        if (notional < minUsd) {
           return {
             calls: [],
             note:
-              `below --min-usd: realizable $${realizable.toFixed(2)} < $${minUsd.toFixed(2)}` +
+              `below --min-usd: notional $${notional.toFixed(2)} < $${minUsd.toFixed(2)}` +
               `${unpriced ? ` (${unpriced} asset(s) unpriced, counted as $0)` : ""}`,
           };
         }
@@ -503,7 +505,6 @@ async function callsForIntent(
         amountRaw: a.balance.toString(),
         amount: fmtAmount(a),
         usdValue: a.usdValue,
-        realizableUsd: a.realizableUsd,
       }));
       if (sweepEth) {
         snapshot.push({
@@ -513,7 +514,6 @@ async function callsForIntent(
           amountRaw: nativeBalance.toString(),
           amount: formatUnits(nativeBalance, 18),
           usdValue: nativeValue?.usdValue,
-          realizableUsd: nativeValue?.realizableUsd,
         });
       }
       // Native is counted in the chain total when it is being swept. It is
@@ -529,7 +529,7 @@ async function callsForIntent(
         includeEth: sweepEth,
         assets: snapshot,
         usdNotional: totals.notional,
-        usdRealizable: totals.realizable,
+        unpricedCount: totals.unpriced,
       });
 
       return { calls };
@@ -551,7 +551,7 @@ const sweepManifests = new Map<
     includeEth: boolean;
     assets: SweepAssetSnapshot[];
     usdNotional: number;
-    usdRealizable: number;
+    unpricedCount: number;
   }
 >();
 
@@ -564,6 +564,16 @@ const sweepManifests = new Map<
  * page, where they are labelled as an estimate.
  */
 const scanAssetsByNetwork = new Map<string, SnapshotAsset[]>();
+
+/**
+ * Candidate token set per chainId, for the sweep path that has no `--from-scan`
+ * to reuse.
+ *
+ * Loaded once per run rather than per chain: the published list is ~8 MB, and
+ * re-parsing it 34 times would cost far more than the probe it feeds. Empty
+ * when `--from-scan` supplied the assets, in which case it is never consulted.
+ */
+let sweepTokenList = new Map<number, Set<string>>();
 
 /**
  * Chains that FAILED to build, as opposed to chains with nothing to do.
@@ -833,6 +843,19 @@ task("safe:build", "Diff on-chain state and emit a per-chain SafeTx bundle")
       if (taskArgs.minUsd) params.minUsd = Number(taskArgs.minUsd);
       sweepManifests.clear();
       scanAssetsByNetwork.clear();
+      sweepTokenList = new Map();
+      if (params.intent === "sweep" && !taskArgs.fromScan) {
+        // strict: this bundle moves funds. An empty token list would not
+        // error, it would just discover nothing on every chain at once and
+        // produce a bundle that sweeps almost nothing, silently.
+        const list = await loadOkuTokenList({ strict: true });
+        for (const w of list.warnings) console.log(`  ! ${w}`);
+        sweepTokenList = indexByChain(list.tokens);
+        console.log(
+          `\nCandidate tokens : ${list.tokens.length} ` +
+            `(${list.fromCache ? "cached" : "fetched"})`,
+        );
+      }
       if (taskArgs.fromScan) {
         const snapPath = path.resolve(String(taskArgs.fromScan));
         const snap = readSnapshot(snapPath);
@@ -1011,7 +1034,7 @@ task("safe:build", "Diff on-chain state and emit a per-chain SafeTx bundle")
       }
       params.recipient = params.to;
       params.totalUsdNotional = chainsOut.reduce((s, c) => s + (c.sweep?.usdNotional ?? 0), 0);
-      params.totalUsdRealizable = chainsOut.reduce((s, c) => s + (c.sweep?.usdRealizable ?? 0), 0);
+      params.totalUnpriced = chainsOut.reduce((s, c) => s + (c.sweep?.unpricedCount ?? 0), 0);
     }
 
     const bundle: Bundle = {

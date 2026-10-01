@@ -16,6 +16,7 @@ import {
   chainConfigTokens,
   indexByChain,
   buildTokenUniverse,
+  loadKnownFeeAssets,
   _internal as universeInternal,
 } from "../../util/tokenUniverse";
 import {
@@ -104,6 +105,30 @@ describe("tokenUniverse: candidate set assembly", () => {
     expect(u.tokens.has(USDC)).to.equal(true);
     expect(u.tokens.has(WETH)).to.equal(true);
     expect(u.sources.tokenList).to.equal(1);
+  });
+
+  // The seed is the only thing carrying forward what log indexing found
+  // before it was removed. If it stops being unioned in, 301 addresses --
+  // including four the routers are currently holding -- silently vanish.
+  it("unions the committed seed of previously-observed fee assets", () => {
+    const seed = loadKnownFeeAssets();
+    expect(seed.size, "seed should cover many chains").to.be.a("number");
+    const base = seed.get(8453);
+    expect(base, "base should be seeded").to.not.equal(undefined);
+    const u = buildTokenUniverse({ network: "base", chainId: 8453 }, new Map(), undefined);
+    expect(u.sources.seed).to.equal(base!.size);
+    for (const t of base!) expect(u.tokens.has(t)).to.equal(true);
+  });
+
+  it("keeps seeded assets that appear in no published list", () => {
+    // robinhood KONA/GAGE/sGAGE and worldchain sparks are held right now and
+    // are in no token list; the seed is the only reason they stay visible.
+    const seed = loadKnownFeeAssets();
+    const rh = seed.get(4663);
+    expect(rh?.has("0x7163aE1B5AeA2f09EBc609C52b4dcAc0a7a4bC2d"), "GAGE").to.equal(true);
+    expect(rh?.has("0x78c88CF8F6E612955526cEB501be82BF3279Bd5d"), "sGAGE").to.equal(true);
+    const wc = seed.get(480);
+    expect(wc?.has("0x641149Ea4418F7E6638B9696C2AA4b9DB2B5Dc3B"), "sparks").to.equal(true);
   });
 
   // A chain the list has never heard of must still probe what it knows,
@@ -262,11 +287,7 @@ describe("totalUsd: unpriced is not zero", () => {
   }
 
   it("counts unpriced assets instead of folding them in as $0", () => {
-    const t = totalUsd([
-      asset({ usdValue: 10, realizableUsd: 10 }),
-      asset({}),
-      asset({}),
-    ]);
+    const t = totalUsd([asset({ usdValue: 10 }), asset({}), asset({})]);
     expect(t.notional).to.equal(10);
     expect(t.unpriced).to.equal(2);
   });
@@ -283,13 +304,58 @@ describe("totalUsd: unpriced is not zero", () => {
     expect(empty.unpriced).to.equal(0);
   });
 
-  // An off-chain price gives a notional but no measured depth, so it must not
-  // raise realizable -- that is the number --min-usd gates on.
-  it("counts a priced asset with no depth-backed realizable figure", () => {
+  it("counts a priced asset toward the notional", () => {
     const t = totalUsd([asset({ usdValue: 100, priceSource: "llama:0.99" })]);
     expect(t.notional).to.equal(100);
-    expect(t.realizable).to.equal(0);
-    expect(t.noDepth).to.equal(1);
     expect(t.unpriced).to.equal(0);
+  });
+});
+
+describe("native pricing guards", () => {
+  // Without pool-derived pricing, the native asset is valued through its
+  // WRAPPED form. Getting that wrong is the single most dangerous remaining
+  // mistake in valuation, because it multiplies a real balance by the wrong
+  // asset's price. Both historical near-misses are pinned here.
+  const c = require("@gfxlabs/oku-chains") as {
+    ALL_NETWORKS: Array<{
+      id: number | bigint;
+      internalName: string;
+      nativeCurrency?: { symbol?: string };
+      oracles?: { coingecko?: { native?: string } };
+      oku?: { pricing?: { nativeWrappedToken?: string } };
+    }>;
+  };
+  const byId = (id: number) => c.ALL_NETWORKS.find((n) => Number(n.id) === id)!;
+
+  it("uses oku.pricing.nativeWrappedToken, which is WPOL on polygon and not bridged WETH", () => {
+    const polygon = byId(137);
+    expect(polygon.nativeCurrency?.symbol).to.equal("POL");
+    // The bridged WETH at 0x7ceb... is what once priced 9.6 POL at $26,447.
+    expect(polygon.oku?.pricing?.nativeWrappedToken?.toLowerCase()).to.equal(
+      "0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270",
+    );
+  });
+
+  // chain-config records celo's native coingecko id as "ethereum". Celo's
+  // native asset is CELO ($0.098), not ether ($2,680) -- a 27,000x error on a
+  // live balance. This test exists so that nobody "improves" native pricing by
+  // reaching for that field.
+  it("does not rely on oracles.coingecko.native, which is wrong for celo", () => {
+    const celo = byId(42220);
+    expect(celo.nativeCurrency?.symbol).to.equal("CELO");
+    expect(celo.oracles?.coingecko?.native).to.equal("ethereum");
+    // No wrapped-native recorded, so celo native must stay unpriced.
+    expect(celo.oku?.pricing?.nativeWrappedToken).to.equal(undefined);
+  });
+
+  it("every chain we deploy to either has a wrapped native or must go unpriced", () => {
+    const deployed = [1, 10, 137, 8453, 42161, 43114, 56, 480, 4663];
+    for (const id of deployed) {
+      const n = byId(id);
+      const w = n.oku?.pricing?.nativeWrappedToken;
+      // Not an assertion that one exists -- an assertion that when it does, it
+      // is a real address rather than a placeholder.
+      if (w) expect(w, n.internalName).to.match(/^0x[0-9a-fA-F]{40}$/);
+    }
   });
 });

@@ -70,7 +70,8 @@ export interface LedgerEntry {
   recipient: string;
   assetCount: number;
   usdNotional: number;
-  usdRealizable: number;
+  /** Present only on rows written before pricing moved off-chain. */
+  usdRealizable?: number;
   gasCostNative: string;
   gasCostUsd?: number;
   reconciled: boolean;
@@ -89,7 +90,6 @@ export function ledgerEntryFor(r: AccountingReport, dataFile: string): LedgerEnt
     recipient: r.recipient,
     assetCount: r.totals.assetCount,
     usdNotional: r.totals.usdNotional,
-    usdRealizable: r.totals.usdRealizable,
     gasCostNative: r.execution.gasCostNative,
     gasCostUsd: r.execution.gasCostUsd,
     reconciled:
@@ -121,8 +121,6 @@ export interface AccountingAsset {
   deltaMatchesEvent?: boolean;
   usdPrice?: number;
   usdValue?: number;
-  poolDepthUsd?: number;
-  realizableUsd?: number;
   priceSource?: string;
 }
 
@@ -162,11 +160,16 @@ export interface AccountingReport {
   totals: {
     assetCount: number;
     usdNotional: number;
-    usdRealizable: number;
     /**
-     * Swept assets that carried no USD value. They contribute $0 to both
-     * totals above, so without this the totals cannot be distinguished from
-     * a sweep whose assets were genuinely worthless.
+     * Retained ONLY so historical records written before pricing moved
+     * off-chain still parse. Nothing produces it any more: valuation no
+     * longer reads pool depth, so there is no realizable figure to compute.
+     */
+    usdRealizable?: number;
+    /**
+     * Swept assets that carried no USD value. They contribute $0 to the
+     * total above, so without this the total cannot be distinguished from a
+     * sweep whose assets were genuinely worthless.
      *
      * Optional so reports written before this field remain readable.
      */
@@ -230,12 +233,10 @@ export function buildReport(input: BuildReportInput): AccountingReport {
   // value is not reporting a total, it is reporting the subset that happened
   // to have a pool -- and the reader has no way to tell the difference.
   let usdNotional = 0;
-  let usdRealizable = 0;
   let unpricedCount = 0;
   for (const a of input.assets) {
     if (a.usdValue === undefined) unpricedCount++;
     else usdNotional += a.usdValue;
-    usdRealizable += a.realizableUsd ?? 0;
   }
 
   // Anchor the record to the block, not the clock.
@@ -262,7 +263,6 @@ export function buildReport(input: BuildReportInput): AccountingReport {
     totals: {
       assetCount: input.assets.length,
       usdNotional,
-      usdRealizable,
       unpricedCount,
       nativeUsdPrice: input.nativeUsdPrice,
     },
@@ -322,8 +322,8 @@ export function renderMarkdown(r: AccountingReport): string {
 
   L.push(`## Assets swept (${r.assets.length})`);
   L.push("");
-  L.push("| Asset | Amount | USD | Realizable | Verified |");
-  L.push("|---|---:|---:|---:|---|");
+  L.push("| Asset | Amount | USD | Price source | Verified |");
+  L.push("|---|---:|---:|---|---|");
   for (const a of r.assets) {
     const verified =
       a.deltaMatchesEvent === undefined
@@ -332,23 +332,22 @@ export function renderMarkdown(r: AccountingReport): string {
           ? "yes"
           : "**MISMATCH**";
     L.push(
-      `| ${a.symbol} | ${a.amount} | ${usd(a.usdValue)} | ${usd(a.realizableUsd)} | ${verified} |`,
+      `| ${a.symbol} | ${a.amount} | ${usd(a.usdValue)} | ${a.priceSource ?? "-"} | ${verified} |`,
     );
   }
   L.push("");
   L.push(`**Notional:** ${usd(r.totals.usdNotional)}  `);
-  L.push(`**Realizable:** ${usd(r.totals.usdRealizable)}`);
   if (r.totals.unpricedCount) {
     L.push(
       `**Unpriced:** ${r.totals.unpricedCount} of ${r.totals.assetCount} asset(s) carried no ` +
-        `USD value and contributed $0 to both figures above.`,
+        `USD value and contributed $0 to the figure above.`,
     );
   }
   L.push("");
   L.push(
-    "Notional is spot price x amount. Realizable caps each asset at a fraction of its " +
-      "pool depth, because long-tail tokens quote prices against pools with no liquidity. " +
-      "Realizable is the meaningful figure.",
+    "Priced from DefiLlama as of the execution block, so this figure does not move when " +
+      "the report is regenerated. There is no liquidity signal: nothing here says whether " +
+      "these assets could be sold at these prices.",
   );
   L.push("");
 

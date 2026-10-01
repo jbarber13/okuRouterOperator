@@ -41,7 +41,7 @@
 import * as fs from "fs";
 import * as path from "path";
 import { task } from "hardhat/config";
-import { listSafeChains, logsEnvVar, mapLimit, pad } from "../util/safeChains";
+import { listSafeChains, mapLimit, pad } from "../util/safeChains";
 import { scanChainForSnapshot } from "../util/feeSweepScan";
 import { indexByChain, loadOkuTokenList } from "../util/tokenUniverse";
 import {
@@ -62,17 +62,14 @@ task("fees:cycle", "Scan every chain for idle fees, build the sweep bundle, emit
   .addOptionalParam("name", "Bundle name (default: sweep-<date>)")
   .addOptionalParam("to", "Sweep recipient (default: OKU_FEE_RECIPIENT)")
   .addOptionalParam("minUsd", "Skip chains whose realizable total is below this (default 0)")
-  .addOptionalParam("maxRequests", "Per-chain eth_getLogs request budget (default 400)")
   .addOptionalParam("maxTokens", "Max tokens per sweepAll call (default 40)")
   .addOptionalParam("concurrency", "Chains scanned in parallel (default 4)")
   .addFlag("scanOnly", "Stop after the snapshot; do not build a bundle")
-  .addFlag("noCache", "Ignore the discovery cache and re-scan full history")
-  .addFlag("noProbe", "Skip the Multicall3 balance probe (log discovery only)")
   .addFlag("noEth", "Do NOT sweep the native balance")
   .addFlag("force", "Overwrite an existing bundle of the same name")
   .addFlag(
     "acceptPartial",
-    "Proceed even when some chains have UNRELIABLE discovery (their $0.00 means " +
+    "Proceed even when some chains were not fully checked (their $0.00 means " +
       "'could not look', not 'nothing there')",
   )
   .setAction(async (args, hre) => {
@@ -96,42 +93,30 @@ task("fees:cycle", "Scan every chain for idle fees, build the sweep bundle, emit
     console.log(`FEE CYCLE  ${started.toISOString()}`);
     console.log("=".repeat(96));
     console.log(`Chains       : ${chains.length}`);
-    console.log(`Discovery    : ${args.noCache ? "cold (--no-cache)" : "incremental (cached)"}`);
-    const withLogsRpc = chains.filter((c) => c.logsRpcUrl);
-    console.log(
-      `Logs endpoint: ${withLogsRpc.length}/${chains.length} chain(s) have a *_LOGS_URL override` +
-        `${withLogsRpc.length ? ` (${withLogsRpc.map((c) => c.network).join(", ")})` : ""}`,
-    );
+    console.log(`Discovery    : Multicall3 balanceOf over the published token list`);
     // The balance probe is the half of discovery that does not depend on what
     // eth_getLogs range an endpoint happens to allow, so a cycle that is about
     // to move money should not run without it unless asked.
-    let tokenListByChain: Map<number, Set<string>> | undefined;
-    if (!args.noProbe) {
-      const list = await loadOkuTokenList();
-      for (const w of list.warnings) console.log(`  ! ${w}`);
-      tokenListByChain = indexByChain(list.tokens);
-      console.log(
-        `Probe list   : ${list.tokens.length} candidate tokens ` +
-          `(${list.fromCache ? "cached" : "fetched"})`,
-      );
-    } else {
-      console.log("Probe list   : DISABLED (--no-probe); discovery is eth_getLogs only");
-    }
+    // strict: this path decides what to sweep. An empty token list would not
+    // error anywhere downstream, it would just find nothing on every chain at
+    // once, which is indistinguishable from a set of empty routers.
+    const list = await loadOkuTokenList({ strict: true });
+    for (const w of list.warnings) console.log(`  ! ${w}`);
+    const tokenListByChain = indexByChain(list.tokens);
+    console.log(
+      `Probe list   : ${list.tokens.length} candidate tokens ` +
+        `(${list.fromCache ? "cached" : "fetched"})`,
+    );
     console.log("");
 
     // ---- 1. scan ----------------------------------------------------------
     let done = 0;
     const results = await mapLimit(chains, concurrency, async (chain) => {
-      const r = await scanChainForSnapshot(chain, {
-        maxRequests: args.maxRequests ? Number(args.maxRequests) : undefined,
-        useCache: !args.noCache,
-        price: true,
-        tokenListByChain,
-      });
+      const r = await scanChainForSnapshot(chain, { price: true, tokenListByChain });
       done++;
       const detail =
         r.status === "has-fees"
-          ? `${r.totals.assetCount} asset(s)  realizable ${usd(r.totals.usdRealizable)}`
+          ? `${r.totals.assetCount} asset(s)  notional ${usd(r.totals.usdNotional)}`
           : r.status === "error"
             ? `ERROR: ${r.error}`
             : r.status;
@@ -153,33 +138,26 @@ task("fees:cycle", "Scan every chain for idle fees, build the sweep bundle, emit
       console.log("Nothing on any chain.");
     } else {
       console.log(
-        `  ${pad("chain", 14)}${pad("assets", 8)}${pad("notional", 13)}${pad("realizable", 13)}` +
-          `${pad("seen", 6)}${pad("hist%", 8)}discovery`,
+        `  ${pad("chain", 14)}${pad("assets", 8)}${pad("unpriced", 10)}${pad("notional", 13)}` +
+          `${pad("candidates", 12)}unchecked`,
       );
       for (const c of sweepable) {
-        const q = c.discovery ?? (c.coverage ? "partial" : "unreliable");
-        const pct =
-          c.coverageFraction === undefined
-            ? "-"
-            : c.coverageFraction >= 0.9995
-              ? "100%"
-              : `${(c.coverageFraction * 100).toFixed(2)}%`;
-        const flag = q === "unreliable" ? "  <-- UNRELIABLE" : "";
+        const un = c.probe?.unchecked ?? 0;
         console.log(
           `  ${pad(c.network, 14)}${pad(String(c.totals.assetCount), 8)}` +
-            `${pad(usd(c.totals.usdNotional), 13)}${pad(usd(c.totals.usdRealizable), 13)}` +
-            `${pad(String(c.coverage?.everSeen ?? "-"), 6)}${pad(pct, 8)}${q}${flag}`,
+            `${pad(String(c.totals.unpricedCount || "-"), 10)}` +
+            `${pad(usd(c.totals.usdNotional), 13)}` +
+            `${pad(String(c.probe?.candidates ?? "-"), 12)}${un ? `${un}  <-- NOT CHECKED` : "-"}`,
         );
       }
     }
     console.log("-".repeat(96));
     console.log(
-      `  TOTAL  notional ${usd(snap.totals.usdNotional)}   ` +
-        `realizable ${usd(snap.totals.usdRealizable)}   across ${sweepable.length} chain(s)`,
+      `  TOTAL  notional ${usd(snap.totals.usdNotional)}   across ${sweepable.length} chain(s)`,
     );
     console.log(
-      "  Realizable caps each asset at a fraction of its pool depth. Decide on realizable:\n" +
-        "  notional routinely overstates long-tail tokens by an order of magnitude.",
+      "  Priced from DefiLlama. There is NO liquidity signal: nothing here says whether\n" +
+        "  an asset can actually be sold, and unpriced assets contribute $0.",
     );
 
     // Chains that could not be read are NOT chains with nothing to collect.
@@ -210,29 +188,25 @@ task("fees:cycle", "Scan every chain for idle fees, build the sweep bundle, emit
     // tokens including USDC 1,173 behind. The scan warned; the warning was one
     // line among 34 chains and was missed. So this now fails the exit code and
     // requires an explicit acknowledgement to proceed.
-    const unreliable = snap.chains.filter(
-      (c) => c.status !== "error" && c.status !== "no-rpc" && c.status !== "no-config" &&
-        (c.discovery ?? (c.coverage ? "partial" : "unreliable")) === "unreliable",
-    );
+    const unreliable = snap.chains.filter((c) => (c.probe?.unchecked ?? 0) > 0);
     if (unreliable.length) {
       console.log("\n" + "!".repeat(96));
       console.log(
-        `${unreliable.length} chain(s) have UNRELIABLE discovery. Their asset list is the ` +
-          `hardcoded\nwell-known set (WETH/WBTC/USDC) plus whatever was cached -- NOT evidence ` +
-          `about\nwhat these routers actually hold. A $0.00 here means "we could not look",\n` +
-          `not "there is nothing".`,
+        `${unreliable.length} chain(s) were NOT fully checked. Some candidate balances could ` +
+          `not\nbe read, so a $0.00 for those assets means "we could not look", not "there is\n` +
+          `nothing". Anything held in them will be left behind by a bundle built from this\nscan.`,
       );
       for (const c of unreliable) {
-        const pct = c.coverageFraction === undefined ? "?" : `${(c.coverageFraction * 100).toFixed(3)}%`;
-        const why = c.coverage === null ? "endpoint refused eth_getLogs" : `only ${pct} of history scanned`;
         console.log(
-          `  ${pad(c.network, 14)}${pad(`${c.coverage?.everSeen ?? 0} ever seen`, 18)}${why}`,
+          `  ${pad(c.network, 14)}${pad(`${c.probe!.unchecked} unchecked`, 18)}` +
+            `of ${c.probe!.candidates} candidate(s)`,
         );
       }
-      console.log("\n  Fix by pointing these at a logs-capable endpoint:");
-      for (const c of unreliable) console.log(`    ${logsEnvVar(c.network)}=<url>`);
       console.log(
-        `\n  Or re-run with --accept-partial to proceed anyway, having read the above.`,
+        `\n  Usually a flaky endpoint: re-run, or set ${"<NET>"}_URL to a better one.`,
+      );
+      console.log(
+        `  Or re-run with --accept-partial to proceed anyway, having read the above.`,
       );
       console.log("!".repeat(96));
       if (!args.acceptPartial) {

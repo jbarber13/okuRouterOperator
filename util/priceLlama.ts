@@ -28,9 +28,10 @@
  * venue, which is the same failure the V3 dust-pool floor exists to reject.
  */
 import { withRetry } from "./rpcRetry";
-import { toChecksum } from "./feeScan";
+import { toChecksum } from "./address";
 
-const COINS_API = "https://coins.llama.fi/prices/current";
+const COINS_CURRENT = "https://coins.llama.fi/prices/current";
+const COINS_HISTORICAL = "https://coins.llama.fi/prices/historical";
 
 /**
  * Addresses per request. DefiLlama accepts long URLs, but a failure costs the
@@ -94,11 +95,18 @@ export const LLAMA_SLUG: Record<string, string> = {
 
 export interface LlamaPrice {
   price: number;
+  /**
+   * DefiLlama's 0..1 score. Only present on the current-price endpoint; the
+   * historical endpoint does not return one, and those quotes are recorded
+   * with confidence 1 because there is nothing to gate on.
+   */
   confidence: number;
   /** Unix seconds, as reported by DefiLlama. */
   timestamp: number;
   decimals?: number;
   symbol?: string;
+  /** True when this came from the historical endpoint. */
+  historical?: boolean;
 }
 
 export interface LlamaPriceResult {
@@ -138,6 +146,16 @@ export async function fetchLlamaPrices(
     maxAgeSec?: number;
     timeoutMs?: number;
     now?: number;
+    /**
+     * Unix seconds. When set, prices come from the HISTORICAL endpoint as of
+     * that moment instead of now.
+     *
+     * This exists for `fees:account`, which values a sweep at the block it
+     * executed in. Using a current price there would silently restate what a
+     * past collection was worth every time the report was regenerated -- the
+     * record is supposed to be fixed.
+     */
+    at?: number;
   } = {},
 ): Promise<LlamaPriceResult> {
   const warnings: string[] = [];
@@ -157,12 +175,18 @@ export async function fetchLlamaPrices(
   }
   if (addrs.length === 0) return { prices, rejected, requests, warnings };
 
+  const historical = opts.at !== undefined;
   const minConfidence = opts.minConfidence ?? MIN_CONFIDENCE;
   const maxAgeSec = opts.maxAgeSec ?? MAX_PRICE_AGE_SEC;
-  const nowSec = Math.floor((opts.now ?? Date.now()) / 1000);
+  // Freshness is judged against the moment we asked about, not the wall clock:
+  // for a historical query "24h old" means 24h from that block, not from today.
+  const refSec = historical ? opts.at! : Math.floor((opts.now ?? Date.now()) / 1000);
 
   for (const group of chunk(addrs, opts.chunkSize ?? DEFAULT_CHUNK)) {
-    const url = `${COINS_API}/${group.map((a) => `${slug}:${a}`).join(",")}`;
+    const coins = group.map((a) => `${slug}:${a}`).join(",");
+    const url = historical
+      ? `${COINS_HISTORICAL}/${opts.at}/${coins}`
+      : `${COINS_CURRENT}/${coins}`;
     let body: { coins?: Record<string, Partial<LlamaPrice>> };
     try {
       body = await withRetry(
@@ -195,15 +219,20 @@ export async function fetchLlamaPrices(
       const price = Number(val?.price);
       if (!Number.isFinite(price) || price <= 0) continue;
 
-      const confidence = Number(val?.confidence ?? 0);
+      // The historical endpoint returns no confidence score, so there is
+      // nothing to gate on; recorded as 1 rather than silently failing every
+      // quote against the current-price threshold.
+      const confidence = historical ? 1 : Number(val?.confidence ?? 0);
       const timestamp = Number(val?.timestamp ?? 0);
       if (confidence < minConfidence) {
         rejected++;
         continue;
       }
       // timestamp 0 means DefiLlama did not say when this was observed, which
-      // is not evidence of freshness.
-      if (!timestamp || nowSec - timestamp > maxAgeSec) {
+      // is not evidence of freshness. Historical quotes are compared by
+      // absolute distance: a price from AFTER the block is just as wrong as
+      // one from long before it.
+      if (!timestamp || Math.abs(refSec - timestamp) > maxAgeSec) {
         rejected++;
         continue;
       }
@@ -213,6 +242,7 @@ export async function fetchLlamaPrices(
         timestamp,
         decimals: typeof val?.decimals === "number" ? val.decimals : undefined,
         symbol: typeof val?.symbol === "string" ? val.symbol : undefined,
+        ...(historical ? { historical: true } : {}),
       });
     }
   }

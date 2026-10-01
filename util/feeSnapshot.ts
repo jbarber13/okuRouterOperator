@@ -20,18 +20,11 @@
  *   - a per-chain status that distinguishes "nothing to sweep" from "we could
  *     not find out", which the build path alone cannot express
  *
- * It must never contain RPC URLs. `<NET>_LOGS_URL` endpoints carry API keys,
- * so only the boolean `usedLogsRpc` is recorded.
+ * It must never contain RPC URLs: configured endpoints carry API keys.
  */
 import * as fs from "fs";
 import * as path from "path";
-import {
-  NATIVE_SENTINEL,
-  fmtAmount,
-  type DiscoveryQuality,
-  type PricedFeeAsset,
-  type ScanCoverage,
-} from "./feeScan";
+import { NATIVE_SENTINEL, fmtAmount, type PricedFeeAsset } from "./feeScan";
 
 const REPORTS_DIR = path.resolve(__dirname, "..", "fee-reports");
 const SCANS_DIR = path.join(REPORTS_DIR, "scans");
@@ -54,8 +47,6 @@ export interface SnapshotAsset {
   amount: string;
   usdPrice?: number;
   usdValue?: number;
-  poolDepthUsd?: number;
-  realizableUsd?: number;
   priceSource?: string;
 }
 
@@ -66,39 +57,29 @@ export interface SnapshotChain {
   status: ChainScanStatus;
   /** Truncated failure message when status is "error". */
   error?: string;
-  coverage: ScanCoverage | null;
-  /**
-   * How much of this chain's history discovery actually saw.
-   *
-   * `unreliable` means the asset list is not evidence about this chain's
-   * fees -- it is the hardcoded well-known set plus whatever was cached. A
-   * $0.00 total on an `unreliable` chain says nothing about whether the
-   * router holds anything.
-   */
-  discovery?: DiscoveryQuality;
-  /** Fraction of history covered, 0..1. Reported alongside `discovery`. */
-  coverageFraction?: number;
-  /** A cached discovery interval was resumed from, rather than a cold scan. */
-  cacheHit: boolean;
-  /** Whether <NET>_LOGS_URL was in play. The URL itself is never recorded. */
-  usedLogsRpc: boolean;
-  /** Multicall3 balance-probe stats, absent when the probe did not run. */
+  /** Multicall3 balance-probe stats, absent when the chain could not be read. */
   probe?: {
     /** Candidate addresses submitted. */
     candidates: number;
-    /** eth_calls the probe cost. */
+    /** eth_calls the scan cost. */
     calls: number;
     /** Candidates found holding a non-zero balance. */
     found: number;
-    /** Of those, how many log discovery had never seen. */
-    newToDiscovery: number;
+    /**
+     * Candidates the probe could NOT check.
+     *
+     * Not the same as "holds nothing". Recorded separately so a batch the
+     * node refused cannot be read as an empty result.
+     */
+    unchecked: number;
+    /** Where the candidate set came from. */
+    sources: { seed: number; tokenList: number; chainConfig: number };
   };
   warnings: string[];
   assets: SnapshotAsset[];
   totals: {
     assetCount: number;
     usdNotional: number;
-    usdRealizable: number;
     /**
      * Assets carrying no USD value at all.
      *
@@ -107,11 +88,6 @@ export interface SnapshotChain {
      * 2026-09-30 eleven chains printed the former while meaning the latter.
      */
     unpricedCount: number;
-    /**
-     * Assets with a notional but no depth-backed realizable figure, i.e.
-     * priced off-chain with no observed pool to exit into.
-     */
-    noDepthCount: number;
   };
 }
 
@@ -129,7 +105,6 @@ export interface FeeScanSnapshot {
     chainsEmpty: number;
     chainsErrored: number;
     usdNotional: number;
-    usdRealizable: number;
     /** Assets across all chains with no USD value. See SnapshotChain.totals. */
     unpricedCount: number;
   };
@@ -145,8 +120,6 @@ export function toSnapshotAsset(a: PricedFeeAsset): SnapshotAsset {
     amount: fmtAmount(a),
     usdPrice: a.usdPrice,
     usdValue: a.usdValue,
-    poolDepthUsd: a.poolDepthUsd,
-    realizableUsd: a.realizableUsd,
     priceSource: a.priceSource,
   };
 }
@@ -155,11 +128,9 @@ export function toSnapshotAsset(a: PricedFeeAsset): SnapshotAsset {
 export function buildSnapshot(chains: SnapshotChain[]): FeeScanSnapshot {
   const now = new Date();
   let usdNotional = 0;
-  let usdRealizable = 0;
   let unpricedCount = 0;
   for (const c of chains) {
     usdNotional += c.totals.usdNotional;
-    usdRealizable += c.totals.usdRealizable;
     unpricedCount += c.totals.unpricedCount ?? 0;
   }
   return {
@@ -174,7 +145,6 @@ export function buildSnapshot(chains: SnapshotChain[]): FeeScanSnapshot {
       chainsEmpty: chains.filter((c) => c.status === "empty").length,
       chainsErrored: chains.filter((c) => c.status === "error").length,
       usdNotional,
-      usdRealizable,
       unpricedCount,
     },
   };
@@ -184,7 +154,7 @@ export function buildSnapshot(chains: SnapshotChain[]): FeeScanSnapshot {
 export function sweepableChains(snap: FeeScanSnapshot): SnapshotChain[] {
   return snap.chains
     .filter((c) => c.status === "has-fees")
-    .sort((a, b) => b.totals.usdRealizable - a.totals.usdRealizable);
+    .sort((a, b) => b.totals.usdNotional - a.totals.usdNotional);
 }
 
 /**
@@ -196,7 +166,7 @@ export function sweepableChains(snap: FeeScanSnapshot): SnapshotChain[] {
  * can be applied in one flag rather than by hand-listing networks.
  */
 export function chainsAboveThreshold(snap: FeeScanSnapshot, minUsd: number): SnapshotChain[] {
-  return sweepableChains(snap).filter((c) => c.totals.usdRealizable >= minUsd);
+  return sweepableChains(snap).filter((c) => c.totals.usdNotional >= minUsd);
 }
 
 function usd(n: number | undefined): string {
@@ -243,7 +213,7 @@ export function renderSnapshotMarkdown(snap: FeeScanSnapshot): string {
   L.push(
     "Snapshot of idle protocol fees. Not a record of collection: nothing here has moved,",
   );
-  L.push("and the valuations go stale as soon as pool state changes.");
+  L.push("and the valuations go stale as soon as prices move.");
   L.push("");
   L.push("| | |");
   L.push("|---|---|");
@@ -253,22 +223,23 @@ export function renderSnapshotMarkdown(snap: FeeScanSnapshot): string {
   L.push(`| Empty | ${snap.totals.chainsEmpty} |`);
   L.push(`| Errored | ${snap.totals.chainsErrored} |`);
   L.push(`| Total notional | ${usd(snap.totals.usdNotional)} |`);
-  L.push(`| Total realizable | ${usd(snap.totals.usdRealizable)} |`);
   L.push(`| Assets with no price | ${snap.totals.unpricedCount ?? 0} |`);
   L.push("");
+  L.push("Notional is price x balance, priced from DefiLlama.");
+  L.push("");
   L.push(
-    "Notional is spot price x balance. Realizable caps each asset at a fraction of its",
+    "There is **no liquidity signal here**. Valuation no longer reads on-chain pools, so",
   );
-  L.push("pool depth, which is the number to decide on — most of these are long-tail tokens");
-  L.push("that quote a real-looking price against a pool with no liquidity.");
+  L.push(
+    "nothing below distinguishes an asset that can be sold from one that merely quotes a",
+  );
+  L.push("price. Treat every figure as an upper bound on what is actually recoverable.");
   L.push("");
   if ((snap.totals.unpricedCount ?? 0) > 0) {
     L.push(
-      `**${snap.totals.unpricedCount} asset(s) carry no price and contribute $0 to both totals.**`,
+      `**${snap.totals.unpricedCount} asset(s) carry no price and contribute $0 to the total.**`,
     );
-    L.push(
-      "Those totals are therefore a LOWER BOUND, not a valuation. A chain showing $0.00 with",
-    );
+    L.push("The total is therefore also a LOWER BOUND on value. A chain showing $0.00 with");
     L.push("unpriced assets has not been shown to be empty.");
     L.push("");
   }
@@ -280,54 +251,35 @@ export function renderSnapshotMarkdown(snap: FeeScanSnapshot): string {
     L.push("None.");
   } else {
     L.push(
-      "| Chain | Chain ID | Assets | Unpriced | Notional | Realizable | Ever seen | History scanned | Discovery |",
+      "| Chain | Chain ID | Assets | Unpriced | Notional | Candidates | Calls | Unchecked |",
     );
-    L.push("|---|---:|---:|---:|---:|---:|---:|---:|---|");
+    L.push("|---|---:|---:|---:|---:|---:|---:|---:|");
     for (const c of sweepable) {
-      const q = c.discovery ?? (c.coverage ? "partial" : "unreliable");
-      const pct =
-        c.coverageFraction === undefined
-          ? "—"
-          : c.coverageFraction >= 0.9995
-            ? "100%"
-            : `${(c.coverageFraction * 100).toFixed(2)}%`;
-      const label = q === "unreliable" ? "**UNRELIABLE**" : q;
       const unp = c.totals.unpricedCount ?? 0;
+      const unchecked = c.probe?.unchecked ?? 0;
       L.push(
         `| ${c.network} | ${c.chainId} | ${c.totals.assetCount} | ${unp || "—"} | ` +
-          `${usd(c.totals.usdNotional)} | ${usd(c.totals.usdRealizable)} | ` +
-          `${c.coverage?.everSeen ?? "—"} | ${pct} | ${label} |`,
+          `${usd(c.totals.usdNotional)} | ${c.probe?.candidates ?? "—"} | ` +
+          `${c.probe?.calls ?? "—"} | ${unchecked ? `**${unchecked}**` : "—"} |`,
       );
     }
   }
   L.push("");
 
-  const unreliable = snap.chains.filter(
-    (c) =>
-      c.status !== "error" &&
-      c.status !== "no-rpc" &&
-      c.status !== "no-config" &&
-      (c.discovery ?? (c.coverage ? "partial" : "unreliable")) === "unreliable",
-  );
-  if (unreliable.length) {
-    L.push("## Unreliable discovery — read before trusting any total above");
+  // A batch the node refused is not an empty router. Surfaced separately
+  // because it is the one failure the probe cannot make good on its own.
+  const incomplete = snap.chains.filter((c) => (c.probe?.unchecked ?? 0) > 0);
+  if (incomplete.length) {
+    L.push("## Incomplete reads — these chains were not fully checked");
     L.push("");
-    L.push(
-      "On these chains the scan saw effectively none of the fee history. The asset list",
-    );
-    L.push(
-      "is the hardcoded well-known set (WETH/WBTC/USDC) plus anything a previous run had",
-    );
-    L.push("already cached — it is **not** evidence about what these routers hold.");
+    L.push("Some candidate balances could not be read, so anything held in them is invisible");
+    L.push("here. A `$0.00` for those assets means *we could not look*, not *nothing there*.");
     L.push("");
-    L.push("A `$0.00` here means *we could not look*, not *there is nothing there*.");
-    L.push("");
-    for (const c of unreliable) {
-      const pct =
-        c.coverageFraction === undefined ? "?" : `${(c.coverageFraction * 100).toFixed(3)}%`;
-      const why =
-        c.coverage === null ? "endpoint refused eth_getLogs" : `only ${pct} of history scanned`;
-      L.push(`- **${c.network}** (${c.chainId}): ${why}; ${c.coverage?.everSeen ?? 0} asset(s) ever discovered`);
+    for (const c of incomplete) {
+      L.push(
+        `- **${c.network}** (${c.chainId}): ${c.probe!.unchecked} of ` +
+          `${c.probe!.candidates} candidate(s) unchecked`,
+      );
     }
     L.push("");
   }
@@ -362,12 +314,12 @@ export function renderSnapshotMarkdown(snap: FeeScanSnapshot): string {
     L.push("");
     L.push(`Router \`${c.router}\``);
     L.push("");
-    L.push("| Asset | Amount | USD | Pool depth | Realizable | Address |");
-    L.push("|---|---:|---:|---:|---:|---|");
+    L.push("| Asset | Amount | USD | Price source | Address |");
+    L.push("|---|---:|---:|---|---|");
     for (const a of c.assets) {
       L.push(
-        `| ${a.symbol} | ${a.amount} | ${usd(a.usdValue)} | ${usd(a.poolDepthUsd)} | ` +
-          `${usd(a.realizableUsd)} | ${a.token === NATIVE_SENTINEL ? "(native)" : `\`${a.token}\``} |`,
+        `| ${a.symbol} | ${a.amount} | ${usd(a.usdValue)} | ${a.priceSource ?? "—"} | ` +
+          `${a.token === NATIVE_SENTINEL ? "(native)" : `\`${a.token}\``} |`,
       );
     }
     L.push("");
