@@ -3,7 +3,7 @@
   "private": true,
   "description": "Multisig and fee-collection operations for OkuRouter. Contracts are not built here -- see the okuRouter repo for deployment; this repo vendors the ABI/addresses it needs (see typechain-types/README and util/deploymentsRegistry.ts).",
   "dependencies": {
-    "@gfxlabs/oku-chains": "1.13.0"
+    "@gfxlabs/oku-chains": "1.13.1"
   },
   "scripts": {
     "test": "npx hardhat test test/base/*.ts",

@@ -107,7 +107,22 @@ const CURATED: Record<string, ChainEndpoints> = {
   scroll: { rpc: "https://rpc.scroll.io" },
   linea: { rpc: "https://rpc.linea.build" },
   mantle: { rpc: "https://rpc.mantle.xyz" },
-  unichain: { rpc: "https://mainnet.unichain.org" },
+
+  // NOT the official https://mainnet.unichain.org, deliberately.
+  //
+  // That endpoint returns a pending nonce LOWER than its latest nonce for an
+  // address with no mempool backlog -- an impossible state. Observed twice,
+  // 2026-09-30 and 2026-10-02: latest 59, pending 55. ethers takes the
+  // pending value when building a transaction, so it signs with an
+  // already-mined nonce and the broadcast fails with "nonce has already been
+  // used". It is not a transient blip and it is not a gas or funding
+  // problem; it stops every write to unichain while reads look perfectly
+  // healthy, which is what makes it expensive to diagnose.
+  //
+  // publicnode and drpc both report pending == latest == 59 for the same
+  // address at the same block, so the fault is specific to the official
+  // endpoint rather than to the chain.
+  unichain: { rpc: "https://unichain-rpc.publicnode.com" },
 };
 
 /**

@@ -61,6 +61,17 @@ describe("rpcEndpoints: Ankr entitlement", () => {
     }
   });
 
+  it("keeps unichain off the official endpoint, which reports an impossible nonce", () => {
+    // mainnet.unichain.org returns pending < latest for an address with no
+    // mempool backlog. ethers signs with the pending value, so every write to
+    // unichain fails "nonce has already been used" while reads look fine.
+    // Cost two ceremonies (2026-09-30, 2026-10-02) before it was pinned down.
+    // Reads are healthy there, so this will not resurface as a read failure
+    // if someone "tidies" it back to the official URL -- hence the test.
+    expect(curatedRpc("unichain")).to.not.equal("https://mainnet.unichain.org");
+    expect(curatedRpc("unichain")).to.equal("https://unichain-rpc.publicnode.com");
+  });
+
   it("degrades to undefined when no key is configured, rather than emitting a broken URL", () => {
     delete process.env[KEY];
     expect(ankrUrl("avax")).to.equal(undefined);
