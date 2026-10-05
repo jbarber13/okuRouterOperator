@@ -48,10 +48,8 @@ import type { HardhatRuntimeEnvironment } from "hardhat/types";
 import {
   OKU_DEPLOYER_EOA,
   SAFE_MULTISEND_CALL_ONLY,
-  OKU_SAFE_V2_EXPECTED_ADDRESS,
   assertOkuSafeConfig,
   getOkuSafeDeployment,
-  resolveSafeVersion,
   hasSafeTxService,
   safeTxServiceUrl,
 } from "../util/safeConfig";
@@ -853,7 +851,6 @@ task("safe:build", "Diff on-chain state and emit a per-chain SafeTx bundle")
     "to",
     "For sweep: recipient (default: OKU_FEE_RECIPIENT). For transfer-ownership: the new owner Safe",
   )
-  .addOptionalParam("safeVersion", "Which Safe generation signs this bundle: v1 (default) or v2")
   .addOptionalParam("tokens", "For sweep: comma-separated token list, or omit to auto-discover")
   .addOptionalParam("maxTokens", "For sweep: max tokens per sweepAll call (default 40)")
   .addOptionalParam(
@@ -874,8 +871,7 @@ task("safe:build", "Diff on-chain state and emit a per-chain SafeTx bundle")
   .addFlag("force", "For transfer-ownership: allow a --to other than the pinned v2 Safe")
   .setAction(async (taskArgs, hre: HardhatRuntimeEnvironment) => {
     assertOkuSafeConfig();
-    const safeVersion = resolveSafeVersion(taskArgs.safeVersion);
-    const dep = getOkuSafeDeployment(safeVersion);
+    const dep = getOkuSafeDeployment();
     const intent = String(taskArgs.intent) as Intent;
     const valid: Intent[] = [
       "accept-ownership",
@@ -919,11 +915,11 @@ task("safe:build", "Diff on-chain state and emit a per-chain SafeTx bundle")
       // Typing a wrong address here hands 34 routers to a Safe nobody
       // controls. The only destination this migration has any business
       // using is the pinned v2 Safe, so anything else must be stated twice.
-      if (to !== getAddress(OKU_SAFE_V2_EXPECTED_ADDRESS) && !taskArgs.force) {
+      if (!taskArgs.force) {
         throw new Error(
-          `--to ${to} is not the pinned v2 Safe ` +
-            `(${getAddress(OKU_SAFE_V2_EXPECTED_ADDRESS)}). ` +
-            `Re-run with --force if you really mean it.`,
+          `transfer-ownership moves all router authority to ${to}. There is no ` +
+            `pinned successor Safe configured, so this cannot be checked for you. ` +
+            `Verify the destination is a Safe you control, then re-run with --force.`,
         );
       }
       params.to = to;

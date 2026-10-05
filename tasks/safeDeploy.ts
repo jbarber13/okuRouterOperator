@@ -51,10 +51,8 @@ import {
   SAFE_TO_L2_SETUP_CREATION_CODE,
   SAFE_HELPER_DEPLOY_SALT,
   assertOkuSafeConfig,
-  resolveSafeVersion,
   assertSafeToL2SetupBytecode,
   getOkuSafeDeployment,
-  type SafeVersion,
   hasSafeTxService,
 } from "../util/safeConfig";
 import { SAFE_IFACE, decodeRevert } from "../util/safeTx";
@@ -119,7 +117,6 @@ async function verifyDeployedSafe(
   provider: JsonRpcProvider,
   chain: SafeChain,
   safe: string,
-  expectedOwners: readonly string[] = OKU_SAFE_OWNERS,
 ): Promise<{ ok: boolean; version: string; owners: string[]; threshold: number; problems: string[] }> {
   const problems: string[] = [];
   const call = async (fn: string) =>
@@ -132,7 +129,7 @@ async function verifyDeployedSafe(
   const threshold = Number((await call("getThreshold")) as bigint);
   const version = String(await call("VERSION"));
 
-  const want = new Set(expectedOwners.map((o) => getAddress(o)));
+  const want = new Set(OKU_SAFE_OWNERS.map((o) => getAddress(o)));
   const got = new Set(owners);
   if (got.size !== want.size || ![...want].every((o) => got.has(o))) {
     problems.push(`owner set mismatch: got [${owners.join(", ")}]`);
@@ -240,9 +237,8 @@ async function deployOnChain(
   hre: HardhatRuntimeEnvironment,
   chain: SafeChain,
   broadcast: boolean,
-  version: SafeVersion = "v1",
 ): Promise<Result> {
-  const dep = getOkuSafeDeployment(version);
+  const dep = getOkuSafeDeployment();
   const lines: string[] = [];
   const log = (s: string) => lines.push(s);
   const flush = () => lines.forEach((l) => console.log(l));
@@ -303,7 +299,7 @@ async function deployOnChain(
       `${chain.network}:getCode(safe)`,
     );
     if (existing !== "0x") {
-      const v = await verifyDeployedSafe(provider, chain, dep.address, dep.owners);
+      const v = await verifyDeployedSafe(provider, chain, dep.address);
       if (!v.ok) {
         console.log(`  ✗ address occupied but not our Safe:`);
         v.problems.forEach((p) => console.log(`      ${p}`));
@@ -318,7 +314,7 @@ async function deployOnChain(
         `  ✓ already deployed: ${dep.address}  v${v.version}  ${v.threshold}/${v.owners.length}`,
       );
       if (broadcast) {
-        recordDeployment(chain.network, chain.chainId, version === "v2" ? "SafeV2" : "Safe", {
+        recordDeployment(chain.network, chain.chainId, "Safe", {
           address: dep.address,
           version: `${v.version}${chain.chainId === 1 ? "" : "+L2"}`,
           threshold: v.threshold,
@@ -463,7 +459,7 @@ async function deployOnChain(
       };
     }
 
-    const v = await verifyDeployedSafe(provider, chain, dep.address, dep.owners);
+    const v = await verifyDeployedSafe(provider, chain, dep.address);
     if (!v.ok) {
       console.log(`  ✗ post-deploy verification FAILED [tx ${tx.hash}]:`);
       v.problems.forEach((p) => console.log(`      ${p}`));
@@ -476,7 +472,7 @@ async function deployOnChain(
       };
     }
 
-    recordDeployment(chain.network, chain.chainId, version === "v2" ? "SafeV2" : "Safe", {
+    recordDeployment(chain.network, chain.chainId, "Safe", {
       address: dep.address,
       version: `${v.version}${chain.chainId === 1 ? "" : "+L2"}`,
       threshold: v.threshold,
@@ -510,17 +506,14 @@ async function deployOnChain(
 // ---------------------------------------------------------------------------
 
 task("safe:predict", "Print the deterministic Safe address and prove cross-chain parity")
-  .addOptionalParam("safeVersion", "Which Safe generation: v1 (current) or v2 (rotated signers)")
   .setAction(async (_args, hre) => {
     assertOkuSafeConfig();
-    const version = resolveSafeVersion(_args.safeVersion);
-    const dep = getOkuSafeDeployment(version);
+    const dep = getOkuSafeDeployment();
     const chains = listSafeChains(hre);
 
     console.log("\n" + "=".repeat(84));
     console.log("PRODUCTION SAFE  (offline prediction -- no network access)");
     console.log("=".repeat(84));
-    console.log(`generation        : ${version}`);
     console.log(`address           : ${dep.address}`);
     console.log(`threshold         : ${dep.threshold} of ${dep.owners.length}`);
     dep.owners.forEach((o, i) =>
@@ -566,11 +559,9 @@ task("safe:deploy", "Deploy the production Safe proxy (DRY RUN unless --broadcas
   .addOptionalParam("networks", "Comma-separated list of networks to restrict to")
   .addFlag("broadcast", "Actually send transactions (default is a dry run)")
   .addFlag("continueOnError", "Keep going after a chain fails")
-  .addOptionalParam("safeVersion", "Which Safe generation: v1 (current) or v2 (rotated signers)")
   .setAction(async (taskArgs, hre) => {
     assertOkuSafeConfig();
-    const version = resolveSafeVersion(taskArgs.safeVersion);
-    const dep = getOkuSafeDeployment(version);
+    const dep = getOkuSafeDeployment();
     const broadcast: boolean = taskArgs.broadcast;
 
     const only = taskArgs.networks
@@ -590,7 +581,7 @@ task("safe:deploy", "Deploy the production Safe proxy (DRY RUN unless --broadcas
         : "SAFE DEPLOY  [DRY RUN -- no transactions will be sent]",
     );
     console.log("=".repeat(84));
-    console.log(`Safe address : ${dep.address}   [${version}]`);
+    console.log(`Safe address : ${dep.address}`);
     console.log(`Owners       : ${dep.threshold} of ${dep.owners.length}`);
     dep.owners.forEach((o, i) => console.log(`  owner[${i}]   : ${o}`));
     console.log(`Chains       : ${chains.length}`);
@@ -605,7 +596,7 @@ task("safe:deploy", "Deploy the production Safe proxy (DRY RUN unless --broadcas
     // 34 rather than after 34 broadcasts.
     const results: Result[] = [];
     for (const chain of chains) {
-      const r = await deployOnChain(hre, chain, broadcast, version);
+      const r = await deployOnChain(hre, chain, broadcast);
       results.push(r);
       if (r.status === "failed" && !taskArgs.continueOnError) {
         console.log(

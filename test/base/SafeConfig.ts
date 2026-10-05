@@ -22,10 +22,6 @@ import {
   OKU_SAFE_OWNERS,
   OKU_SAFE_SALT_NONCE,
   OKU_SAFE_THRESHOLD,
-  OKU_SAFE_V2_EXPECTED_ADDRESS,
-  OKU_SAFE_V2_OWNERS,
-  resolveSafeVersion,
-  safeParamsFor,
   SAFE_MULTISEND_CALL_ONLY,
   SAFE_PROXY_CREATION_CODE,
   SAFE_PROXY_CREATION_CODE_HASH,
@@ -97,73 +93,36 @@ describe("safeConfig: derivation", () => {
     expect(predictSafeAddress(OKU_SAFE_OWNERS, 2, 1n).address).to.not.equal(base);
   });
 
-  // -- signer rotation: the v2 Safe ---------------------------------------
+  // -- signer rotation, 2026-10-02 ---------------------------------------
 
-  it("pins the v2 Safe address, and the tripwire agrees", () => {
-    const dep = getOkuSafeDeployment("v2");
-    expect(getAddress(dep.address)).to.equal(getAddress(OKU_SAFE_V2_EXPECTED_ADDRESS));
-    expect(dep.threshold).to.equal(OKU_SAFE_THRESHOLD);
-    expect(dep.saltNonce).to.equal(OKU_SAFE_SALT_NONCE);
-    expect(dep.version).to.equal("v2");
+  it("pins the rotated owner set, and keeps the retained signer", () => {
+    const owners = OKU_SAFE_OWNERS.map((o) => getAddress(o));
+    expect(owners).to.have.lengthOf(3);
+    expect(new Set(owners).size).to.equal(3);
+    expect(owners).to.include(getAddress("0x5227a7404631Eb7De411232535E36dE8dad318f0"));
+    expect(owners).to.include(getAddress("0x5348bb6318f5Dc05C4501BA8D9b543666ec772e8"));
+    expect(owners).to.include(getAddress("0x46e9CF7694535b4Ba5a7ba09f6c54B05CE7A85E3"));
   });
 
-  it("derives v2 from its own owner set, not v1's", () => {
-    const v2 = getOkuSafeDeployment("v2");
-    expect(v2.address).to.equal(predictSafeAddress(OKU_SAFE_V2_OWNERS, 2, 0n).address);
-    expect(v2.owners).to.deep.equal(OKU_SAFE_V2_OWNERS);
+  it("has fully retired the pre-rotation signers", () => {
+    // These two keys controlled every router before 2026-10-02. If either
+    // reappears here the config has been reverted, not edited.
+    const owners = OKU_SAFE_OWNERS.map((o) => getAddress(o));
+    expect(owners).to.not.include(getAddress("0x9B68c14e936104e9a7a24c712BEecdc220002984"));
+    expect(owners).to.not.include(getAddress("0x43A9beCdC1323c1dFcfA776cE9bF57F9F8Ce8200"));
   });
 
-  it("gives v1 and v2 different addresses", () => {
-    expect(getAddress(getOkuSafeDeployment("v1").address)).to.not.equal(
-      getAddress(getOkuSafeDeployment("v2").address),
+  it("no longer resolves to the pre-rotation Safe address", () => {
+    // 0xdC91978e... is the retired Safe. It still exists on all 34 chains and
+    // is still a valid 2-of-3 for its OLD owners, so a config regression here
+    // would not fail loudly on-chain -- it would just sign transactions no
+    // router will accept any more.
+    expect(getAddress(getOkuSafeDeployment().address)).to.not.equal(
+      getAddress("0xdC91978e0617CcA2EE1E658d0A1CA3F63CF10f1F"),
     );
-  });
-
-  it("defaults to v1 so existing callers are unaffected", () => {
-    expect(getOkuSafeDeployment().address).to.equal(getOkuSafeDeployment("v1").address);
-    expect(getAddress(getOkuSafeDeployment().address)).to.equal(
-      getAddress(OKU_SAFE_EXPECTED_ADDRESS),
+    expect(getAddress(OKU_SAFE_EXPECTED_ADDRESS)).to.equal(
+      getAddress("0x37333A9626E99eC2012F3cC47a062649CF741303"),
     );
-  });
-
-  it("treats v2 owner ORDER as part of the address", () => {
-    const a = predictSafeAddress(OKU_SAFE_V2_OWNERS, 2, 0n).address;
-    const reordered = [OKU_SAFE_V2_OWNERS[1], OKU_SAFE_V2_OWNERS[0], OKU_SAFE_V2_OWNERS[2]];
-    expect(predictSafeAddress(reordered, 2, 0n).address).to.not.equal(a);
-  });
-
-  it("rotates exactly two of the three signers and retains the third", () => {
-    const v1 = OKU_SAFE_OWNERS.map((o) => getAddress(o));
-    const v2 = OKU_SAFE_V2_OWNERS.map((o) => getAddress(o));
-    const retained = v2.filter((o) => v1.includes(o));
-    expect(retained).to.deep.equal([getAddress("0x5227a7404631Eb7De411232535E36dE8dad318f0")]);
-    expect(v2).to.have.lengthOf(3);
-    expect(new Set(v2).size).to.equal(3); // mutually distinct
-    // every rotated-in signer is genuinely new
-    expect(v2.filter((o) => !v1.includes(o))).to.have.lengthOf(2);
-  });
-
-  it("assertOkuSafeConfig validates BOTH generations", () => {
-    expect(() => assertOkuSafeConfig()).to.not.throw();
-    expect(() => getOkuSafeDeployment("v1")).to.not.throw();
-    expect(() => getOkuSafeDeployment("v2")).to.not.throw();
-  });
-
-  it("resolveSafeVersion defaults to v1 and rejects anything unrecognised", () => {
-    expect(resolveSafeVersion(undefined)).to.equal("v1");
-    expect(resolveSafeVersion("")).to.equal("v1");
-    expect(resolveSafeVersion("v1")).to.equal("v1");
-    expect(resolveSafeVersion("v2")).to.equal("v2");
-    expect(resolveSafeVersion("V2")).to.equal("v2");
-    // a typo must never silently operate on the wrong Safe
-    expect(() => resolveSafeVersion("v3")).to.throw(/unknown --safe-version/);
-    expect(() => resolveSafeVersion("2")).to.throw(/unknown --safe-version/);
-  });
-
-  it("safeParamsFor returns the matching owner set and pinned address", () => {
-    expect(safeParamsFor("v1").expectedAddress).to.equal(OKU_SAFE_EXPECTED_ADDRESS);
-    expect(safeParamsFor("v2").expectedAddress).to.equal(OKU_SAFE_V2_EXPECTED_ADDRESS);
-    expect(safeParamsFor("v2").owners).to.deep.equal(OKU_SAFE_V2_OWNERS);
   });
 
   it("is insensitive to owner address casing", () => {

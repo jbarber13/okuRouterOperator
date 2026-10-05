@@ -204,7 +204,7 @@ All 34 OkuRouter deployments are owned by a single **2-of-3 Safe** at one addres
 chain:
 
 ```
-address    0xdC91978e0617CcA2EE1E658d0A1CA3F63CF10f1F
+address    0x37333A9626E99eC2012F3cC47a062649CF741303
 type       SafeL2 v1.4.1 (L1 singleton + SafeToL2Setup delegatecall)
 threshold  2 of 3
 saltNonce  0
@@ -216,40 +216,55 @@ anywhere, which is why `safe:sign --key-env` is not usable for production signin
 
 | # | Address |
 | --- | --- |
-| 1 | `0x9B68c14e936104e9a7a24c712BEecdc220002984` |
+| 1 | `0x5348bb6318f5Dc05C4501BA8D9b543666ec772e8` |
 | 2 | `0x5227a7404631Eb7De411232535E36dE8dad318f0` |
-| 3 | `0x43A9beCdC1323c1dFcfA776cE9bF57F9F8Ce8200` |
+| 3 | `0x46e9CF7694535b4Ba5a7ba09f6c54B05CE7A85E3` |
 
 Losing any one device is survivable (2 of the remaining signers still meet the
-threshold). Losing two is not. Rotation is an on-chain `swapOwner` through a normal
-2-of-3 transaction and does **not** change the Safe address — update `OKU_SAFE_OWNERS`
-in `util/safeConfig.ts` afterwards so the config matches the chain.
+threshold). Losing two is not.
 
-### Migration status
+### Signer rotation, 2026-10-02
 
-**The handover is complete on 33 of 34 chains.**
+Signers 1 and 3 were replaced on this date. The previous Safe was
+`0xdC91978e0617CcA2EE1E658d0A1CA3F63CF10f1F`, with signers
+`0x9B68c14e…` and `0x43A9beCd…` in those slots. It still exists on all 34
+chains and is still a valid 2-of-3 for its old owners, but it **owns nothing**
+— every router was handed over.
 
-| state | chains |
-| --- | --- |
-| **Safe owns the router** | **33** |
-| Still deployer-owned | 1 — robinhood (Safe not deployed; deployer underfunded) |
+A Safe's address is derived from its owner set, so a signer rotation cannot be
+an in-place edit. The migration was a full handover: a second Safe deployed at
+a new deterministic address on all 34 chains, then `transferOwnership` from the
+old Safe followed by `acceptOwnership` by the new one on every router.
 
-Verified on-chain for all 33: `owner()` is the Safe, `pendingOwner()` is cleared, no chain
-is paused, and every Safe is at nonce 1. All acceptances were relayed by the deployer EOA
-`0x3CB68a…` acting purely as an unprivileged executor — the hardware wallets paid no gas
-on any chain.
+**Do not rotate a 2-of-3 by `swapOwner` when two keys are changing at once.**
+`swapOwner` takes effect immediately and is not two-phase, so if both incoming
+keys turn out to be wrong you are left with one working owner against a
+threshold of 2 — and `changeThreshold` itself needs 2 signatures. All 34
+routers would be frozen permanently. The handover route fails safe instead:
+Ownable2Step leaves the old Safe in full control until the new Safe
+demonstrably executes `acceptOwnership`, so a broken successor simply means the
+transfer never completes.
 
-**Remaining work — robinhood (4663):** send ~0.0015 ETH to
-`0x3CB68a6762041aA05E762814A8791CA9d98E79A0` on Robinhood, then
+Both acceptance signatures were deliberately taken from the two **rotated-in**
+keys rather than from the retained signer plus one new key. Accepting with
+`retained + one new` would have moved ownership while proving only one of the
+two new devices, leaving a live 2-of-3 containing an unverified key. Verify
+recovered signers before broadcasting an acceptance, not just the count.
 
-```bash
-npx hardhat safe:deploy   --networks robinhood --broadcast
-npx hardhat safe:handover --networks robinhood --broadcast
-npx hardhat safe:build --intent accept-ownership --networks robinhood
-# collect 2 signatures, then
-npx hardhat safe:exec --name <bundle> --broadcast
-npx hardhat safe:refresh-registry --networks robinhood
-```
+### Ownership status
+
+**All 34 routers are owned by the Safe.** No chain is deployer-owned.
+
+Verified on-chain across all 34 after the 2026-10-02 rotation: `owner()` is
+`0x37333A96…`, `pendingOwner()` is cleared, and the Safe's live owner set and
+threshold match `util/safeConfig.ts`. Every transaction was relayed by the
+deployer EOA `0x3CB68a…` acting purely as an unprivileged executor — the
+hardware wallets have never paid gas on any chain.
+
+The retired Safe `0xdC91978e…` is still deployed on all 34 chains and remains a
+valid 2-of-3 for its old owners. It holds no authority over any router. It was
+not removed, because there is nothing to remove: a Safe cannot be destroyed,
+and leaving it in place costs nothing.
 
 ### Day-2 consequences of the handover
 

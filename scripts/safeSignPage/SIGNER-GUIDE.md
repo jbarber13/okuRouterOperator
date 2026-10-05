@@ -1,7 +1,7 @@
 # Signer instructions — Oku Router multisig
 
 You are one of three hardware-wallet signers on the Oku multisig
-`0xdC91978e0617CcA2EE1E658d0A1CA3F63CF10f1F` (2-of-3).
+`0x37333A9626E99eC2012F3cC47a062649CF741303` (2-of-3).
 
 - **Cost to you:** nothing. You produce signatures only — no transactions from
   your wallet, no gas on any chain.
@@ -157,7 +157,7 @@ Your hardware wallet will likely show **"unknown network"** or an odd token
 symbol on many of these chains. That's expected — most aren't in the device's
 built-in list. Verify these instead:
 
-- **verifying contract** = `0xdC91978e0617CcA2EE1E658d0A1CA3F63CF10f1F`
+- **verifying contract** = `0x37333A9626E99eC2012F3cC47a062649CF741303`
 - the **`safeTxHash`** matches the value shown on that chain's row in the page
 
 Every row in a bundle should describe the same kind of action. If one row

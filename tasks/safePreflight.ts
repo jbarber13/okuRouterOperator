@@ -51,9 +51,7 @@ import {
   SAFE_PROXY_FACTORY_IFACE,
   SAFE_TO_L2_SETUP,
   assertOkuSafeConfig,
-  resolveSafeVersion,
   getOkuSafeDeployment,
-  type SafeVersion,
   hasSafeTxService,
   safeTxServiceUrl,
 } from "../util/safeConfig";
@@ -108,12 +106,7 @@ async function soft<T>(
   }
 }
 
-async function checkChain(
-  chain: SafeChain,
-  expectedSafe: string,
-  expectedOwners: readonly string[],
-  version: SafeVersion,
-): Promise<Row> {
+async function checkChain(chain: SafeChain, expectedSafe: string): Promise<Row> {
   const row: Row = {
     network: chain.network,
     chainId: chain.chainId,
@@ -244,7 +237,7 @@ async function checkChain(
         const thresholdRaw = (await call("getThreshold")) as bigint;
         const versionRaw = (await call("VERSION")) as string;
         const got = new Set(ownersRaw.map((o) => getAddress(o)));
-        const want = new Set(expectedOwners.map((o) => getAddress(o)));
+        const want = new Set(OKU_SAFE_OWNERS.map((o) => getAddress(o)));
         const sameOwners = got.size === want.size && [...want].every((o) => got.has(o));
         if (sameOwners && Number(thresholdRaw) === OKU_SAFE_THRESHOLD) {
           row.safeSlot = `ours v${versionRaw}`;
@@ -267,7 +260,7 @@ async function checkChain(
     // 5. Owners must be EOAs.
     const contractOwners: string[] = [];
     let ownerReadFailed = false;
-    for (const owner of expectedOwners) {
+    for (const owner of OKU_SAFE_OWNERS) {
       const code = await soft(row, `getCode(owner)`, () => provider.getCode(owner));
       if (code === undefined) {
         ownerReadFailed = true;
@@ -278,7 +271,7 @@ async function checkChain(
     if (ownerReadFailed) {
       row.owners = "ERR";
     } else if (contractOwners.length === 0) {
-      row.owners = `${expectedOwners.length} eoa`;
+      row.owners = `${OKU_SAFE_OWNERS.length} eoa`;
     } else {
       row.owners = "HAS_CODE";
       row.problems.push(
@@ -294,7 +287,7 @@ async function checkChain(
     } else {
       row.balance = trim(formatEther(bal));
       const cost = safeIsFree
-        ? await estimateDeployCost(row, provider, chain, version)
+        ? await estimateDeployCost(row, provider, chain)
         : 0n;
       if (cost === undefined) {
         row.needed = row.funded = "?";
@@ -410,9 +403,8 @@ async function estimateDeployCost(
   row: Row,
   provider: JsonRpcProvider,
   chain: SafeChain,
-  version: SafeVersion = "v1",
 ): Promise<bigint | undefined> {
-  const dep = getOkuSafeDeployment(version);
+  const dep = getOkuSafeDeployment();
   const data = SAFE_PROXY_FACTORY_IFACE.encodeFunctionData("createProxyWithNonce", [
     SAFE_L1_SINGLETON,
     dep.initializer,
@@ -459,12 +451,10 @@ function errText(e: unknown): string {
 task("safe:preflight", "Read-only GO/NO-GO checks for the production Safe rollout")
   .addOptionalParam("networks", "Comma-separated list of networks to restrict to")
   .addFlag("allNotes", "Print all notes, including transient RPC/API blips")
-  .addOptionalParam("safeVersion", "Which Safe generation: v1 (current) or v2 (rotated signers)")
   .setAction(async (taskArgs, hre) => {
     // Fail immediately if the pinned constants and the derivation disagree.
     assertOkuSafeConfig();
-    const version = resolveSafeVersion(taskArgs.safeVersion);
-    const dep = getOkuSafeDeployment(version);
+    const dep = getOkuSafeDeployment();
 
     const only = taskArgs.networks
       ? new Set<string>(
@@ -479,7 +469,6 @@ task("safe:preflight", "Read-only GO/NO-GO checks for the production Safe rollou
     console.log("\n" + "=".repeat(108));
     console.log("SAFE PREFLIGHT  (read-only, sends no transactions)");
     console.log("=".repeat(108));
-    console.log(`Generation       : ${version}`);
     console.log(`Safe address     : ${dep.address}   (identical on every chain)`);
     console.log(`Threshold        : ${dep.threshold} of ${dep.owners.length}`);
     dep.owners.forEach((o, i) => console.log(`  owner[${i}]       : ${o}`));
@@ -497,9 +486,7 @@ task("safe:preflight", "Read-only GO/NO-GO checks for the production Safe rollou
 
     // Concurrency 4 rather than 8: Safe's public API is shared and rate
     // limited, and a wider fan out produces 429s that look like failures.
-    const rows = await mapLimit(chains, 4, (c) =>
-      checkChain(c, dep.address, dep.owners, version),
-    );
+    const rows = await mapLimit(chains, 4, (c) => checkChain(c, dep.address));
 
     const w = {
       network: 12,

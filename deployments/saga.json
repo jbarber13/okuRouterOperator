@@ -5,19 +5,9 @@
     "OkuRouter": {
       "address": "0x2D8261402d4777975AE43877A189b0Ab6b526e26",
       "version": "2.0",
-      "owner": "0xdC91978e0617CcA2EE1E658d0A1CA3F63CF10f1F"
+      "owner": "0x37333A9626E99eC2012F3cC47a062649CF741303"
     },
     "Safe": {
-      "address": "0xdC91978e0617CcA2EE1E658d0A1CA3F63CF10f1F",
-      "version": "1.4.1+L2",
-      "threshold": 2,
-      "owners": [
-        "0x9B68c14e936104e9a7a24c712BEecdc220002984",
-        "0x5227a7404631Eb7De411232535E36dE8dad318f0",
-        "0x43A9beCdC1323c1dFcfA776cE9bF57F9F8Ce8200"
-      ]
-    },
-    "SafeV2": {
       "address": "0x37333A9626E99eC2012F3cC47a062649CF741303",
       "version": "1.4.1+L2",
       "threshold": 2,
