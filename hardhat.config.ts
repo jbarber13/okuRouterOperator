@@ -149,10 +149,15 @@ const config: HardhatUserConfig = {
       // Declaring the fork target as post-Cancun from genesis is correct for
       // every chain we fork here -- they are all modern OP-stack or equivalent
       // deployments -- and only takes effect when FORK_CHAIN_ID is set.
+      //
+      // FORK_HARDFORK (default "cancun") exists for chains whose block headers
+      // omit the Cancun blob-gas fields (arbitrum, polygon, Arbitrum-Orbit
+      // chains such as robinhood): declaring them post-Cancun makes EDR panic
+      // with `Header(ExcessBlobGasNotSet)`. FORK_HARDFORK=shanghai forks those.
       chains: process.env.FORK_CHAIN_ID
         ? {
             [Number(process.env.FORK_CHAIN_ID)]: {
-              hardforkHistory: { cancun: 0 },
+              hardforkHistory: { [process.env.FORK_HARDFORK || "cancun"]: 0 },
             },
           }
         : {},
