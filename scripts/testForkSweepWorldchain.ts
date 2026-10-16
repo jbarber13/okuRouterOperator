@@ -168,7 +168,7 @@ async function main() {
   await hre.network.provider.request({ method: "hardhat_impersonateAccount", params: [safe] });
   await hre.network.provider.request({
     method: "hardhat_setBalance",
-    params: [safe, toBeHex(parseEther("10"))],
+    params: [safe, toBeHex(parseEther("100000"))],
   });
 
   const receipts: { hash: string; gasUsed: bigint; gasPrice: bigint; logs: readonly unknown[] }[] = [];

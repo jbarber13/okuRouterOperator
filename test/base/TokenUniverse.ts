@@ -143,6 +143,39 @@ describe("tokenUniverse: candidate set assembly", () => {
     expect(u.warnings.join(" ")).to.match(/no published token-list entries/i);
   });
 
+  // 2026-10-15: list-based discovery picked these up and made op, mantle and
+  // polygon unsweepable (and double-counted celo). Native is swept by
+  // includeEth; these facades must never reach a sweepAll token list.
+  it("drops native-balance mirror tokens from every source", () => {
+    const mirrors = [
+      "0xDeadDeAddeAddEAddeadDEaDDEAdDeaDDeAD0000", // OP-stack LegacyERC20ETH / Mantle MNT
+      "0x0000000000000000000000000000000000001010", // Polygon MRC20 POL
+      "0x471EcE3750Da237f93B8E339c536989b8978a438", // Celo GoldToken
+    ];
+    const idx = indexByChain([...mirrors.map((address) => ({ chainId: 10, address })), { chainId: 10, address: USDC }]);
+    expect([...idx.get(10)!]).to.deep.equal([USDC]);
+    const u = buildTokenUniverse({ network: "nonexistent-net", chainId: 10 }, idx, {
+      networkName: "nonexistent-net",
+      wethAddress: mirrors[2],
+      chain: { token: { a: mirrors[0] }, stables: [mirrors[1]] },
+    } as never);
+    for (const m of mirrors) expect(u.tokens.has(m), m).to.equal(false);
+  });
+
+  it("excludes per-chain unsweepable tokens, only on their chain, and says so", () => {
+    const POSI = "0x5CA42204cDaa70d5c773946e69dE942b85CA6706";
+    expect(universeInternal.UNSWEEPABLE[56][POSI]).to.be.a("string");
+    const idx = indexByChain([
+      { chainId: 56, address: POSI },
+      { chainId: 1, address: POSI },
+    ]);
+    const bsc = buildTokenUniverse({ network: "bsc", chainId: 56 }, idx, undefined);
+    expect(bsc.tokens.has(POSI)).to.equal(false);
+    expect(bsc.warnings.join(" ")).to.match(/excluding 0x5CA42204/);
+    const other = buildTokenUniverse({ network: "nonexistent-net", chainId: 1 }, idx, undefined);
+    expect(other.tokens.has(POSI)).to.equal(true);
+  });
+
   it("guards against a truncated list overwriting a good cache", () => {
     expect(universeInternal.MIN_PLAUSIBLE_TOKENS).to.be.a("number");
     expect(universeInternal.MIN_PLAUSIBLE_TOKENS > 0).to.equal(true);

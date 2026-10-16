@@ -74,7 +74,43 @@ const MIN_PLAUSIBLE_TOKENS = 1_000;
 const NOT_A_TOKEN = new Set([
   "0x0000000000000000000000000000000000000000",
   "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE",
+  // Native-balance MIRRORS: ERC20 facades whose balanceOf(x) returns x's
+  // native balance. They are listed in the Oku token list, so list-based
+  // discovery finds them (log-based discovery never did), but the money they
+  // report is the native balance that `sweepAll(..., includeEth=true)`
+  // already moves. Probing them double-counts it in every scan total, and
+  // sweeping them is at best redundant and at worst reverts the whole chain:
+  //   - OP-stack LegacyERC20ETH / Mantle LegacyERC20MNT: transfer() is
+  //     disabled ("LegacyERC20ETH: transfer is disabled"), so a sweep that
+  //     lists it cannot execute. Hit on op and mantle 2026-10-15.
+  //   - Polygon MRC20 (POL at 0x...1010): reverts inside sweepAll.
+  //   - Celo GoldToken (CELO): transfer works and moves native CELO, so it
+  //     was harmless on 2026-09-29, but it is still the same money twice.
+  "0xDeadDeAddeAddEAddeadDEaDDEAdDeaDDeAD0000",
+  "0x0000000000000000000000000000000000001010",
+  "0x471EcE3750Da237f93B8E339c536989b8978a438",
 ]);
+
+/**
+ * Real tokens on one chain that a router holds but cannot transfer out, so
+ * listing them makes `sweepAll` revert for every other asset in the same
+ * call. Keyed by chainId -> checksummed address -> reason. Each entry was
+ * established by simulating `sweepAll([token])` alone from the Safe.
+ *
+ * Excluding them strands whatever balance they hold. That is deliberate and
+ * visible here: the alternative is a chain that cannot be swept at all.
+ * Re-test an entry (single-token eth_call from the Safe) before removing it.
+ */
+const UNSWEEPABLE: Record<number, Record<string, string>> = {
+  56: {
+    // Position Token: transfer() panics with arithmetic OVERFLOW(17) for the
+    // router's balance (0.0001 POSI). Found 2026-10-15.
+    "0x5CA42204cDaa70d5c773946e69dE942b85CA6706": "POSI: transfer panics OVERFLOW(17)",
+    // Reflection-style token: balanceOf reports more than transfer() will
+    // honour ("ERC20: transfer amount exceeds balance"). Found 2026-10-15.
+    "0x683e9dCf085E5efCc7925858aAcE94D4b8882024": "TangYuan: balanceOf exceeds transferable balance",
+  },
+};
 
 export interface TokenListEntry {
   chainId: number;
@@ -316,6 +352,10 @@ export function buildTokenUniverse(
   const cc = chainConfigTokens(cfg);
   for (const a of cc) tokens.add(a);
 
+  for (const [a, reason] of Object.entries(UNSWEEPABLE[chain.chainId] ?? {})) {
+    if (tokens.delete(a)) warnings.push(`${chain.network}: excluding ${a} (${reason})`);
+  }
+
   if (listed.size === 0) {
     warnings.push(
       `${chain.network}: no published token-list entries for chainId ${chain.chainId}; ` +
@@ -331,4 +371,4 @@ export function buildTokenUniverse(
 }
 
 /** Exposed for tests. */
-export const _internal = { NOT_A_TOKEN, MIN_PLAUSIBLE_TOKENS, CACHE_FILE };
+export const _internal = { NOT_A_TOKEN, UNSWEEPABLE, MIN_PLAUSIBLE_TOKENS, CACHE_FILE };
