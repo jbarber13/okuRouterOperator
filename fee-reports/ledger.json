@@ -851,5 +851,20 @@
     "gasCostNative": "0.000535984000937972",
     "reconciled": true,
     "dataFile": "data/2026-09-30/zerog-e6f75d00.json"
+  },
+  {
+    "date": "2026-10-16",
+    "isoWeek": "2026-W42",
+    "network": "hyperevm",
+    "chainId": 999,
+    "txHash": "0x85f40e2f763d7a455a8be6679cafff0e899a9cd167a4bd66aa982217315fcd78",
+    "blockNumber": 48707157,
+    "recipient": "0x8288Ba381e07EA5E9Fc4053a97545161D7d4683C",
+    "assetCount": 14,
+    "usdNotional": 4702.778506260292,
+    "gasCostNative": "0.000312913508182389",
+    "gasCostUsd": 0.024742684868817626,
+    "reconciled": false,
+    "dataFile": "data/2026-10-16/hyperevm-85f40e2f.json"
   }
 ]
