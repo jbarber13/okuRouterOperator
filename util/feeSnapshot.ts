@@ -73,7 +73,7 @@ export interface SnapshotChain {
      */
     unchecked: number;
     /** Where the candidate set came from. */
-    sources: { seed: number; tokenList: number; chainConfig: number };
+    sources: { seed: number; tokenList: number; chainConfig: number; curated?: number };
   };
   warnings: string[];
   assets: SnapshotAsset[];

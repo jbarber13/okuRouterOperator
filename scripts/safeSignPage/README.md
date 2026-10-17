@@ -132,9 +132,24 @@ The endpoint deliberately writes to a **separate** file rather than into
 
 ## What each signer must check on their device
 
-For every chain the page shows the expected `safeTxHash` next to the row.
-Confirm the device shows the **same digest**, and that the EIP-712 domain's
-`verifyingContract` is the Safe and `chainId` is the intended chain.
+Each chain has a **review card** computed by `safeTxVerify.js` (inlined into
+the page by `buildPage.js`) from the exact EIP-712 payload the wallet receives:
+domain fields, SafeTx fields in device order, `data` decoded word by word, and
+the **domain hash / message hash** a Ledger shows when blind signing. Signers
+match their device against the card; `SIGNER-GUIDE.md` has the per-device
+steps. No device displays the final `safeTxHash`, so the page no longer asks
+anyone to compare it.
+
+The page **refuses** (red row, sign button disabled, re-checked again inside
+`signOne` before the wallet is called) when the recomputed hash differs from
+the bundle, the chain or Safe is wrong, a gas/refund field is non-zero, there
+is a DELEGATECALL other than a non-sweep MultiSendCallOnly batch, or a sweep
+is not one plain `sweepAll` CALL to that chain's router with the manifest's
+recipient and token array. `test/base/SafeTxVerify.ts` checks the verifier's
+hashing against ethers on every bundle in `safe-bundles/`.
+
+`npx hardhat safe:device-test` writes a chainId-31337 bundle (unexecutable on
+any real chain) plus a worksheet for recording what each device shows.
 
 On exotic chains a Trezor may display **“unknown network”**. That is expected —
 the domain fields are the real check, not the chain name.
@@ -171,6 +186,8 @@ What the page itself guarantees, all asserted by `npm run check:sign-page`:
   local bundle, and posting a signature to `/api/signature`
 - re-reads `eth_chainId` immediately before every signature, so a silent
   network mismatch cannot produce a signature over the wrong domain
+- recomputes every hash locally and refuses payloads that fail verification
+  (see above); call labels from the bundle are never displayed
 
 There is deliberately **no `Content-Security-Policy` meta tag**. An earlier
 revision set `default-src 'none'`, which blocked MetaMask from injecting its

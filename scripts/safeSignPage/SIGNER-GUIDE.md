@@ -153,20 +153,41 @@ the server.
 
 ## Verifying on the device
 
-Your hardware wallet will likely show **"unknown network"** or an odd token
-symbol on many of these chains. That's expected — most aren't in the device's
-built-in list. Verify these instead:
+Every chain row has a **"review what your device will show"** card. The page
+computes it from the exact payload it hands your wallet (it does not trust the
+bundle's descriptions), and it **will not send a payload to your wallet** if
+anything about it fails its checks — that row turns red and its sign button is
+disabled. Open the card before confirming on the device and compare:
 
-- **verifying contract** = `0x37333A9626E99eC2012F3cC47a062649CF741303`
-- the **`safeTxHash`** matches the value shown on that chain's row in the page
+**If your device shows the fields one by one** (Trezor; Ledger with clear
+signing):
 
-Every row in a bundle should describe the same kind of action. If one row
-describes something different from the others, or from what the coordinator
-told you, stop.
+1. Domain: **chainId** and **verifyingContract** =
+   `0x37333A9626E99eC2012F3cC47a062649CF741303` (the multisig).
+2. Message, in this order: **to** (for a sweep: the router, named on the card),
+   **value** `0`, **data**, **operation** `0`, **safeTxGas / baseGas /
+   gasPrice** `0`, **gasToken / refundReceiver** `0x0000…0000`, **nonce**.
+3. For a sweep, `data` contains the recipient — the card's section 3 shows it
+   decoded, along with every token address. The recipient must match the
+   address you were given out of band.
 
-The device cannot decode these calls into readable text, so it will not warn
-you that a transaction moves funds. That check is the page's job and yours —
-the hardware wallet only proves *you* signed, not *what* you signed.
+**If your Ledger shows only "Domain hash" and "Message hash"** (blind
+signing): compare both against section 4 of the card. The Ethereum app must
+have *Blind signing* enabled in its settings for this to work at all.
+
+Your device may say **"unknown network"** on unusual chains. That's expected;
+the chainId and verifyingContract above are the real check, not the name.
+
+Every chain in a sweep bundle describes the same action: `sweepAll` to the
+router, one call, operation `0`. The amounts in the dashed **"Not signed"**
+box are estimates and are not part of what you approve.
+
+> **Recording what your device shows.** The coordinator may ask you to run a
+> one-off device test: `FORK_CHAIN_ID=31337 npx hardhat node` in one terminal,
+> `npx hardhat safe:device-test` then `npm run sign-page` in another, and sign
+> the three rows at `http://127.0.0.1:8547/device-test/sign.html`, filling in
+> `safe-bundles/device-test/WORKSHEET.md`. Those payloads are for chainId
+> 31337 only and cannot execute on any real chain.
 
 ## Sign off-chain, not on-chain
 

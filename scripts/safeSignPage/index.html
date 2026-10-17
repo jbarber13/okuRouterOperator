@@ -50,9 +50,9 @@
       eth_signTypedData_v4. A signature is an authorization, not an action;
       nothing happens until `safe:exec` relays it.
     * It NEVER sees or asks for a private key or seed phrase.
-    * It makes NO network requests of its own. The CSP above hard-blocks
-      connect-src, so even a bug cannot exfiltrate a bundle or a signature.
-      All chain access happens inside the wallet extension.
+    * Its only network requests are same-origin: the bundle autoload and the
+      local /api/signature autosave (asserted by check.js). All chain access
+      happens inside the wallet extension.
     * It has NO dependencies and no build step -- nothing to supply-chain.
     * Every signature it emits is re-verified downstream:
       `safe:sign --import` recovers the signer and rejects anything that does
@@ -62,11 +62,15 @@
 
   What the signer must verify on their device
   -------------------------------------------
-  For each chain the page shows the expected safeTxHash from the bundle.
-  Confirm the device shows the same digest, and that the domain's
-  verifyingContract is the Safe and chainId is the intended chain. On exotic
-  chains a Trezor may display "unknown network" -- the domain fields are the
-  real check, not the chain name.
+  Each chain has a "review what your device will show" card, computed by
+  safeTxVerify.js from the exact EIP-712 payload handed to the wallet (not
+  from bundle labels). Match the device against it:
+    * field-by-field devices: domain chainId + verifyingContract, then the
+      SafeTx fields (to, value, data, operation, gas fields, nonce);
+    * a Ledger that cannot render the fields shows "domain hash" and
+      "message hash" -- both are on the card.
+  The page refuses to send any payload whose hash, chain, Safe, target,
+  operation, gas/refund fields or decoded calldata it could not verify.
 
   Usage
   -----
@@ -127,6 +131,19 @@
          background: #0f1115; border: 1px solid #262b33; border-radius: 6px;
          padding: 10px; font-size: 12px; margin-top: 12px; }
   .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  /* Per-chain review card: what the device will show, derived from the payload. */
+  details.review > summary { cursor: pointer; color: #8ab4f8; }
+  .rv { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 8px; }
+  .rv section { background: #0f1115; border: 1px solid #262b33; border-radius: 6px; padding: 10px; }
+  .rv h3 { font-size: 12px; margin: 0 0 6px; color: #8a8f98; font-weight: normal;
+           text-transform: uppercase; letter-spacing: .04em; }
+  .rv table { margin-top: 0; }
+  .rv td:first-child { color: #8a8f98; white-space: nowrap; width: 1%; }
+  .rv .wide { grid-column: 1 / -1; }
+  .rv .hash { font-size: 13px; color: #f0c674; }
+  .unsigned { border-style: dashed; opacity: .85; }
+  .refused { background: #2a1a19; border: 1px solid #7d2b26; border-radius: 6px; padding: 8px; color: #f85149; }
+  .words { max-height: 240px; overflow: auto; }
 </style>
 </head>
 <body>
@@ -185,13 +202,14 @@
 <div class="card">
   <table id="tbl">
     <thead>
-      <tr><th>#</th><th>chain</th><th>id</th><th>action</th>
-          <th>expected safeTxHash</th><th>status</th><th></th></tr>
+      <tr><th>#</th><th>chain</th><th>id</th><th>signed payload (decoded)</th>
+          <th>safeTxHash (recomputed)</th><th>status</th><th></th></tr>
     </thead>
     <tbody></tbody>
   </table>
 </div>
 
+<script>/*@@SAFE_TX_VERIFY@@*/</script>
 <script>
 "use strict";
 
@@ -228,10 +246,11 @@ function adoptBundle(obj, source) {
   results = [];
   el("bundleInfo").className = "";
   el("bundleInfo").innerHTML =
-    '<span class="pill">' + bundle.intent + "</span> " +
+    '<span class="pill">' + esc(bundle.intent) + "</span> " +
     bundle.chains.length + " chain(s) &nbsp; safe " +
-    bundle.safe + " &nbsp; " + bundle.threshold + " of " + bundle.owners.length +
-    ' &nbsp; <span class="dim">[' + source + "]</span>";
+    esc(bundle.safe) + " &nbsp; " + esc(bundle.threshold) + " of " + bundle.owners.length +
+    ' &nbsp; <span class="dim">[' + esc(source) + "]</span>";
+  verifyAll();
   renderSweepPanel();
   renderTable();
   refreshOwnerState();
@@ -320,8 +339,9 @@ function renderSweepPanel() {
     });
 
     html += '<div class="dim" style="margin-top:8px">' + esc(c.network) +
-            " (chainId " + c.chainId + ")" +
+            " (chainId " + esc(c.chainId) + ")" +
             (c.sweep.includeEth ? " — includes the native balance" : "") +
+            (c.sweep.mode ? " — " + esc(c.sweep.mode) + " list, " + esc((c.sweep.tokens || []).length) + " token(s) in calldata" : "") +
             " — " + (chainAnyPriced ? fmtUsd(chainTotal) : "unpriced") + "</div>";
     html += "<table><thead><tr><th>asset</th><th>amount</th><th>usd</th>" +
             "<th>contract</th></tr></thead><tbody>";
@@ -410,30 +430,135 @@ window.addEventListener("load", function () {
   autoloadBundle();
 });
 
+/* ---------------- verification + review cards ---------------- */
+
+var verified = [];   // per chain index: SafeTxVerify.verifyChain result
+
+function verifyAll() {
+  verified = bundle ? bundle.chains.map(function (c) {
+    try { return SafeTxVerify.verifyChain(bundle, c); }
+    catch (e) { return { ok: false, errors: ["verifier crashed: " + (e && e.message ? e.message : e)], warnings: [], view: {} }; }
+  }) : [];
+  var bad = verified.filter(function (v) { return !v.ok; }).length;
+  if (bad) log(bad + " chain(s) FAILED verification and cannot be signed — see the red rows", "bad");
+  else if (bundle) log("all " + verified.length + " payload(s) verified: hashes recomputed locally, fields checked", "ok");
+}
+
+/** One-line description of the signed call, from the decoded payload only. */
+function payloadSummary(c, v) {
+  if (!v || !v.view || !v.view.fields || !v.view.fields.length) return '<span class="bad">unreadable payload</span>';
+  var d = v.view.decoded;
+  if (d) {
+    return "sweepAll(<b>" + d.tokens.length + "</b> token(s), includeEth=" + d.includeEth +
+      ", to=" + esc(d.to) + ")" +
+      (c.sweep && c.sweep.mode ? ' <span class="pill">' + esc(c.sweep.mode) + "</span>" : "");
+  }
+  var to = v.view.fields[2], op = v.view.fields[5];
+  return "to " + esc(to.value) + (to.note ? " (" + esc(to.note) + ")" : "") +
+    "<br>op " + esc(op.value) + ", data " + esc(v.view.fields[4].value.split(",")[0]);
+}
+
+function fieldRows(fields, group) {
+  return fields.filter(function (f) { return f.group === group; }).map(function (f) {
+    return "<tr><td>" + esc(f.name) + '</td><td class="mono">' + esc(f.value) +
+      (f.note ? ' <span class="dim">— ' + esc(f.note) + "</span>" : "") + "</td></tr>";
+  }).join("");
+}
+
+/**
+ * The review card: everything a device can show, in the order it shows it,
+ * computed from the EIP-712 payload this page will hand to the wallet.
+ * Field-by-field devices (Trezor, Ledger with clear-signing) walk sections
+ * 1 and 2; a Ledger that cannot render the fields shows the two hashes in
+ * section 4. Nothing outside the dashed box is signed.
+ */
+function renderCard(c, v) {
+  var h = "";
+  if (!v.ok) {
+    h += '<div class="refused"><b>REFUSED — this payload will not be sent to your wallet.</b><br>' +
+      v.errors.map(esc).join("<br>") + "</div>";
+  }
+  (v.warnings || []).forEach(function (w) { h += '<div class="warn">⚠ ' + esc(w) + "</div>"; });
+  if (!v.view || !v.view.hashes) return h;
+  var hs = v.view.hashes;
+  var data = v.view.data || "0x";
+  h += '<div class="rv">';
+  h += "<section><h3>1 · Domain (device shows first)</h3><table>" + fieldRows(v.view.fields, "domain") + "</table></section>";
+  h += "<section><h3>4 · Hashes (Ledger blind-signing shows these)</h3><table>" +
+    "<tr><td>domain hash</td><td class=\"mono hash\">" + esc(hs.domainSeparator) + "</td></tr>" +
+    "<tr><td>message hash</td><td class=\"mono hash\">" + esc(hs.messageHash) + "</td></tr>" +
+    "<tr><td>safeTxHash</td><td class=\"mono\">" + esc(hs.safeTxHash) + "</td></tr>" +
+    "</table></section>";
+  h += '<section class="wide"><h3>2 · Message — SafeTx fields in device order</h3><table>' +
+    fieldRows(v.view.fields, "message") + "</table>" +
+    '<div class="dim" style="margin-top:6px">data as a device pages it: <span class="mono">' +
+    esc(data.slice(0, 74)) + (data.length > 138 ? " … " + esc(data.slice(-64)) : esc(data.slice(74))) +
+    "</span></div></section>";
+
+  var d = v.view.decoded;
+  h += '<section class="wide"><h3>3 · data, decoded word by word</h3>';
+  if (d) {
+    var sym = {};
+    ((c.sweep && c.sweep.tokens) || []).forEach(function (t) { sym[String(t.token).toLowerCase()] = t.symbol; });
+    h += '<div class="mono">selector ' + esc(d.selector) + " = sweepAll(address[] tokens, bool includeEth, address to)</div>";
+    h += '<table><tr><td>to (recipient)</td><td class="mono recipient" style="margin:0;padding:4px">' + esc(d.to) + "</td></tr>" +
+      "<tr><td>includeEth</td><td>" + d.includeEth + "</td></tr>" +
+      "<tr><td>tokens</td><td>" + d.tokens.length + " address(es)</td></tr></table>";
+    h += '<div class="words"><table><thead><tr><th>#</th><th>token</th><th>symbol</th></tr></thead><tbody>' +
+      d.tokens.map(function (t, i) {
+        return "<tr><td>" + i + '</td><td class="mono">' + esc(t) + "</td><td>" +
+          esc(sym[t.toLowerCase()] || "?") + "</td></tr>";
+      }).join("") + "</tbody></table></div>";
+  } else {
+    h += '<div class="dim">not a sweep — raw 32-byte words after the 4-byte selector ' +
+      esc(data.slice(0, 10)) + ":</div>";
+  }
+  h += '<details style="margin-top:6px"><summary class="dim">raw words (' + v.view.words.length + ")</summary>" +
+    '<div class="words mono">' + v.view.words.map(function (w, i) {
+      return '<span class="dim">' + ("000" + i).slice(-4) + "</span> " + esc(w);
+    }).join("<br>") + "</div></details>";
+  h += "</section>";
+
+  if (c.sweep) {
+    h += '<section class="wide unsigned"><h3>Not signed — context only</h3>' +
+      (c.sweep.mode ? "token list mode: <b>" + esc(c.sweep.mode) + "</b> — " + esc(c.sweep.modeReason || "") + "<br>" : "") +
+      "build-time balances: " + (c.sweep.assets || []).length + " asset(s), " +
+      fmtUsd(c.sweep.usdNotional) + " estimated (see the fund-movement panel). " +
+      "sweepAll moves whatever each listed token's balance is at execution.</section>";
+  }
+  h += "</div>";
+  return h;
+}
+
 function renderTable() {
   var tb = el("tbl").querySelector("tbody");
   tb.innerHTML = "";
   if (!bundle) return;
   bundle.chains.forEach(function (c, i) {
+    var v = verified[i] || { ok: false, errors: ["not verified"], view: {} };
     var tr = document.createElement("tr");
     var already = account && hasSignedAlready(c, account);
     var have = results.some(function (r) { return eq(r.safeTxHash, c.safeTxHash); });
-    var status = have ? '<span class="ok">signed now</span>'
-               : already ? '<span class="dim">already in bundle</span>'
-               : '<span class="dim">pending</span>';
+    var status = !v.ok ? '<span class="bad">✗ refused</span>'
+               : have ? '<span class="ok">signed now</span>'
+               : already ? '<span class="dim">already signed</span>'
+               : '<span class="dim">✓ verified · pending</span>';
+    var canSign = account && v.ok;
     tr.innerHTML =
       "<td>" + (i + 1) + "</td>" +
-      "<td>" + c.network + "</td>" +
-      "<td>" + c.chainId + "</td>" +
-      '<td class="dim">' + (c.calls || []).map(function (x) {
-        return String(x.label).replace(/</g, "&lt;");
-      }).join("<br>") + "</td>" +
-      '<td class="mono">' + c.safeTxHash + "</td>" +
+      "<td>" + esc(c.network) + "</td>" +
+      "<td>" + esc(c.chainId) + "</td>" +
+      "<td>" + payloadSummary(c, v) + "</td>" +
+      '<td class="mono">' + esc(v.view && v.view.hashes ? v.view.hashes.safeTxHash : c.safeTxHash) + "</td>" +
       '<td id="st' + i + '">' + status + "</td>" +
       '<td><button class="sec" data-i="' + i + '"' +
-        (account ? "" : ' disabled title="Connect a wallet first"') +
+        (canSign ? "" : (account ? ' disabled title="Payload failed verification"' : ' disabled title="Connect a wallet first"')) +
         ">sign</button></td>";
     tb.appendChild(tr);
+    var cr = document.createElement("tr");
+    cr.innerHTML = '<td></td><td colspan="6"><details class="review" id="card' + i + '"' + (v.ok ? "" : " open") +
+      "><summary>review what your device will show</summary>" + renderCard(c, v) + "</details></td>";
+    tb.appendChild(cr);
   });
   Array.prototype.forEach.call(tb.querySelectorAll("button[data-i]"), function (b) {
     b.addEventListener("click", function () {
@@ -535,7 +660,7 @@ function renderDiagnostics() {
   bits.push("origin: " + location.protocol + "//" + (location.host || "(none)"));
   bits.push("window.ethereum: " + (window.ethereum ? "present" : "ABSENT"));
   bits.push("providers found: " + providers.length +
-            (providers.length ? " (" + providers.map(function (p) { return p.label; }).join(", ") + ")" : ""));
+            (providers.length ? " (" + providers.map(function (p) { return esc(p.label); }).join(", ") + ")" : ""));
   var html = bits.join(" &nbsp;·&nbsp; ");
   if (!providers.length) {
     html += '<br><br><span class="bad">No wallet detected.</span> Most likely one of:';
@@ -584,7 +709,7 @@ async function connect() {
   if (providers.length > 1) {
     pick.hidden = false;
     pick.innerHTML = providers.map(function (p, i) {
-      return '<option value="' + i + '">' + p.label + "</option>";
+      return '<option value="' + i + '">' + esc(p.label) + "</option>";
     }).join("");
   } else {
     pick.hidden = true;
@@ -640,7 +765,7 @@ function updateButtons() {
   }
   if (remoteOk === true) {
     p.innerHTML = '<span class="ok">✓ autosaved to disk</span> — ' +
-      savedOnDisk + " signature(s) in <code>" + (diskFile || "safe-bundles/…") + "</code>" +
+      esc(savedOnDisk) + " signature(s) in <code>" + esc(diskFile || "safe-bundles/…") + "</code>" +
       ' &nbsp;<span class="dim">(Download is optional)</span>';
   } else {
     p.innerHTML = '<span class="bad">⚠ NOT saved to disk</span> — ' + results.length +
@@ -724,6 +849,17 @@ async function signOne(i) {
     log(c.network + ": already signed in this session, skipping");
     return;
   }
+  // Re-verify immediately before the wallet sees the payload. Refusal here is
+  // the page's core guarantee: it will not ask a device to sign anything whose
+  // fields and hashes it has not recomputed and shown.
+  var v = SafeTxVerify.verifyChain(bundle, c);
+  verified[i] = v;
+  if (!v.ok) {
+    setStatus(i, '<span class="bad">✗ refused</span>');
+    throw new Error(c.network + ": payload failed verification — " + v.errors.join("; "));
+  }
+  var card = el("card" + i);
+  if (card) card.open = true;
   setStatus(i, '<span class="warn">switching…</span>');
   await ensureChain(c);
 
@@ -740,7 +876,10 @@ async function signOne(i) {
   }
 
   setStatus(i, '<span class="warn">confirm on device…</span>');
-  log(c.network + " (" + c.chainId + "): expect digest " + c.safeTxHash);
+  log(c.network + " (" + c.chainId + "): device should show to=" + v.view.fields[2].value +
+      " op=" + v.view.fields[5].value + " nonce=" + v.view.fields[11].value +
+      "  |  domain hash " + v.view.hashes.domainSeparator +
+      "  message hash " + v.view.hashes.messageHash);
 
   var sig = await provider.request({
     method: "eth_signTypedData_v4",
@@ -874,6 +1013,11 @@ async function signAll() {
     var c = bundle.chains[i];
     if (hasSignedAlready(c, account) ||
         results.some(function (r) { return eq(r.safeTxHash, c.safeTxHash); })) continue;
+    if (verified[i] && !verified[i].ok) {
+      log(c.network + ": skipped — payload failed verification", "bad");
+      failed++;
+      continue;
+    }
     try {
       await signOne(i);
       done++;

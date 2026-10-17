@@ -89,7 +89,23 @@ import {
   totalUsd,
   type PricedFeeAsset,
 } from "../util/feeScan";
-import { buildTokenUniverse, indexByChain, loadOkuTokenList } from "../util/tokenUniverse";
+import { _internal as universeInternal } from "../util/tokenUniverse";
+import { nativeUsdByCoingecko } from "../util/priceLlama";
+import {
+  chooseSweepMode,
+  loadFeeTokens,
+  sortTokens,
+  sweepTokensFor,
+  type FeeTokensFile,
+  type ModeDecision,
+  type SweepMode,
+} from "../util/feeTokens";
+import {
+  decodeSweepAll,
+  encodeSweepAll,
+  estimateSweepGas,
+  sweepGasCap,
+} from "../util/sweepCall";
 import { readSnapshot, type SnapshotAsset } from "../util/feeSnapshot";
 import { OKU_FEE_RECIPIENT } from "../util/safeConfig";
 import { accountForSweepTx, writeAccounting } from "./feeAccounting";
@@ -196,6 +212,14 @@ interface BundleChain {
     usdNotional: number;
     /** Assets in this manifest carrying no USD value; they contribute $0. */
     unpricedCount: number;
+    /** Which token list went into the calldata, and why. Absent on pre-2026-10-17 bundles. */
+    mode?: "full" | "nonzero";
+    modeReason?: string;
+    /** USD cost of the zero-balance entries in a full list, at build time. */
+    extraUsd?: number | null;
+    gasEstimate?: string;
+    /** The calldata token array in order, with symbols, for the sign page. */
+    tokens?: { token: string; symbol: string }[];
   };
 }
 
@@ -442,92 +466,89 @@ async function callsForIntent(
 
       const to = getAddress(String(params.to));
       const includeEth = params.includeEth !== false;
-      const maxTokens = Number(params.maxTokens ?? 40);
       const minUsd = Number(params.minUsd ?? 0);
 
-      // What sweepAll actually needs is the TOKEN ADDRESS LIST and nothing
-      // else. It takes no amounts: it reads balanceOf(address(this)) at
-      // execution time and moves the full balance, skipping zero balances
-      // silently. Amounts and USD figures never enter the calldata -- they
-      // exist only to let an operator judge whether a chain is worth a
-      // ceremony, and to itemize the manifest for signers.
-      //
-      // So the token set is resolved in descending order of trust:
-      //   1. --tokens    : honoured verbatim, minus zero balances
-      //   2. --from-scan : the list the operator just reviewed. Reused as-is,
-      //                    including its valuations -- re-reading balances and
-      //                    re-pricing here would repeat the scan that
-      //                    finished seconds ago to produce figures that are
-      //                    equally stale by signing time and equally absent
-      //                    from the transaction.
-      //   3. a fresh balance probe over the published token list
+      // sweepAll takes ONLY a token address list (plus includeEth and the
+      // recipient). It reads balanceOf(this) per entry at execution, moves the
+      // full balance, and skips zero balances without calling transfer. So
+      // what goes in the calldata is a choice about COST, not knowledge:
+      //   full    : the whole curated list -- identical calldata every cycle,
+      //             zero entries cost ~8k gas each and move nothing
+      //   nonzero : only entries holding a balance at build time
+      // Balances and USD figures below never enter the calldata; they exist to
+      // pick the mode and to itemize the (unsigned) manifest for signers.
       const explicit = params.tokens as string[] | undefined;
       const fromScan = scanAssetsByNetwork.get(chain.network);
       let assets: PricedFeeAsset[];
       let nativeBalance = 0n;
-      // Valuation of the NATIVE balance, kept separately from `assets`
-      // because native does not ride in the tokens array -- it is the
-      // includeEth flag. It still belongs in the chain's total, or the
-      // bundle would report a smaller figure than the scan it came from.
       let nativeValue: PricedFeeAsset | undefined;
+      let listTokens: string[] = [];
+      const symbolOf = new Map<string, string>();
 
       if (explicit && explicit.length > 0) {
-        const found = await readNonZeroBalances(provider, chain.router!, explicit);
+        const unsweepable = universeInternal.UNSWEEPABLE[chain.chainId] ?? {};
+        const usable = explicit.filter(
+          (a) => !universeInternal.NOT_A_TOKEN.has(a) && !unsweepable[a],
+        );
+        const found = await readNonZeroBalances(provider, chain.router!, usable);
         const { priced } = await priceAssets(provider, cfg, found);
         assets = priced;
         nativeBalance = await provider.getBalance(chain.router!);
-      } else if (fromScan) {
-        const toPriced = (a: SnapshotAsset): PricedFeeAsset => ({
-          token: a.token,
-          symbol: a.symbol,
-          decimals: a.decimals,
-          balance: BigInt(a.amountRaw),
-          usdPrice: a.usdPrice,
-          usdValue: a.usdValue,
-          priceSource: a.priceSource,
-        });
-        assets = fromScan.filter((a) => a.token !== NATIVE_SENTINEL).map(toPriced);
-        const nat = fromScan.find((a) => a.token === NATIVE_SENTINEL);
-        if (nat) {
-          nativeValue = toPriced(nat);
-          nativeBalance = nativeValue.balance;
-        }
       } else {
-        const universe = buildTokenUniverse(
-          { network: chain.network, chainId: chain.chainId },
-          sweepTokenList,
-          cfg,
-        );
-        const scan = await scanChainFees(provider, cfg, chain.router!, {
-          price: true,
-          candidates: universe.tokens,
-        });
-        assets = scan.assets.filter((a) => a.token !== NATIVE_SENTINEL);
-        const nat = scan.assets.find((a) => a.token === NATIVE_SENTINEL);
-        if (nat) {
-          nativeValue = nat;
-          nativeBalance = nat.balance;
+        if (!sweepFeeTokens?.chains[String(chain.chainId)]) {
+          throw new Error(
+            `${chain.network} is not in data/fee-tokens.json. Run ` +
+              `\`npx hardhat fees:tokens --bootstrap --networks ${chain.network}\` and commit it.`,
+          );
+        }
+        const { tokens, dropped } = sweepTokensFor(sweepFeeTokens, chain.chainId);
+        for (const d of dropped) console.log(`  ${pad(chain.network, 12)} ! ignoring ${d.address}: ${d.reason}`);
+        listTokens = tokens.map((t) => t.address);
+        for (const t of tokens) symbolOf.set(t.address, t.symbol);
+
+        if (fromScan) {
+          const toPriced = (a: SnapshotAsset): PricedFeeAsset => ({
+            token: a.token,
+            symbol: a.symbol,
+            decimals: a.decimals,
+            balance: BigInt(a.amountRaw),
+            usdPrice: a.usdPrice,
+            usdValue: a.usdValue,
+            priceSource: a.priceSource,
+          });
+          assets = fromScan.filter((a) => a.token !== NATIVE_SENTINEL).map(toPriced);
+          const nat = fromScan.find((a) => a.token === NATIVE_SENTINEL);
+          if (nat) {
+            nativeValue = toPriced(nat);
+            nativeBalance = nativeValue.balance;
+          }
+        } else {
+          const scan = await scanChainFees(provider, cfg, chain.router!, {
+            price: true,
+            candidates: listTokens,
+          });
+          if (scan.unchecked > 0) {
+            throw new Error(`${scan.unchecked} curated token balance(s) could not be read; retry or use a better RPC`);
+          }
+          assets = scan.assets.filter((a) => a.token !== NATIVE_SENTINEL);
+          const nat = scan.assets.find((a) => a.token === NATIVE_SENTINEL);
+          if (nat) {
+            nativeValue = nat;
+            nativeBalance = nat.balance;
+          }
         }
       }
+      for (const a of assets) symbolOf.set(a.token, a.symbol);
 
       const sweepEth = includeEth && nativeBalance > 0n;
       if (assets.length === 0 && !sweepEth) {
-        // Preserves the idempotent-diff model: a chain with nothing to sweep
-        // is dropped entirely rather than burning a nonce on a no-op that
-        // would in fact revert with NOTHING_TO_SWEEP.
+        // A chain with nothing to sweep is dropped rather than burning a
+        // nonce on a no-op.
         return { calls: [], note: "no idle fees on this chain" };
       }
 
-      // Optional economic floor. Defaults to 0 (build everything): what is
-      // worth a hardware-wallet ceremony is the operator's call, not a
-      // constant here.
-      //
-      // The comparison is against NOTIONAL, because there is no longer a
-      // realizable figure -- valuation no longer reads pool depth, so nothing
-      // here knows whether an asset can be sold. A chain can therefore clear
-      // this floor on paper value it cannot actually exit. The note reports
-      // how many assets carried no price at all, since those contribute 0 and
-      // would otherwise silently drag a chain under.
+      // Optional economic floor, against NOTIONAL. Unpriced assets count $0
+      // and the note says how many.
       if (minUsd > 0) {
         const { notional, unpriced } = totalUsd(assets);
         if (notional < minUsd) {
@@ -540,32 +561,84 @@ async function callsForIntent(
         }
       }
 
-      // Chunk so one call cannot grow an unbounded loop. Multiple calls are
-      // batched through MultiSend by buildBatchedSafeTx.
-      const chunks: PricedFeeAsset[][] = [];
-      for (let i = 0; i < assets.length; i += maxTokens) {
-        chunks.push(assets.slice(i, i + maxTokens));
-      }
-      if (chunks.length === 0) chunks.push([]);
+      // ---- mode --------------------------------------------------------
+      const nonzeroTokens = sortTokens(assets.map((a) => ({ address: a.token }))).map((t) => t.address);
+      const fullTokens = sortTokens(
+        [...new Set([...listTokens, ...nonzeroTokens])].map((address) => ({ address })),
+      ).map((t) => t.address);
+      const configured: SweepMode = explicit?.length
+        ? "nonzero"
+        : sweepFeeTokens!.chains[String(chain.chainId)].mode;
+      const cap = await sweepGasCap(provider);
 
-      const calls: BundleCall[] = chunks.map((chunk, idx) => {
-        // ETH rides along with the final chunk only, so it is swept exactly once.
-        const withEth = sweepEth && idx === chunks.length - 1;
-        const addrs = chunk.map((a) => a.token);
-        const summary = chunk.map((a) => `${a.symbol} ${fmtAmount(a)}`).join(", ");
-        const ethPart = withEth
-          ? `${chunk.length ? " + " : ""}${formatUnits(nativeBalance, 18)} ${cfg.nativeSymbol}`
-          : "";
-        return {
-          to: chain.router!,
-          data: ROUTER_IFACE.encodeFunctionData("sweepAll", [addrs, withEth, to]),
-          value: "0",
-          label:
-            `sweepAll(${addrs.length} token(s)${withEth ? " + native ETH" : ""}) -> ${to}` +
-            `${chunks.length > 1 ? ` [part ${idx + 1}/${chunks.length}]` : ""}` +
-            `  ::  ${summary}${ethPart}`,
+      let gasFull: bigint | null = null;
+      let gasNonzero: bigint | null = null;
+      let gasPriceWei: bigint | null = null;
+      let nativeUsd: number | null = nativeValue?.usdPrice ?? null;
+      if (configured !== "nonzero") {
+        gasFull = await estimateSweepGas(provider, safeAddress, chain.router!, fullTokens, includeEth, to);
+      }
+      if (configured === "auto" && fullTokens.length > nonzeroTokens.length) {
+        gasNonzero = await estimateSweepGas(provider, safeAddress, chain.router!, nonzeroTokens, sweepEth, to);
+        try {
+          const fd = await provider.getFeeData();
+          gasPriceWei = fd.gasPrice ?? fd.maxFeePerGas ?? null;
+        } catch {
+          gasPriceWei = null;
+        }
+        if (nativeUsd === null) {
+          const { nativeUsd: px } = await priceAssets(provider, cfg, [
+            { token: NATIVE_SENTINEL, symbol: cfg.nativeSymbol, decimals: 18, balance: 10n ** 18n },
+          ]);
+          nativeUsd = px ?? (await nativeUsdByCoingecko(chain.chainId));
+        }
+      }
+      let decision: ModeDecision = explicit?.length
+        ? { mode: "nonzero", reason: "explicit --tokens", extraUsd: null }
+        : chooseSweepMode({
+            configured,
+            maxUsd: sweepFeeTokens!.fullSweepMaxUsd,
+            extraGas:
+              gasFull !== null && gasNonzero !== null
+                ? (gasFull > gasNonzero ? gasFull - gasNonzero : 0n)
+                : fullTokens.length === nonzeroTokens.length
+                  ? 0n
+                  : null,
+            gasPriceWei,
+            nativeUsd,
+            zeroEntries: fullTokens.length - nonzeroTokens.length,
+          });
+      if (decision.mode === "full" && gasFull !== null && gasFull > cap) {
+        decision = {
+          mode: "nonzero",
+          reason: `full list estimates ${gasFull} gas > cap ${cap}`,
+          extraUsd: decision.extraUsd,
         };
-      });
+      }
+
+      const callTokens = decision.mode === "full" ? fullTokens : nonzeroTokens;
+      // Full mode always carries includeEth so the calldata does not change
+      // with the native balance; sweepAll skips a zero native balance.
+      const withEth = decision.mode === "full" ? includeEth : sweepEth;
+      const gasChosen =
+        decision.mode === "full" && gasFull !== null
+          ? gasFull
+          : await estimateSweepGas(provider, safeAddress, chain.router!, callTokens, withEth, to);
+      if (gasChosen !== null && gasChosen > cap) {
+        throw new Error(`sweepAll of ${callTokens.length} token(s) estimates ${gasChosen} gas > cap ${cap}`);
+      }
+
+      // One direct CALL to the router: no MultiSend, no DELEGATECALL, so the
+      // wallet shows to=router, operation=0 on every chain.
+      const data = encodeSweepAll(callTokens, withEth, to);
+      const calls: BundleCall[] = [
+        {
+          to: chain.router!,
+          data,
+          value: "0",
+          label: sweepLabel(data, decision.mode),
+        },
+      ];
 
       const snapshot: SweepAssetSnapshot[] = assets.map((a) => ({
         token: a.token,
@@ -585,25 +658,37 @@ async function callsForIntent(
           usdValue: nativeValue?.usdValue,
         });
       }
-      // Native is counted in the chain total when it is being swept. It is
-      // not in `assets` because it travels as the includeEth flag rather than
-      // an array entry, and omitting it made the bundle report a smaller
-      // figure than the scan it was built from.
       const totals = totalUsd(sweepEth && nativeValue ? [...assets, nativeValue] : assets);
 
-      // Stash the manifest on the chain entry so the sign page can render an
-      // itemized fund-movement panel per chain.
       sweepManifests.set(`${chain.network}`, {
         recipient: to,
-        includeEth: sweepEth,
+        includeEth: withEth,
         assets: snapshot,
         usdNotional: totals.notional,
         unpricedCount: totals.unpriced,
+        mode: decision.mode,
+        modeReason: decision.reason,
+        extraUsd: decision.extraUsd,
+        gasEstimate: gasChosen?.toString(),
+        tokens: callTokens.map((t) => ({ token: t, symbol: symbolOf.get(t) ?? "?" })),
       });
 
       return { calls };
     }
   }
+}
+
+/**
+ * Call label for a sweep, derived from the calldata itself so it can only
+ * describe what is signed. Amounts are deliberately absent: they are not in
+ * the transaction.
+ */
+function sweepLabel(data: string, mode: string): string {
+  const d = decodeSweepAll(data);
+  return (
+    `sweepAll(tokens=[${d.tokens.length}], includeEth=${d.includeEth}, to=${getAddress(d.to)})` +
+    `  [${mode}]`
+  );
 }
 
 /**
@@ -613,16 +698,7 @@ async function callsForIntent(
  * carries the richer sweep data out to the bundle assembler without
  * distorting the other five intents.
  */
-const sweepManifests = new Map<
-  string,
-  {
-    recipient: string;
-    includeEth: boolean;
-    assets: SweepAssetSnapshot[];
-    usdNotional: number;
-    unpricedCount: number;
-  }
->();
+const sweepManifests = new Map<string, NonNullable<BundleChain["sweep"]>>();
 
 /**
  * Per-chain asset lists taken from a `--from-scan` snapshot, keyed by network.
@@ -635,14 +711,10 @@ const sweepManifests = new Map<
 const scanAssetsByNetwork = new Map<string, SnapshotAsset[]>();
 
 /**
- * Candidate token set per chainId, for the sweep path that has no `--from-scan`
- * to reuse.
- *
- * Loaded once per run rather than per chain: the published list is ~8 MB, and
- * re-parsing it 34 times would cost far more than the probe it feeds. Empty
- * when `--from-scan` supplied the assets, in which case it is never consulted.
+ * The curated sweep list (data/fee-tokens.json), loaded once per build.
+ * Undefined only for an explicit `--tokens` build.
  */
-let sweepTokenList = new Map<number, Set<string>>();
+let sweepFeeTokens: FeeTokensFile | undefined;
 
 /**
  * Chains that FAILED to build, as opposed to chains with nothing to do.
@@ -653,6 +725,13 @@ let sweepTokenList = new Map<number, Set<string>>();
  * summary can name them and the process can exit non-zero.
  */
 const buildErrors: { network: string; message: string }[] = [];
+
+/** Relayer funding warnings collected during a sweep build. */
+const relayerShortfalls: string[] = [];
+/** execTransaction overhead on top of sweepAll (2 ECDSA sigs, events). */
+const RELAYER_EXEC_OVERHEAD = 90_000n;
+/** Headroom over the estimate; absorbs L1 data fees on rollups. */
+const RELAYER_HEADROOM = 3n;
 
 /**
  * Resolve wallet-facing chain metadata from chain-config for the signing
@@ -851,8 +930,8 @@ task("safe:build", "Diff on-chain state and emit a per-chain SafeTx bundle")
     "to",
     "For sweep: recipient (default: OKU_FEE_RECIPIENT). For transfer-ownership: the new owner Safe",
   )
-  .addOptionalParam("tokens", "For sweep: comma-separated token list, or omit to auto-discover")
-  .addOptionalParam("maxTokens", "For sweep: max tokens per sweepAll call (default 40)")
+  .addOptionalParam("tokens", "For sweep: comma-separated token list (default: data/fee-tokens.json)")
+  .addOptionalParam("maxTokens", "Obsolete; ignored (one sweepAll per chain, capped by gas)")
   .addOptionalParam(
     "fromScan",
     "For sweep: path to a fees:cycle / fees:scan snapshot. Uses its asset lists instead " +
@@ -864,8 +943,7 @@ task("safe:build", "Diff on-chain state and emit a per-chain SafeTx bundle")
   )
   .addOptionalParam(
     "rpc",
-    "Override RPC URL (single --networks only). For multi-chain sweeps set <NET>_LOGS_URL " +
-      "instead; the default endpoints on several chains restrict eth_getLogs.",
+    "Override RPC URL (single --networks only). For multi-chain runs set <NET>_URL per chain.",
   )
   .addFlag("noEth", "For sweep: do NOT sweep the native balance")
   .addFlag("force", "For transfer-ownership: allow a --to other than the pinned v2 Safe")
@@ -940,21 +1018,20 @@ task("safe:build", "Diff on-chain state and emit a per-chain SafeTx bundle")
           .filter(Boolean)
           .map((s: string) => getAddress(s));
       }
-      if (taskArgs.maxTokens) params.maxTokens = Number(taskArgs.maxTokens);
+      if (taskArgs.maxTokens) {
+        console.log("  ! --max-tokens is obsolete: sweeps are one sweepAll call per chain, capped by gas");
+      }
       if (taskArgs.minUsd) params.minUsd = Number(taskArgs.minUsd);
       sweepManifests.clear();
       scanAssetsByNetwork.clear();
-      sweepTokenList = new Map();
-      if (params.intent === "sweep" && !taskArgs.fromScan) {
-        // strict: this bundle moves funds. An empty token list would not
-        // error, it would just discover nothing on every chain at once and
-        // produce a bundle that sweeps almost nothing, silently.
-        const list = await loadOkuTokenList({ strict: true });
-        for (const w of list.warnings) console.log(`  ! ${w}`);
-        sweepTokenList = indexByChain(list.tokens);
+      sweepFeeTokens = undefined;
+      if (!params.tokens) {
+        sweepFeeTokens = loadFeeTokens();
+        params.feeTokensUpdatedAt = sweepFeeTokens.updatedAt;
+        params.fullSweepMaxUsd = sweepFeeTokens.fullSweepMaxUsd;
         console.log(
-          `\nCandidate tokens : ${list.tokens.length} ` +
-            `(${list.fromCache ? "cached" : "fetched"})`,
+          `\nToken list      : data/fee-tokens.json (updated ${sweepFeeTokens.updatedAt}, ` +
+            `full-list limit $${sweepFeeTokens.fullSweepMaxUsd})`,
         );
       }
       if (taskArgs.fromScan) {
@@ -980,6 +1057,7 @@ task("safe:build", "Diff on-chain state and emit a per-chain SafeTx bundle")
       if (params.minUsd) console.log(`Minimum USD     : $${Number(params.minUsd).toFixed(2)}`);
     }
     buildErrors.length = 0;
+    relayerShortfalls.length = 0;
 
     const only = taskArgs.networks
       ? new Set<string>(
@@ -994,8 +1072,8 @@ task("safe:build", "Diff on-chain state and emit a per-chain SafeTx bundle")
     if (taskArgs.rpc && chains.length !== 1) {
       throw new Error(
         `--rpc applies to one chain, but ${chains.length} were selected. ` +
-          `Pass --networks <single network> alongside --rpc, or set <NET>_LOGS_URL ` +
-          `per chain (e.g. WORLDCHAIN_LOGS_URL) for a multi-chain run.`,
+          `Pass --networks <single network> alongside --rpc, or set <NET>_URL ` +
+          `per chain for a multi-chain run.`,
       );
     }
 
@@ -1081,9 +1159,32 @@ task("safe:build", "Diff on-chain state and emit a per-chain SafeTx bundle")
         }
 
         const batched = tx.to === getAddress(SAFE_MULTISEND_CALL_ONLY);
+        const m = sweepManifests.get(chain.network);
+
+        // Relayer funding, checked now rather than discovered at broadcast:
+        // a signed bundle that cannot be relayed on one chain just sits there
+        // (rootstock, 2026-10-16). Warn only -- funding can happen after signing.
+        if (m?.gasEstimate) {
+          try {
+            const fee = await provider.getFeeData();
+            const price = fee.maxFeePerGas ?? fee.gasPrice ?? 0n;
+            const need = (BigInt(m.gasEstimate) + RELAYER_EXEC_OVERHEAD) * price * RELAYER_HEADROOM;
+            const bal = await provider.getBalance(OKU_DEPLOYER_EOA);
+            if (bal < need) {
+              relayerShortfalls.push(
+                `${chain.network}: relayer ${OKU_DEPLOYER_EOA} holds ${formatUnits(bal, 18)}, ` +
+                  `needs ${formatUnits(need, 18)} ${NETWORK_CONFIGS[chain.network]?.nativeSymbol ?? ""} ` +
+                  `(${RELAYER_HEADROOM}x est.); top up ${formatUnits(need - bal, 18)} before broadcast`,
+              );
+            }
+          } catch (e) {
+            relayerShortfalls.push(`${chain.network}: relayer balance check failed (${String((e as Error).message).slice(0, 60)})`);
+          }
+        }
         console.log(
           `  ${pad(chain.network, 12)} ${calls.length} call(s)` +
-            `${batched ? " [MultiSend]" : ""}  nonce=${nonce}  hash=${check.local.slice(0, 18)}…`,
+            `${batched ? " [MultiSend]" : ""}  nonce=${nonce}  hash=${check.local.slice(0, 18)}…` +
+            `${m?.mode ? `  ${m.mode} ${m.tokens?.length ?? 0} tok, gas ${m.gasEstimate ?? "?"} (${m.modeReason})` : ""}`,
         );
 
         return {
@@ -1180,6 +1281,10 @@ task("safe:build", "Diff on-chain state and emit a per-chain SafeTx bundle")
         `getTransactionHash(),\nand every inner call was simulated from the Safe ` +
         `address to prove it will not revert.`,
     );
+    if (relayerShortfalls.length) {
+      console.log(`\nRELAYER FUNDING (fix before safe:exec --broadcast; signing can proceed):`);
+      for (const w of relayerShortfalls) console.log(`  ! ${w}`);
+    }
     reportBuildErrors();
     console.log("");
   });
@@ -1746,6 +1851,22 @@ task("safe:exec", "Broadcast a signed bundle from the hot relayer (DRY RUN unles
             });
             const written = writeAccounting(report);
             console.log(`      accounting: ${written.json}`);
+            try {
+              const listed = new Set(
+                (loadFeeTokens().chains[String(c.chainId)]?.tokens ?? []).map((t) => t.address),
+              );
+              const unlisted = report.assets
+                .filter((a) => a.token !== NATIVE_SENTINEL && !listed.has(getAddress(a.token)))
+                .map((a) => `${a.symbol} ${a.token}`);
+              if (unlisted.length) {
+                console.log(
+                  `      NOTE: swept token(s) not in data/fee-tokens.json -- add them with ` +
+                    `fees:audit --write --networks ${c.network}: ${unlisted.join(", ")}`,
+                );
+              }
+            } catch {
+              /* no curated list yet: nothing to compare against */
+            }
             if (!report.reconciliation.allRouterBalancesZero) {
               console.log(`      WARNING: router still holds a balance for a swept asset`);
             }
@@ -1818,11 +1939,16 @@ async function fetchServiceSignatures(
 // safe:status
 // ---------------------------------------------------------------------------
 
-task("safe:status", "Per-chain Safe and OkuRouter ownership state")
+task("safe:status", "Per-chain Safe and OkuRouter ownership state, or a bundle's signing progress")
   .addOptionalParam("networks", "Comma-separated list of networks to restrict to")
+  .addOptionalParam("name", "Bundle name: show per-chain signature progress and nonce freshness instead")
   .setAction(async (taskArgs, hre: HardhatRuntimeEnvironment) => {
     assertOkuSafeConfig();
     const dep = getOkuSafeDeployment();
+    if (taskArgs.name) {
+      await bundleProgress(hre, String(taskArgs.name), taskArgs.networks ? String(taskArgs.networks) : undefined);
+      return;
+    }
     const only = taskArgs.networks
       ? new Set<string>(
           String(taskArgs.networks)
@@ -1917,3 +2043,71 @@ task("safe:status", "Per-chain Safe and OkuRouter ownership state")
     );
     console.log("");
   });
+
+/**
+ * Signature progress for one bundle: who has signed each chain (recovered,
+ * not claimed), whether it is at threshold, and whether the bundle nonce is
+ * still the Safe's live nonce (anything else executed => signatures are dead).
+ */
+async function bundleProgress(hre: HardhatRuntimeEnvironment, name: string, networks?: string) {
+  const bundle = readBundle(name);
+  const sidecars = readSidecars(name);
+  const only = networks ? new Set(networks.split(",").map((s) => s.trim())) : undefined;
+  const chains = listSafeChains(hre);
+  const owners = bundle.owners.map((o) => getAddress(o));
+  const short = (a: string) => a.slice(0, 6) + "…" + a.slice(-4);
+
+  console.log("\n" + "=".repeat(96));
+  console.log(`BUNDLE STATUS  "${name}"  intent=${bundle.intent}  ${bundle.threshold} of ${owners.length}`);
+  console.log("=".repeat(96));
+  console.log(pad("network", 12) + pad("nonce", 7) + pad("live", 7) + pad("sigs", 6) + owners.map((o) => pad(short(o), 14)).join("") + "state");
+  console.log("-".repeat(96));
+
+  const rows = await mapLimit(
+    bundle.chains.filter((c) => !only || only.has(c.network)),
+    6,
+    async (c) => {
+      const valid = new Set<string>();
+      for (const s of signaturesFor(bundle, c, sidecars)) {
+        try {
+          const rec = recoverSafeTxSigner(c.safeTxHash, s.signature);
+          if (getAddress(rec) === s.signer) valid.add(s.signer);
+        } catch {
+          /* unrecoverable: not counted */
+        }
+      }
+      let live = "?";
+      const sc = chains.find((x) => x.network === c.network);
+      if (sc?.rpcUrl) {
+        const provider = makeProvider(sc.rpcUrl, c.chainId);
+        try {
+          const raw = await provider.call({ to: bundle.safe, data: SAFE_IFACE.encodeFunctionData("nonce") });
+          live = String(SAFE_IFACE.decodeFunctionResult("nonce", raw)[0]);
+        } catch {
+          live = "ERR";
+        } finally {
+          provider.destroy();
+        }
+      }
+      const state =
+        live !== "?" && live !== "ERR" && BigInt(live) > BigInt(c.nonce)
+          ? "EXECUTED/STALE"
+          : live !== "?" && live !== "ERR" && BigInt(live) < BigInt(c.nonce)
+            ? "WAITING (earlier nonce pending)"
+            : valid.size >= bundle.threshold
+              ? "READY"
+              : `needs ${bundle.threshold - valid.size}`;
+      return { c, valid, live, state };
+    },
+  );
+  for (const r of rows) {
+    console.log(
+      pad(r.c.network, 12) + pad(r.c.nonce, 7) + pad(r.live, 7) + pad(`${r.valid.size}/${bundle.threshold}`, 6) +
+        owners.map((o) => pad(r.valid.has(o) ? "  ✓" : "  ·", 14)).join("") + r.state,
+    );
+  }
+  console.log("-".repeat(96));
+  const ready = rows.filter((r) => r.state === "READY").length;
+  console.log(`${ready}/${rows.length} chain(s) ready to execute`);
+  console.log("");
+}

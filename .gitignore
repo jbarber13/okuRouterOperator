@@ -38,6 +38,9 @@ coverage
 safe-bundles/*/sign.html
 safe-bundles/*/tx-builder/
 safe-bundles/*/eip712/
+# Device display tests (safe:device-test): chainId 31337 payloads, never real.
+safe-bundles/device-test.json
+safe-bundles/device-test/
 
 # Fee collection.
 #

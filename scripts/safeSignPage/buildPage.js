@@ -78,7 +78,24 @@ function bundleStatus(bundle, sidecars) {
  * without carrying any authorization material. The page uses `signedBy` to
  * grey out rows the connected account has already signed.
  */
+const VERIFY_MARKER = "/*@@SAFE_TX_VERIFY@@*/";
+
+/**
+ * Inline safeTxVerify.js into the template. The page has no build step and
+ * serve.js only serves safe-bundles/, so a <script src> would not resolve;
+ * inlining also keeps a distributed page fully self-contained.
+ */
+function inlineVerifier(templateHtml) {
+  if (!templateHtml.includes(VERIFY_MARKER)) {
+    throw new Error("signing page template is missing the safeTxVerify marker");
+  }
+  const src = fs.readFileSync(path.join(__dirname, "safeTxVerify.js"), "utf8");
+  if (/<\/script/i.test(src)) throw new Error("safeTxVerify.js must not contain a closing script tag");
+  return templateHtml.replace(VERIFY_MARKER, () => src);
+}
+
 function buildSignPage(templateHtml, bundle, sidecars) {
+  templateHtml = inlineVerifier(templateHtml);
   const idx = signerIndex(bundle, sidecars);
   const shared = Object.assign({}, bundle, {
     chains: bundle.chains.map((c) =>
@@ -104,4 +121,4 @@ function buildSignPage(templateHtml, bundle, sidecars) {
   return templateHtml.replace("<script>", `${inject}<script>`);
 }
 
-module.exports = { readSidecars, signerIndex, bundleStatus, buildSignPage };
+module.exports = { readSidecars, signerIndex, bundleStatus, buildSignPage, inlineVerifier };

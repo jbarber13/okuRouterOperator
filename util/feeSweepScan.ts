@@ -17,14 +17,20 @@ import { NETWORK_CONFIGS } from "./deploymentConfig";
 import { scanChainFees, totalUsd } from "./feeScan";
 import { toSnapshotAsset, type SnapshotChain } from "./feeSnapshot";
 import { buildTokenUniverse } from "./tokenUniverse";
+import { sweepTokensFor, type FeeTokensFile } from "./feeTokens";
 
 export interface ChainScanOptions {
   /**
-   * Per-chain candidate token set, indexed by chainId. Built once by the
-   * caller and shared, because the published list is ~8 MB and re-parsing it
-   * per chain would cost more than the probe it feeds.
+   * The curated list (data/fee-tokens.json). When given, it IS the candidate
+   * set -- the same set safe:build sweeps -- and the published list is not
+   * consulted. This is the normal path.
    */
-  tokenListByChain: Map<number, Set<string>>;
+  curated?: FeeTokensFile;
+  /**
+   * Published-list candidates per chainId, for `fees:audit`-style scans that
+   * look beyond the curated list. Ignored when `curated` is set.
+   */
+  tokenListByChain?: Map<number, Set<string>>;
   /** USD valuation. Default true. */
   price?: boolean;
   /** Explicit RPC, overriding the chain's configured one. Single-chain use. */
@@ -53,7 +59,24 @@ export async function scanChainForSnapshot(
   const cfg = NETWORK_CONFIGS[chain.network];
   if (!cfg) return { ...base, status: "no-config" };
 
-  const universe = buildTokenUniverse(chain, opts.tokenListByChain, cfg);
+  let universe: { tokens: Set<string>; sources: NonNullable<SnapshotChain["probe"]>["sources"]; warnings: string[] };
+  if (opts.curated) {
+    if (!opts.curated.chains[String(chain.chainId)]) {
+      return {
+        ...base,
+        status: "error",
+        error: `not in data/fee-tokens.json; run fees:tokens --bootstrap --networks ${chain.network}`,
+      };
+    }
+    const { tokens, dropped } = sweepTokensFor(opts.curated, chain.chainId);
+    universe = {
+      tokens: new Set(tokens.map((t) => t.address)),
+      sources: { seed: 0, tokenList: 0, chainConfig: 0, curated: tokens.length },
+      warnings: dropped.map((d) => `${chain.network}: curated list entry ${d.address} ignored (${d.reason})`),
+    };
+  } else {
+    universe = buildTokenUniverse(chain, opts.tokenListByChain ?? new Map(), cfg);
+  }
   const provider = makeProvider(rpc, chain.chainId);
   try {
     const res = await scanChainFees(provider, cfg, chain.router, {

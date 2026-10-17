@@ -255,3 +255,40 @@ export async function fetchLlamaPrices(
 
   return { prices, rejected, requests, warnings };
 }
+
+/**
+ * Native-asset CoinGecko ids, by chainId, for chains where the wrapped-native
+ * route cannot price the gas token (no DefiLlama slug, or no
+ * `oku.pricing.nativeWrappedToken`). Used ONLY to estimate sweep gas cost in
+ * USD -- never to value fees.
+ *
+ * Hand-verified against coins.llama.fi on 2026-10-16. Deliberately NOT read
+ * from chain-config's `oracles.coingecko.native`, which records "ethereum"
+ * for celo (see feeScan.ts nativeWrappedToken).
+ */
+export const NATIVE_COINGECKO_ID: Record<number, string> = {
+  30: "bitcoin", // rootstock RBTC tracks BTC
+  50: "xdce-crowd-sale",
+  151: "redbelly-network-token",
+  314: "filecoin",
+  2345: "bitcoin", // goat BTC
+  6900: "nibiru",
+  42220: "celo",
+  5464: "saga-2",
+  40: "telos",
+};
+
+/** Current USD price of a chain's native asset by CoinGecko id, or null. */
+export async function nativeUsdByCoingecko(chainId: number): Promise<number | null> {
+  const id = NATIVE_COINGECKO_ID[chainId];
+  if (!id) return null;
+  try {
+    const res = await fetch(`${COINS_CURRENT}/coingecko:${id}`, { signal: AbortSignal.timeout(15_000) });
+    if (!res.ok) return null;
+    const body = (await res.json()) as { coins?: Record<string, { price?: number; confidence?: number }> };
+    const q = body.coins?.[`coingecko:${id}`];
+    return q?.price && q.price > 0 && (q.confidence ?? 1) >= MIN_CONFIDENCE ? q.price : null;
+  } catch {
+    return null;
+  }
+}

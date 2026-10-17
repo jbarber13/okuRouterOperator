@@ -26,7 +26,10 @@ const path = require("path");
 const { execFileSync } = require("child_process");
 
 const PAGE = path.resolve(__dirname, "index.html");
-const html = fs.readFileSync(PAGE, "utf8");
+const { inlineVerifier } = require("./buildPage");
+const template = fs.readFileSync(PAGE, "utf8");
+// Check the page as it is actually served: template + inlined verifier.
+const html = inlineVerifier(template);
 
 /**
  * Strip comments before asserting capabilities.
@@ -60,12 +63,15 @@ if (blocks.length === 0) {
   console.error("no plain <script> block found in the page");
   process.exit(1);
 }
-const code = blocks[blocks.length - 1]
-  .replace(/^<script>/, "")
-  .replace(/<\/script>$/, "");
+const strip = (b) => b.replace(/^<script>/, "").replace(/<\/script>$/, "");
+// Main page logic is the last block; the verifier is inlined before it.
+// Capability checks run over ALL executable code.
+const mainCode = strip(blocks[blocks.length - 1]);
+const code = blocks.map(strip).join("\n;\n");
 // Executable-only views: capability assertions must not trip over the
 // page's own documentation of what it refuses to do.
 const codeBare = stripComments(code);
+const mainBare = stripComments(mainCode);
 const htmlBare = stripComments(html);
 
 const tmp = path.join(os.tmpdir(), `safe-sign-page-${process.pid}.js`);
@@ -81,7 +87,7 @@ try {
   fs.unlinkSync(tmp);
 }
 
-console.log(`\nsigning page self-check: ${path.relative(process.cwd(), PAGE)}`);
+console.log(`\nsigning page self-check: ${path.relative(process.cwd(), PAGE)} + safeTxVerify.js`);
 console.log(`  (${code.split("\n").length} lines of inline script)\n`);
 
 check("inline script parses", syntaxOk, syntaxErr);
@@ -145,7 +151,7 @@ check("signOne guards on a connected wallet",
 check("ensureConnected throws something actionable",
   /function ensureConnected[\s\S]*?no wallet connected/.test(codeBare));
 check("row sign buttons are disabled until connected",
-  /account \?\s*""\s*:\s*['"] disabled/.test(codeBare));
+  /canSign = account &&/.test(codeBare) && /canSign \?\s*""\s*:[\s\S]{0,40}disabled/.test(codeBare));
 check("null-provider TypeError is not shown raw to the signer",
   /reading 'request'[\s\S]{0,200}no wallet connected/.test(codeBare));
 
@@ -203,6 +209,32 @@ check("shows a per-chain USD subtotal in the itemized report",
 // contracts), so an unescaped symbol would be an injection vector.
 check("escapes bundle-supplied strings before rendering",
   /function esc\(/.test(codeBare) && /esc\(a\.symbol\)/.test(codeBare));
+check("table cells escape network and chainId",
+  /esc\(c\.network\)/.test(mainBare) && /esc\(c\.chainId\)/.test(mainBare));
+check("call labels are no longer rendered (labels are unsigned text)",
+  !/x\.label/.test(mainBare));
+
+// --- 8. what is shown is what is signed ---
+// The page must derive everything it displays from the EIP-712 payload it
+// hands the wallet, and refuse when that payload disagrees with the bundle.
+check("verifier is inlined into the page", /function verifyChain\(/.test(codeBare) &&
+  /function keccak256\(/.test(codeBare));
+check("verifies every chain when a bundle is adopted",
+  /function adoptBundle[\s\S]*?verifyAll\(\)/.test(mainBare));
+check("signOne re-verifies and refuses before calling the wallet",
+  /async function signOne[\s\S]*?SafeTxVerify\.verifyChain\([\s\S]*?if \(!v\.ok\)[\s\S]*?throw[\s\S]*?eth_signTypedData_v4/.test(mainBare));
+check("sign button disabled for payloads that fail verification",
+  /canSign = account && v\.ok/.test(mainBare));
+check("signAll skips refused payloads", /verified\[i\] && !verified\[i\]\.ok/.test(mainBare));
+check("review card shows domain hash and message hash (Ledger blind-sign view)",
+  /domain hash/.test(mainBare) && /message hash/.test(mainBare) && /domainSeparator/.test(mainBare));
+check("review card lists SafeTx fields in device order", /device order/.test(mainBare));
+check("verifier refuses non-zero gas/refund fields",
+  /refundReceiver must be the zero address/.test(codeBare) && /must be 0/.test(codeBare));
+check("verifier refuses DELEGATECALL except MultiSendCallOnly",
+  /only MultiSendCallOnly is ever acceptable/.test(codeBare));
+check("verifier requires a sweep to be one plain CALL to the router",
+  /a sweep must be a plain CALL/.test(codeBare) && /a sweep must call this chain's router/.test(codeBare));
 
 // --- 7. bundle autoload must not be hardcoded to one bundle name ---
 // It previously always fetched `accept-all.json`, which silently loads the

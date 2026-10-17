@@ -7,9 +7,9 @@
  * This exists because the router has no fee accounting of any kind: there is
  * no `collectableFees()` view, no per-token mapping, nothing. Fees are simply
  * the contract's own balance, so the only way to know what is there is to ask
- * a candidate set of tokens for their balance. See util/tokenUniverse.ts for
- * where the candidates come from and util/balanceProbe.ts for how they are
- * read.
+ * a candidate set of tokens for their balance. The candidates are the curated
+ * list in data/fee-tokens.json (util/feeTokens.ts) -- the same tokens a sweep
+ * names -- and util/balanceProbe.ts reads them. `fees:audit` looks beyond it.
  *
  * ONE total is printed: notional, price x balance, from DefiLlama. There is
  * no realizable figure -- valuation no longer reads pool depth, so nothing
@@ -33,7 +33,7 @@ import { listSafeChains, mapLimit, pad } from "../util/safeChains";
 import { NATIVE_SENTINEL } from "../util/feeScan";
 import { scanChainForSnapshot } from "../util/feeSweepScan";
 import { buildSnapshot } from "../util/feeSnapshot";
-import { indexByChain, loadOkuTokenList } from "../util/tokenUniverse";
+import { loadFeeTokens } from "../util/feeTokens";
 
 function usd(n: number | undefined): string {
   if (n === undefined) return "     -";
@@ -69,20 +69,15 @@ task("fees:scan", "Report idle protocol fees held by each OkuRouter")
 
     console.log(`\nScanning idle fees on ${chains.length} chain(s)...\n`);
 
-    // Loaded once and shared across chains: the published list is ~8 MB, so
-    // parsing it per chain would cost more than the probe it feeds.
-    const list = await loadOkuTokenList();
-    for (const w of list.warnings) console.log(`  ! ${w}`);
-    const tokenListByChain = indexByChain(list.tokens);
-    console.log(
-      `Candidate token list: ${list.tokens.length} entries ` +
-        `(${list.fromCache ? "cached" : "fetched"})\n`,
-    );
+    // The curated list is the candidate set: exactly what safe:build sweeps.
+    // Tokens outside it are fees:audit's job, not the scan's.
+    const curated = loadFeeTokens();
+    console.log(`Candidates: data/fee-tokens.json (curated). Use fees:audit to look beyond it.\n`);
 
     const results = await mapLimit(chains, 4, (chain) =>
       scanChainForSnapshot(chain, {
         price: !args.noPrice,
-        tokenListByChain,
+        curated,
         rpcOverride: args.rpc ? String(args.rpc) : undefined,
       }),
     );
@@ -107,7 +102,7 @@ task("fees:scan", "Report idle protocol fees held by each OkuRouter")
         const s = r.probe.sources;
         console.log(
           `    probe: ${r.probe.calls} eth_call(s) over ${r.probe.candidates} candidate(s) ` +
-            `(list ${s.tokenList}, seed ${s.seed}, config ${s.chainConfig})` +
+            `${s.curated !== undefined ? `(curated ${s.curated})` : `(list ${s.tokenList}, seed ${s.seed}, config ${s.chainConfig})`}` +
             `${r.probe.unchecked ? `, ${r.probe.unchecked} UNCHECKED` : ""}`,
         );
       }

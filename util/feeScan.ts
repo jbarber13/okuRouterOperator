@@ -27,8 +27,8 @@
  * on 2026-09-29 silently reduced arbitrum to zero assets while the router held
  * 34. The trade is explicit and is documented in tokenUniverse.ts: the
  * candidate set cannot contain a token nobody ever listed, so a token traded
- * only by direct contract call may be missed. `scripts/dryRunDiscovery.ts`
- * measures that gap against real logs.
+ * only by direct contract call may be missed. Callers now pass the curated
+ * data/fee-tokens.json as candidates; `fees:audit` checks the wider set.
  *
  * HOW VALUATION WORKS NOW
  *

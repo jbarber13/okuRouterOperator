@@ -1,48 +1,32 @@
 /**
  * tokenUniverse.ts
  *
- * The set of token addresses worth asking a router about.
+ * The WIDE candidate set: Oku's published routing list + the OrderFilled seed
+ * + chain-config tokens, ~40,000 addresses across chains.
  *
- * WHY THIS EXISTS
+ * Since 2026-10-17 this is NOT what sweeps or scans use. They use the curated
+ * data/fee-tokens.json (util/feeTokens.ts), which is reproducible and
+ * reviewable. This module now serves two maintenance paths only:
  *
- * Fee-asset discovery walks `OrderFilled` history with `eth_getLogs`. That is
- * authoritative -- it finds assets nobody has listed anywhere -- but it is
- * also the expensive and fragile half of a scan: most endpoints cap the log
- * range, the cap is undiscoverable except by being rejected, and one chain
- * (rootstock) serves no logs at all. On 2026-09-29 that cost a whole sweep:
- * arbitrum discovered zero assets and left 33 tokens behind.
+ *   fees:tokens --bootstrap  one-time seeding of the curated list
+ *   fees:audit               periodic check for held tokens the curated list
+ *                            misses (anything new gets vetted and added)
  *
- * There is a much cheaper question available. The router can only ever hold a
- * fee in a token somebody actually swapped through Oku, and Oku publishes the
- * list of tokens it will route. Asking `balanceOf(router)` for every token on
- * that list costs a handful of `eth_call`s at head -- no log range, no archive
- * node, no endpoint that refuses. Measured across all 33 cached chains the
- * whole probe is 87 calls, against a getLogs budget of up to 400 PER CHAIN.
+ * It also owns the two exclusion lists every path re-applies:
+ *   NOT_A_TOKEN  native-balance mirrors and sentinels that break or
+ *                double-count a sweep
+ *   UNSWEEPABLE  real tokens whose transfer reverts, per chain
  *
- * WHAT THIS IS NOT
- *
- * A complete picture. A candidate set cannot contain a token nobody ever
- * enumerated, and the router accepts ANY ERC20 as `tokenIn` -- there is no
- * on-chain token allowlist, only an allowlist of aggregator targets. Measured
- * on base: 63 of 300 distinct `tokenIn` addresses (21%) appear in no published
- * list.
- *
- * That gap is why data/known-fee-assets.json exists. It is a one-time export
- * of every address `OrderFilled` log scanning had discovered before indexing
- * was removed -- 1,496 addresses, 301 of them unlisted -- carried forward as a
- * static seed so the pivot to list-based discovery cost nothing that was
- * already known. It is not a cache and nothing regenerates it.
- *
- * What remains unsolved: a token first traded AFTER that export, by direct
- * contract call, and never added to any list, is invisible here.
- * `scripts/dryRunDiscovery.ts` measures that drift against real logs.
+ * The router accepts ANY ERC20 as tokenIn -- there is no on-chain token
+ * allowlist -- so no candidate set is complete by construction. A token first
+ * traded by direct contract call and never listed anywhere is invisible to
+ * the audit; it only surfaces if someone adds it by hand.
  *
  * SAFETY PROPERTY
  *
  * Everything here is a set of ADDRESSES. Balances are always read live from
- * chain. A stale, truncated or empty universe can therefore only cause an
- * asset to be missed on this run -- it can never produce a wrong amount, and
- * it can never cause the wrong thing to be swept.
+ * chain, so a stale or empty universe can only cause an asset to be missed --
+ * never a wrong amount, never the wrong thing swept.
  */
 import * as fs from "fs";
 import * as path from "path";

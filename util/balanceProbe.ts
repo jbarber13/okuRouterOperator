@@ -95,6 +95,12 @@ export interface ProbeResult {
   multicall: string;
   /** Checksummed token -> non-zero raw balance. Zero balances are dropped. */
   balances: Map<string, bigint>;
+  /**
+   * Every candidate whose balanceOf returned a full 32-byte word, zero or not.
+   * A candidate missing from here has no code, reverted, or answered short --
+   * putting it in a sweepAll array would revert the whole sweep.
+   */
+  responding: Set<string>;
   /** Candidate addresses submitted. */
   probed: number;
   /** `eth_call`s actually issued, including retries. */
@@ -261,6 +267,7 @@ export async function probeBalances(
 ): Promise<ProbeResult> {
   const warnings: string[] = [];
   const balances = new Map<string, bigint>();
+  const responding = new Set<string>();
   const multicall = toChecksum(opts.multicall) ?? CANONICAL_MULTICALL3;
 
   const tokens: string[] = [];
@@ -269,7 +276,7 @@ export async function probeBalances(
     if (t) tokens.push(t);
   }
   if (tokens.length === 0) {
-    return { available: true, multicall, balances, probed: 0, calls: 0, unchecked: 0, warnings };
+    return { available: true, multicall, balances, responding, probed: 0, calls: 0, unchecked: 0, warnings };
   }
 
   const holderAddr = toChecksum(holder);
@@ -279,6 +286,7 @@ export async function probeBalances(
       available: false,
       multicall,
       balances,
+      responding,
       probed: 0,
       calls: 0,
       unchecked: tokens.length,
@@ -293,6 +301,7 @@ export async function probeBalances(
       available: false,
       multicall,
       balances,
+      responding,
       probed: 0,
       calls: 1,
       unchecked: tokens.length,
@@ -311,6 +320,7 @@ export async function probeBalances(
 
   for (let i = 0; i < tokens.length; i++) {
     const bal = decodeBalance(out.results[i]);
+    if (bal !== null) responding.add(tokens[i]);
     if (bal !== null && bal > 0n) balances.set(tokens[i], bal);
   }
 
@@ -325,6 +335,7 @@ export async function probeBalances(
     available: true,
     multicall,
     balances,
+    responding,
     probed: tokens.length,
     calls: out.calls + 1,
     unchecked: out.unchecked.length,

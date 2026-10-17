@@ -34,16 +34,15 @@
  *   npx hardhat fees:cycle --networks base,arbitrum --name sweep-2026-09-22
  *   npx hardhat fees:cycle --min-usd 25
  *
- * Chains whose default endpoint caps eth_getLogs need a logs-capable endpoint
- * in <NET>_LOGS_URL (e.g. WORLDCHAIN_LOGS_URL) or their long-tail assets
- * cannot be discovered at all.
+ * Candidates come from the curated data/fee-tokens.json; run `fees:audit`
+ * periodically to find held tokens it does not cover.
  */
 import * as fs from "fs";
 import * as path from "path";
 import { task } from "hardhat/config";
 import { listSafeChains, mapLimit, pad } from "../util/safeChains";
 import { scanChainForSnapshot } from "../util/feeSweepScan";
-import { indexByChain, loadOkuTokenList } from "../util/tokenUniverse";
+import { loadFeeTokens } from "../util/feeTokens";
 import {
   buildSnapshot,
   chainsAboveThreshold,
@@ -62,7 +61,6 @@ task("fees:cycle", "Scan every chain for idle fees, build the sweep bundle, emit
   .addOptionalParam("name", "Bundle name (default: sweep-<date>)")
   .addOptionalParam("to", "Sweep recipient (default: OKU_FEE_RECIPIENT)")
   .addOptionalParam("minUsd", "Skip chains whose realizable total is below this (default 0)")
-  .addOptionalParam("maxTokens", "Max tokens per sweepAll call (default 40)")
   .addOptionalParam("concurrency", "Chains scanned in parallel (default 4)")
   .addFlag("scanOnly", "Stop after the snapshot; do not build a bundle")
   .addFlag("noEth", "Do NOT sweep the native balance")
@@ -93,26 +91,14 @@ task("fees:cycle", "Scan every chain for idle fees, build the sweep bundle, emit
     console.log(`FEE CYCLE  ${started.toISOString()}`);
     console.log("=".repeat(96));
     console.log(`Chains       : ${chains.length}`);
-    console.log(`Discovery    : Multicall3 balanceOf over the published token list`);
-    // The balance probe is the half of discovery that does not depend on what
-    // eth_getLogs range an endpoint happens to allow, so a cycle that is about
-    // to move money should not run without it unless asked.
-    // strict: this path decides what to sweep. An empty token list would not
-    // error anywhere downstream, it would just find nothing on every chain at
-    // once, which is indistinguishable from a set of empty routers.
-    const list = await loadOkuTokenList({ strict: true });
-    for (const w of list.warnings) console.log(`  ! ${w}`);
-    const tokenListByChain = indexByChain(list.tokens);
-    console.log(
-      `Probe list   : ${list.tokens.length} candidate tokens ` +
-        `(${list.fromCache ? "cached" : "fetched"})`,
-    );
+    console.log(`Candidates   : data/fee-tokens.json (curated; fees:audit looks beyond it)`);
+    const curated = loadFeeTokens();
     console.log("");
 
     // ---- 1. scan ----------------------------------------------------------
     let done = 0;
     const results = await mapLimit(chains, concurrency, async (chain) => {
-      const r = await scanChainForSnapshot(chain, { price: true, tokenListByChain });
+      const r = await scanChainForSnapshot(chain, { price: true, curated });
       done++;
       const detail =
         r.status === "has-fees"
@@ -241,7 +227,7 @@ task("fees:cycle", "Scan every chain for idle fees, build the sweep bundle, emit
       throw new Error(
         `refusing to build a bundle: ${unreliable.length} chain(s) have unreliable ` +
           `discovery (${unreliable.map((c) => c.network).join(", ")}). Point them at a ` +
-          `logs-capable endpoint, or pass --accept-partial to sweep them blind anyway.`,
+          `better <NET>_URL endpoint, or pass --accept-partial to sweep them blind anyway.`,
       );
     }
 
@@ -279,7 +265,6 @@ task("fees:cycle", "Scan every chain for idle fees, build the sweep bundle, emit
       fromScan: written.json,
       ...(args.to ? { to: String(args.to) } : {}),
       ...(minUsd > 0 ? { minUsd: String(minUsd) } : {}),
-      ...(args.maxTokens ? { maxTokens: String(args.maxTokens) } : {}),
       noEth: Boolean(args.noEth),
     });
 

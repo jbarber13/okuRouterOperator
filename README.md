@@ -29,8 +29,8 @@ npm run sign-page
 npx hardhat safe:sign --name <bundle> --import safe-bundles/<bundle>/signatures-0x<signer1>.json
 npx hardhat safe:sign --name <bundle> --import safe-bundles/<bundle>/signatures-0x<signer2>.json
 
-# 4. Check readiness (2-of-3 reached on every chain)
-npx hardhat safe:status
+# 4. Check readiness (2-of-3 reached on every chain, nonces still live)
+npx hardhat safe:status --name <bundle>
 
 # 5. Dry run -- no broadcast, re-verifies hashes/signatures/nonces and simulates
 npx hardhat safe:exec --name <bundle>
@@ -397,18 +397,38 @@ npx hardhat safe:sign --name accept-all \
 
 The page walks the bundle in order, switching networks as it goes and calling
 `wallet_addEthereumChain` from the bundle's embedded `chainMeta` for networks the wallet has
-never seen. That switching is mandatory, not cosmetic: `eth_signTypedData_v4` is refused
-when the active chain does not match the SafeTx domain. It re-reads `eth_chainId` before
-each signature so a silent mismatch cannot produce a signature over the wrong domain, and
-shows the expected `safeTxHash` beside each chain for device comparison. Wallets are
-discovered via EIP-6963 (with a `window.ethereum` fallback), so MetaMask and Rabby can
-coexist and you can pick which one your device sits behind.
+never seen (`eth_signTypedData_v4` is refused when the active chain does not match the
+SafeTx domain). It re-reads `eth_chainId` before each signature.
+
+**What you see is what you sign.** Every chain has a *review what your device will show*
+card computed by `scripts/safeSignPage/safeTxVerify.js` from the exact EIP-712 payload
+handed to the wallet — not from bundle labels:
+
+1. the domain (chainId, verifyingContract = the Safe), as a device shows it first;
+2. the SafeTx fields in device order (`to` named as the router, `value`, `data`
+   length + keccak, `operation`, gas fields, `gasToken`, `refundReceiver`, `nonce`);
+3. `data` decoded word by word — for a sweep, the recipient, `includeEth` and every token
+   address with its symbol;
+4. the **domain hash** and **message hash** (what a Ledger shows when it cannot render
+   fields) and the recomputed `safeTxHash`.
+
+Build-time amounts sit in a separate dashed "not signed" box. The page **refuses** to send
+a payload to the wallet if the recomputed hash differs from the bundle, the chain or Safe
+is wrong, any gas/refund field is non-zero, there is a DELEGATECALL (other than a non-sweep
+MultiSendCallOnly batch), or — for sweeps — it is not one plain `sweepAll` CALL to that
+chain's router whose recipient and token array match the manifest. Wallets are discovered
+via EIP-6963 (with a `window.ethereum` fallback).
+
+To record what a specific device actually displays, `npx hardhat safe:device-test` writes
+a chainId-31337 bundle (unexecutable anywhere) with short/medium/long sweeps and a
+worksheet; see the signer guide.
 
 Deliberately narrow: it never broadcasts, never handles key material, has no dependencies
-and no build step. `npm run check:sign-page` statically asserts those properties — no
-`eth_sendTransaction`, no `XMLHttpRequest`/`WebSocket`/`sendBeacon`, no `eval`, no dynamic
-import, no remote script, and at most a single same-origin `fetch` used only to autoload a
-local bundle (the generated page embeds the bundle and fetches nothing at all).
+and no build step. `npm run check:sign-page` statically asserts those properties on the
+assembled page (template + inlined verifier) — no `eth_sendTransaction`, no
+`XMLHttpRequest`/`WebSocket`/`sendBeacon`, no `eval`, no dynamic import, no remote script,
+`fetch` only for the same-origin bundle autoload and `/api/signature` autosave — plus the
+verify-and-refuse wiring above.
 
 It is a convenience, not a trusted component. Every signature is re-verified downstream:
 `safe:sign --import` independently recovers the signer and rejects anything that is not a
@@ -610,12 +630,12 @@ npx hardhat safe:exec --name sweep-2026-09-29
 npx hardhat safe:exec --name sweep-2026-09-29 --broadcast
 ```
 
-The scan and the build are a single pass on purpose. Discovery — working out
-which assets have ever flowed through each router — is the expensive part, and
-run separately the two steps pay for it twice. `fees:cycle` scans once and
-hands the result to `safe:build --from-scan`.
+The scan reads balances for the curated list (see
+[Which tokens a sweep names](#which-tokens-a-sweep-names--datafee-tokensjson))
+and the build consumes that exact snapshot via `safe:build --from-scan`, so the
+report and the bundle cannot disagree.
 
-What the bundle actually needs from the scan is the **token address list**.
+What the bundle actually needs is the **token address list**.
 `sweepAll(address[] tokens, bool includeEth, address to)` takes no amounts: it
 reads `balanceOf` at execution time, moves the entire balance of each listed
 token, and silently skips any that are zero. Amounts and USD figures never
@@ -652,52 +672,68 @@ nothing to collect, and set a non-zero exit code. Previously both simply
 vanished from the bundle, which on a 34-chain sweep is indistinguishable from
 a silent loss of collectable fees.
 
-### Discovery — how assets are found
+### Which tokens a sweep names — `data/fee-tokens.json`
 
-The router has no fee accounting, so the only way to know what is collectable
-is to read `balanceOf(router)`. The question is *which tokens to ask about*.
+The router has no fee accounting: fees are just its own ERC-20 balances, and
+`sweepAll(address[] tokens, bool includeEth, address to)` reads `balanceOf`
+per listed token at execution, moves the full balance, and **skips zero
+balances without calling `transfer`** (OkuRouter.sol `sweepAll`). So a sweep
+never needs to *discover* anything; it only needs a list of tokens to ask
+about. That list is committed and reviewed:
 
-A candidate set is assembled per chain from three sources and probed in one
-batched **Multicall3** round:
+**`data/fee-tokens.json`** — per chain: a sweep `mode` and its tokens
+(`address, symbol, decimals, source, addedAt`), plus `excluded` entries with
+the reason they were rejected. Calldata order is canonical (sorted by
+address), so the same list always encodes to the same bytes.
 
-| source | what it is |
-|---|---|
-| `cdn.oku.trade/tokenlist.json` | Oku's published routing list — ~35,500 addresses across our chains |
-| `data/known-fee-assets.json` | committed one-time export of every address log indexing had found (1,496, of which 301 are in no list) |
-| chain-config | `tokenList`, `stables`, `token.*`, and the wrapped native |
+Every token was vetted before entering the list: `balanceOf(router)` must
+return a word (has code, is an ERC-20), and `sweepAll(whole list)` simulated
+from the Safe must succeed. A revert is bisected to the culprit, which goes to
+`excluded` with the revert reason. `NOT_A_TOKEN` / `UNSWEEPABLE`
+(util/tokenUniverse.ts) are re-applied at build time, so a hand edit cannot put
+a sweep-breaking address into a bundle.
 
-The whole 34-chain scan costs roughly **180 `eth_call`s and ~24 seconds**.
+#### Sweep modes
 
-> **What this replaced.** Discovery used to walk `OrderFilled` history with
-> `eth_getLogs`. That made it hostage to whatever block range an endpoint felt
-> like serving — a cap that is undiscoverable except by being rejected. On
-> 2026-09-29 Alchemy's 10-block cap silently reduced arbitrum to zero
-> discovered assets while the router held 34, and reported avax as `$0.00`
-> while it held USDC 1,173. There is no longer a logs endpoint, a
-> `<NET>_LOGS_URL`, a discovery cache, a request budget, or a coverage verdict.
+| mode | calldata | when |
+|---|---|---|
+| `full` | the whole list, identical every cycle (only the nonce changes) | cheap chains |
+| `nonzero` | only listed tokens with a balance at build time | expensive chains |
+| `auto` (default) | `full`, unless the zero-balance entries cost more than `fullSweepMaxUsd` | |
 
-#### The known limitation
+`auto` measures the **extra** cost of a full list —
+`estimateGas(full) − estimateGas(nonzero)` × live gas price × native USD price —
+and compares it with `fullSweepMaxUsd` (**$0.10**). An unknown cost (no gas or
+native price) resolves to `nonzero`. Mainnet is pinned to `nonzero` because its
+gas can spike between build and execution. Each bundle chain records
+`mode`, `modeReason` and `extraUsd`, and the sign page shows them. A zero-balance
+entry costs ~8.2k gas (measured on base); at 2026-10-16 prices rootstock, linea
+and redbelly-sized lists were the ones that could exceed the limit.
 
-The router accepts **any** ERC-20 as `tokenIn` — the only on-chain allowlist is
-of aggregator targets, not tokens — so a candidate set can never be complete.
-Measured on base before the pivot, 63 of 300 distinct `tokenIn` addresses (21%)
-appeared in no published list.
+Each chain is **one direct `sweepAll` CALL to the router** — no MultiSend, no
+DELEGATECALL — capped at half the chain's block gas limit. `safe:build` also
+checks the relayer can pay 3× the estimate and prints any top-up needed before
+broadcast (signing can proceed meanwhile).
 
-`data/known-fee-assets.json` carries forward everything indexing had already
-found, so the pivot cost nothing that was known at the time. What remains
-exposed is a token first traded *after* that export, by direct contract call,
-and never listed anywhere.
-
-That gap is deliberately measurable rather than assumed:
+#### Keeping the list current
 
 ```bash
-npx hardhat run scripts/dryRunDiscovery.ts
+npx hardhat fees:tokens                          # show the list per chain
+npx hardhat fees:audit                           # held tokens the list misses (probes the published Oku list)
+npx hardhat fees:audit --write --networks base   # vet and add them, then review the diff and commit
+npx hardhat fees:tokens --bootstrap              # (re)seed from every source; extends, never removes
 ```
 
-It walks real `OrderFilled` history, reports how many held tokens the candidate
-set would have missed, and prints them ready to paste into
-`data/known-fee-assets.json`. It is an audit tool — nothing in `fees:scan` or
-`fees:cycle` depends on it.
+`--bootstrap` sources: `data/known-fee-assets.json` (OrderFilled seed),
+chain-config tokens, every asset in `fee-reports/data/`, and published-list
+tokens holding a balance right now. `safe:exec` notes any swept asset that is
+not on the list.
+
+The router accepts **any** ERC-20 as `tokenIn`, so no list is complete by
+construction. Run `fees:audit` periodically (it is the old 40k-token balance
+probe, now a maintenance step instead of part of every scan); a token first
+traded by direct contract call and listed nowhere only surfaces if someone adds
+it by hand.
 
 #### Failure modes that are reported, not swallowed
 
@@ -706,9 +742,8 @@ set would have missed, and prints them ready to paste into
 - **A batch the node refuses** is split and retried; anything still failing is
   counted as `unchecked`. `fees:cycle` exits non-zero on it, because "we could
   not look" must not read as "there is nothing there".
-- **An empty token list** is a hard failure on any path that decides what to
-  sweep. It would not error anywhere downstream — it would just find nothing on
-  every chain at once.
+- **A chain missing from `data/fee-tokens.json`** is a build error for that
+  chain, not an empty sweep.
 
 ### Single chain
 

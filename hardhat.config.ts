@@ -24,6 +24,8 @@ require("./tasks/safeProposer");
 require("./tasks/feeScan");
 require("./tasks/feeAccounting");
 require("./tasks/feeCycle");
+require("./tasks/feeTokens");
+require("./tasks/safeDeviceTest");
 
 dotEnvConfig();
 
