@@ -866,5 +866,20 @@
     "gasCostUsd": 0.024742684868817626,
     "reconciled": false,
     "dataFile": "data/2026-10-16/hyperevm-85f40e2f.json"
+  },
+  {
+    "date": "2026-10-22",
+    "isoWeek": "2026-W43",
+    "network": "plasma",
+    "chainId": 9745,
+    "txHash": "0xce6fe50cf86bc9d9bc57d5ea837c05a07f871988106f415f24ae1aa65fcecbe3",
+    "blockNumber": 35761095,
+    "recipient": "0x7C547b4760feC978a26c76FE451BA3F5B00237C6",
+    "assetCount": 8,
+    "usdNotional": 65.67747500474059,
+    "gasCostNative": "0.000000002459636829",
+    "gasCostUsd": 1.8491930584310133e-10,
+    "reconciled": true,
+    "dataFile": "data/2026-10-22/plasma-ce6fe50c.json"
   }
 ]
