@@ -261,6 +261,8 @@ async function main() {
         if (!t) continue;
         t.usdPrice = p.usdPrice;
         t.usdValue = p.usdValue;
+        t.usdValueThin = p.usdValueThin;
+        t.priceTier = p.priceTier;
         t.priceSource = p.priceSource;
       }
     } catch (e) {

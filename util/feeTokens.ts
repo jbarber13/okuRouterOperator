@@ -33,6 +33,7 @@ import * as fs from "fs";
 import * as path from "path";
 import { toChecksum } from "./address";
 import { _internal as universeInternal } from "./tokenUniverse";
+import { ALIAS_RE } from "./priceLlama";
 
 export const FEE_TOKENS_FILE = path.resolve(__dirname, "..", "data", "fee-tokens.json");
 
@@ -46,6 +47,14 @@ export interface FeeTokenEntry {
   /** Comma-joined provenance: seed, chain-config, swept, tokenlist-balance, audit, manual. */
   source: string;
   addedAt: string;
+  /**
+   * Reviewed price alias, "coingecko:<id>", for a wrapped-native or pegged
+   * token whose own address has no market. Takes precedence over every market
+   * source, so only set it where the peg is structural (WBTC-style wrappers,
+   * canonical bridged stables), never for a token that merely trades near a
+   * price.
+   */
+  priceAs?: string;
 }
 
 export interface FeeTokenExclusion {
@@ -58,6 +67,8 @@ export interface FeeTokenExclusion {
 export interface FeeTokenChain {
   network: string;
   mode: SweepMode;
+  /** Reviewed alias for the chain's NATIVE asset, "coingecko:<id>" (e.g. rootstock RBTC -> bitcoin). */
+  nativePriceAs?: string;
   tokens: FeeTokenEntry[];
   /** Candidates rejected during bootstrap/audit, kept so they are not re-proposed blindly. */
   excluded?: FeeTokenExclusion[];
@@ -104,8 +115,14 @@ export function parseFeeTokens(raw: unknown): FeeTokensFile {
     if (!["auto", "full", "nonzero"].includes(c.mode)) {
       throw new Error(`fee-tokens: chain ${id} has invalid mode ${c.mode}`);
     }
+    if (c.nativePriceAs !== undefined && !ALIAS_RE.test(c.nativePriceAs)) {
+      throw new Error(`fee-tokens: chain ${id} nativePriceAs must look like coingecko:<id>`);
+    }
     const seen = new Set<string>();
     for (const t of c.tokens ?? []) {
+      if (t.priceAs !== undefined && !ALIAS_RE.test(t.priceAs)) {
+        throw new Error(`fee-tokens: chain ${id} token ${t.address} priceAs must look like coingecko:<id>`);
+      }
       const a = toChecksum(t.address);
       if (!a) throw new Error(`fee-tokens: chain ${id} has malformed address ${t.address}`);
       if (seen.has(a)) throw new Error(`fee-tokens: chain ${id} lists ${a} twice`);
@@ -134,6 +151,7 @@ export function saveFeeTokens(f: FeeTokensFile, file = FEE_TOKENS_FILE): void {
     chains[id] = {
       network: c.network,
       mode: c.mode,
+      ...(c.nativePriceAs ? { nativePriceAs: c.nativePriceAs } : {}),
       tokens: sortTokens(c.tokens),
       ...(c.excluded?.length ? { excluded: sortTokens(c.excluded) } : {}),
     };
@@ -246,4 +264,15 @@ export async function bisectFailures<T>(
     return [...items];
   }
   return [...left, ...right];
+}
+
+/** Reviewed price aliases for one chain: token -> key, plus the native alias. */
+export function priceAliasesFor(
+  f: FeeTokensFile | undefined,
+  chainId: number,
+): { tokens: Map<string, string>; native?: string } {
+  const c = f?.chains[String(chainId)];
+  const tokens = new Map<string, string>();
+  for (const t of c?.tokens ?? []) if (t.priceAs) tokens.set(t.address, t.priceAs);
+  return { tokens, native: c?.nativePriceAs };
 }

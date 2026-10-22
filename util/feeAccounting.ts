@@ -120,7 +120,12 @@ export interface AccountingAsset {
    */
   deltaMatchesEvent?: boolean;
   usdPrice?: number;
+  /** Firm valuation (counted). */
   usdValue?: number;
+  /** Thin valuation (shown, not counted). */
+  usdValueThin?: number;
+  priceTier?: "firm" | "thin";
+  liquidityUsd?: number;
   priceSource?: string;
 }
 
@@ -174,6 +179,9 @@ export interface AccountingReport {
      * Optional so reports written before this field remain readable.
      */
     unpricedCount?: number;
+    /** Thin-priced assets, shown but not in usdNotional. Absent on older records. */
+    thinUsd?: number;
+    thinCount?: number;
     nativeUsdPrice?: number;
   };
   reconciliation: {
@@ -234,9 +242,14 @@ export function buildReport(input: BuildReportInput): AccountingReport {
   // to have a pool -- and the reader has no way to tell the difference.
   let usdNotional = 0;
   let unpricedCount = 0;
+  let thinUsd = 0;
+  let thinCount = 0;
   for (const a of input.assets) {
-    if (a.usdValue === undefined) unpricedCount++;
-    else usdNotional += a.usdValue;
+    if (a.usdValue !== undefined) usdNotional += a.usdValue;
+    else if (a.usdValueThin !== undefined) {
+      thinUsd += a.usdValueThin;
+      thinCount++;
+    } else unpricedCount++;
   }
 
   // Anchor the record to the block, not the clock.
@@ -264,6 +277,7 @@ export function buildReport(input: BuildReportInput): AccountingReport {
       assetCount: input.assets.length,
       usdNotional,
       unpricedCount,
+      ...(thinCount ? { thinUsd, thinCount } : {}),
       nativeUsdPrice: input.nativeUsdPrice,
     },
     reconciliation: {
@@ -332,11 +346,14 @@ export function renderMarkdown(r: AccountingReport): string {
           ? "yes"
           : "**MISMATCH**";
     L.push(
-      `| ${a.symbol} | ${a.amount} | ${usd(a.usdValue)} | ${a.priceSource ?? "-"} | ${verified} |`,
+      `| ${a.symbol} | ${a.amount} | ${a.usdValueThin !== undefined ? `~${usd(a.usdValueThin)} thin` : usd(a.usdValue)} | ${a.priceSource ?? "-"} | ${verified} |`,
     );
   }
   L.push("");
   L.push(`**Notional:** ${usd(r.totals.usdNotional)}  `);
+  if (r.totals.thinCount) {
+    L.push(`**Thin, not counted:** ${usd(r.totals.thinUsd ?? 0)} across ${r.totals.thinCount} asset(s)  `);
+  }
   if (r.totals.unpricedCount) {
     L.push(
       `**Unpriced:** ${r.totals.unpricedCount} of ${r.totals.assetCount} asset(s) carried no ` +
@@ -345,9 +362,9 @@ export function renderMarkdown(r: AccountingReport): string {
   }
   L.push("");
   L.push(
-    "Priced from DefiLlama as of the execution block, so this figure does not move when " +
-      "the report is regenerated. There is no liquidity signal: nothing here says whether " +
-      "these assets could be sold at these prices.",
+    "Priced as of the execution block (DefiLlama historical; reviewed aliases; GeckoTerminal " +
+      "current price only when recorded within an hour of execution), so this figure does not " +
+      "move when the report is regenerated. Only firm prices are counted.",
   );
   L.push("");
 

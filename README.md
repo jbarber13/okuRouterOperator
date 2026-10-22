@@ -764,30 +764,51 @@ produces, so it can be fed straight to `safe:build --from-scan <path>`.
 
 ### Valuation
 
-Prices come from **DefiLlama** (`coins.llama.fi`), free and keyless. ERC-20s are
-priced by address on their own chain; quotes below 0.9 confidence or older than
-24h are rejected rather than used.
+Every price goes through `priceAssets` (util/feeScan.ts), which tries sources in
+order and tags each price with a **tier**:
 
-The native asset is priced through its wrapped form from
-`oku.pricing.nativeWrappedToken`, but only after confirming on chain that the
-wrapped token's symbol actually matches the native symbol. That check is not
-optional: chain-config's `token.wethAddress` on Polygon is bridged WETH while
-the native asset is POL, and conflating them once priced 9.6 POL at $26,447.
-`oracles.coingecko.native` is deliberately **not** used — chain-config records
-it as `"ethereum"` for celo, whose native asset is CELO, a 27,000x error.
+| order | source | firm when | thin when |
+|---|---|---|---|
+| 1 | reviewed alias in `data/fee-tokens.json` (`priceAs` per token, `nativePriceAs` per chain), priced via DefiLlama `coingecko:<id>` | always | — |
+| 2 | DefiLlama by address (`coins.llama.fi`) | confidence ≥ 0.9 | confidence 0.7–0.9 |
+| 3 | GeckoTerminal DEX price (CoinGecko on-chain API) | pool reserve ≥ $10k | reserve < $10k |
 
-Live coverage is around **88% of held assets**. Assets with no quote are
-reported `unpriced` and contribute `$0`, and every total states how many —
-because a `$0.00` that means "we could not value this" must not read as "there
-is nothing here".
+**Totals and `--min-usd` count firm prices only.** Thin prices are shown per
+asset (`~$x thin`) and as a separate figure; unpriced assets are counted and say
+why (`unpriced:no-market`, `:source-error`, `:no-source`). Measured on the
+2026-10-16 scan: 438 assets → **414 firm, 23 thin, 1 with no market** (was 388
+priced / 50 unpriced on DefiLlama alone).
 
-> **There is no liquidity signal.** Valuation used to derive prices from
-> Uniswap V3 pool reserves, which also yielded a pool depth and hence a
-> `realizable` figure capped by it. That is gone. Deriving prices from reserves
-> is what once produced a `$2.1e50` line item from a token quoted against $1.25
-> of liquidity, so losing it removes a real class of failure — but nothing now
-> distinguishes an asset that can be sold from one that merely quotes a price.
-> `--min-usd` gates on notional, so a chain can clear it on paper value.
+- **GeckoTerminal** covers all 34 chains, including the six DefiLlama has no slug
+  for. Set `COINGECKO_API_KEY` (a free CoinGecko *Demo* key) in `.env` for
+  30 req/min on `api.coingecko.com/api/v3/onchain`; without it the keyless
+  `api.geckoterminal.com` is used and rate-limits sooner. Requests batch 30
+  addresses, share one throttle process-wide, and back off on 429. Network ids
+  (`GECKO_NETWORK` in util/priceGecko.ts) were each verified against live data —
+  `sei-evm`, `hyperevm`, `bob-network`, `redbelly-network` are not guessable.
+- **The reserve is the liquidity signal.** It is what separates robinhood USDB at
+  $0.93 from a $1.7M pool from the same token at $0.0077 elsewhere. It is still
+  the pool's reserve, not a guarantee the amount can be sold.
+- **Aliases** are only for structural pegs (wrapped native, canonical wrappers
+  and bridged stables), are reviewed in the diff, and win over every market
+  source. Current: native assets of rootstock, goat, xdc, redbelly, filecoin,
+  nibiru, celo, saga, telos, gensyn (ETH); rootstock rUSDT → tether, goat BTCB →
+  binance-bitcoin, bob uniBTC → universal-btc.
+- **Native** without an alias is priced through `oku.pricing.nativeWrappedToken`,
+  only after confirming on chain that its symbol matches the native symbol
+  (chain-config's `token.wethAddress` on Polygon is bridged WETH, which once
+  priced 9.6 POL at $26,447). `oracles.coingecko.native` is not used — it says
+  `"ethereum"` for celo.
+- **Accounting** prices as of the execution block: DefiLlama historical and
+  aliases; GeckoTerminal has no history, so its current price is used only when
+  the record is written within an hour of execution (`gecko-current:` source,
+  which is always the case for `safe:exec`). Old records are never repriced.
+
+Check coverage at any time against the newest scan snapshot:
+
+```bash
+npx hardhat run scripts/checkPricing.ts            # SCAN=<file> NETWORKS=a,b optional
+```
 
 ### Accounting artifacts
 
@@ -799,6 +820,7 @@ fee-reports/
 ├── data/2026-09-15/worldchain-339173ed.json   machine-readable
 ├── reports/2026-09-15/worldchain.md           human-readable
 ├── reports/2026-09-15/SUMMARY.md              cross-chain roll-up for that date
+├── reports/2026-09-15/sweeps.csv              chainId,tokenAddress,amountSweeped (all chains)
 ├── ledger.json                                append-only index of every sweep
 ├── simulations/                               fork rehearsals (gitignored)
 └── scans/2026-09-22/17-05-49.{json,md}        pre-sweep snapshots (gitignored)
@@ -816,8 +838,10 @@ into the wrong bucket. The JSON filename carries a tx-hash prefix, so a second
 sweep of the same chain on the same day cannot overwrite the first — a record
 that can be clobbered is not a record.
 
-`ledger.json` and every `SUMMARY.md` are **derived** from `data/`; never edit
-them by hand. `fees:report --rebuild` reconstructs both.
+`ledger.json`, every `SUMMARY.md` and every `sweeps.csv` are **derived** from
+`data/`; never edit them by hand. `fees:report --rebuild` reconstructs them.
+In `sweeps.csv` the amount is in whole-token units (decimals applied) and the
+native asset is written as the zero address.
 
 Weekly cadence is a filter, not a directory convention — sweeps will not always
 land on schedule, and a week-named folder would then either lie or force a

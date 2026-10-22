@@ -90,7 +90,6 @@ import {
   type PricedFeeAsset,
 } from "../util/feeScan";
 import { _internal as universeInternal } from "../util/tokenUniverse";
-import { nativeUsdByCoingecko } from "../util/priceLlama";
 import {
   chooseSweepMode,
   loadFeeTokens,
@@ -142,7 +141,11 @@ interface SweepAssetSnapshot {
   decimals: number;
   amountRaw: string;
   amount: string;
+  /** Firm valuation (counted in totals). */
   usdValue?: number;
+  /** Thin valuation (shown, never counted). */
+  usdValueThin?: number;
+  priceSource?: string;
 }
 
 interface BundleCall {
@@ -212,6 +215,9 @@ interface BundleChain {
     usdNotional: number;
     /** Assets in this manifest carrying no USD value; they contribute $0. */
     unpricedCount: number;
+    /** Thin-priced assets: shown, not in usdNotional. */
+    thinUsd?: number;
+    thinCount?: number;
     /** Which token list went into the calldata, and why. Absent on pre-2026-10-17 bundles. */
     mode?: "full" | "nonzero";
     modeReason?: string;
@@ -514,6 +520,8 @@ async function callsForIntent(
             balance: BigInt(a.amountRaw),
             usdPrice: a.usdPrice,
             usdValue: a.usdValue,
+            usdValueThin: a.usdValueThin,
+            priceTier: a.priceTier,
             priceSource: a.priceSource,
           });
           assets = fromScan.filter((a) => a.token !== NATIVE_SENTINEL).map(toPriced);
@@ -590,7 +598,7 @@ async function callsForIntent(
           const { nativeUsd: px } = await priceAssets(provider, cfg, [
             { token: NATIVE_SENTINEL, symbol: cfg.nativeSymbol, decimals: 18, balance: 10n ** 18n },
           ]);
-          nativeUsd = px ?? (await nativeUsdByCoingecko(chain.chainId));
+          nativeUsd = px;
         }
       }
       let decision: ModeDecision = explicit?.length
@@ -647,6 +655,8 @@ async function callsForIntent(
         amountRaw: a.balance.toString(),
         amount: fmtAmount(a),
         usdValue: a.usdValue,
+        usdValueThin: a.usdValueThin,
+        priceSource: a.priceSource,
       }));
       if (sweepEth) {
         snapshot.push({
@@ -656,6 +666,8 @@ async function callsForIntent(
           amountRaw: nativeBalance.toString(),
           amount: formatUnits(nativeBalance, 18),
           usdValue: nativeValue?.usdValue,
+          usdValueThin: nativeValue?.usdValueThin,
+          priceSource: nativeValue?.priceSource,
         });
       }
       const totals = totalUsd(sweepEth && nativeValue ? [...assets, nativeValue] : assets);
@@ -666,6 +678,8 @@ async function callsForIntent(
         assets: snapshot,
         usdNotional: totals.notional,
         unpricedCount: totals.unpriced,
+        thinUsd: totals.thinUsd,
+        thinCount: totals.thinCount,
         mode: decision.mode,
         modeReason: decision.reason,
         extraUsd: decision.extraUsd,
@@ -1237,6 +1251,8 @@ task("safe:build", "Diff on-chain state and emit a per-chain SafeTx bundle")
       params.recipient = params.to;
       params.totalUsdNotional = chainsOut.reduce((s, c) => s + (c.sweep?.usdNotional ?? 0), 0);
       params.totalUnpriced = chainsOut.reduce((s, c) => s + (c.sweep?.unpricedCount ?? 0), 0);
+      params.totalThinUsd = chainsOut.reduce((s, c) => s + (c.sweep?.thinUsd ?? 0), 0);
+      params.totalThin = chainsOut.reduce((s, c) => s + (c.sweep?.thinCount ?? 0), 0);
     }
 
     const bundle: Bundle = {

@@ -236,6 +236,9 @@ export async function accountForSweepTx(opts: {
         if (!a) continue;
         a.usdPrice = p.usdPrice;
         a.usdValue = p.usdValue;
+        a.usdValueThin = p.usdValueThin;
+        a.priceTier = p.priceTier;
+        a.liquidityUsd = p.liquidityUsd;
         a.priceSource = p.priceSource;
       }
     } catch (e) {
@@ -285,6 +288,7 @@ export async function accountForSweepTx(opts: {
  *   fee-reports/data/<YYYY-MM-DD>/<network>-<txprefix>.json   machine-readable
  *   fee-reports/reports/<YYYY-MM-DD>/<network>.md             human-readable
  *   fee-reports/reports/<YYYY-MM-DD>/SUMMARY.md               cross-chain roll-up
+ *   fee-reports/reports/<YYYY-MM-DD>/sweeps.csv               chainId,tokenAddress,amountSweeped
  *   fee-reports/ledger.json                                   append-only index
  *   fee-reports/simulations/...                               fork rehearsals (gitignored)
  *
@@ -404,7 +408,8 @@ export function writeDateSummary(date: string): string | null {
   for (const r of reports) {
     L.push(
       `| [${r.network}](./${r.network}.md) | ${r.totals.assetCount} | ${usd(r.totals.usdNotional)} ` +
-        `| ${usd(r.totals.usdRealizable)} | ${usd(r.execution.gasCostUsd)} | \`${r.execution.txHash.slice(0, 12)}…\` |`,
+        `| ${usd(r.totals.usdRealizable)} | ${usd(r.execution.gasCostUsd)} | ` +
+        `${r.execution.txHash.split(",").map((h) => `\`${h.trim()}\``).join(", ")} |`,
     );
   }
   L.push("");
@@ -427,6 +432,36 @@ export function writeDateSummary(date: string): string | null {
 
   const file = path.join(REPORTS_DIR, "reports", date, "SUMMARY.md");
   writeAtomic(file, L.join("\n"));
+  writeDateCsv(date, reports);
+  return file;
+}
+
+/** Zero address stands in for the chain's native asset in the CSV. */
+const NATIVE_CSV_ADDRESS = "0x0000000000000000000000000000000000000000";
+
+/**
+ * Regenerate the cross-chain sweeps.csv for one sweep date: one row per
+ * swept asset, `chainId,tokenAddress,amountSweeped`.
+ *
+ * The amount is the authoritative (recipient-delta) amount in whole-token
+ * units, i.e. already divided by the token's decimals.
+ */
+export function writeDateCsv(date: string, reports?: AccountingReport[]): string | null {
+  const rs = (reports ?? readAllReports().filter((r) => r.date === date))
+    .slice()
+    .sort((a, b) => a.chainId - b.chainId || a.execution.txHash.localeCompare(b.execution.txHash));
+  if (rs.length === 0) return null;
+
+  const rows = ["chainId,tokenAddress,amountSweeped"];
+  for (const r of rs) {
+    for (const a of r.assets) {
+      const token = a.token === NATIVE_SENTINEL ? NATIVE_CSV_ADDRESS : a.token;
+      rows.push(`${r.chainId},${token},${a.amount}`);
+    }
+  }
+
+  const file = path.join(REPORTS_DIR, "reports", date, "sweeps.csv");
+  writeAtomic(file, `${rows.join("\n")}\n`);
   return file;
 }
 
@@ -435,7 +470,7 @@ task("fees:report", "Roll up fee collection across dates, weeks or chains")
   .addOptionalParam("until", "Inclusive end date, YYYY-MM-DD")
   .addOptionalParam("week", "ISO week, e.g. 2026-W38")
   .addOptionalParam("networkName", "Restrict to one chain")
-  .addFlag("rebuild", "Regenerate ledger.json and every SUMMARY.md from data/")
+  .addFlag("rebuild", "Regenerate ledger.json and every SUMMARY.md / sweeps.csv from data/")
   .setAction(async (args) => {
     let reports = readAllReports();
 
@@ -453,7 +488,7 @@ task("fees:report", "Roll up fee collection across dates, weeks or chains")
         days.add(r.date);
       }
       for (const d of days) writeDateSummary(d);
-      console.log(`Rebuilt ledger.json (${reports.length} record(s)) and ${days.size} SUMMARY.md file(s).`);
+      console.log(`Rebuilt ledger.json (${reports.length} record(s)) and ${days.size} SUMMARY.md + sweeps.csv file(s).`);
       return;
     }
 

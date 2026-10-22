@@ -161,6 +161,7 @@ async function vetChain(
         decimals: m?.decimals ?? prev?.decimals ?? null,
         source: [...srcs].sort().join(","),
         addedAt: prev?.addedAt ?? now,
+        ...(prev?.priceAs ? { priceAs: prev.priceAs } : {}),
       };
       if (!prev) res.added.push(t);
       return t;

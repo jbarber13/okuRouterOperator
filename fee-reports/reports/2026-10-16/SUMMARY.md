@@ -10,7 +10,7 @@
 
 | Chain | Assets | Notional | Realizable | Gas | Tx |
 |---|---:|---:|---:|---:|---|
-| [hyperevm](./hyperevm.md) | 14 | $4702.78 | — | $0.02 | `0x85f40e2f76…` |
+| [hyperevm](./hyperevm.md) | 14 | $4702.78 | — | $0.02 | `0x85f40e2f763d7a455a8be6679cafff0e899a9cd167a4bd66aa982217315fcd78` |
 
 ## Needs attention
 

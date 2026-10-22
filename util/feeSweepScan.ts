@@ -84,7 +84,7 @@ export async function scanChainForSnapshot(
       price: opts.price !== false,
     });
 
-    const { notional, unpriced } = totalUsd(res.assets);
+    const { notional, unpriced, thinUsd, thinCount } = totalUsd(res.assets);
 
     return {
       ...base,
@@ -102,6 +102,8 @@ export async function scanChainForSnapshot(
         assetCount: res.assets.length,
         usdNotional: notional,
         unpricedCount: unpriced,
+        thinUsd,
+        thinCount,
       },
     };
   } catch (e) {

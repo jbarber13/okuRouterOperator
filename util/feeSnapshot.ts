@@ -46,7 +46,12 @@ export interface SnapshotAsset {
   amountRaw: string;
   amount: string;
   usdPrice?: number;
+  /** Firm valuation (counted). */
   usdValue?: number;
+  /** Thin valuation (shown, not counted). */
+  usdValueThin?: number;
+  priceTier?: "firm" | "thin";
+  liquidityUsd?: number;
   priceSource?: string;
 }
 
@@ -88,6 +93,9 @@ export interface SnapshotChain {
      * 2026-09-30 eleven chains printed the former while meaning the latter.
      */
     unpricedCount: number;
+    /** Thin-priced assets: shown, not counted in usdNotional. Absent on older snapshots. */
+    thinUsd?: number;
+    thinCount?: number;
   };
 }
 
@@ -107,6 +115,8 @@ export interface FeeScanSnapshot {
     usdNotional: number;
     /** Assets across all chains with no USD value. See SnapshotChain.totals. */
     unpricedCount: number;
+    thinUsd?: number;
+    thinCount?: number;
   };
 }
 
@@ -120,6 +130,9 @@ export function toSnapshotAsset(a: PricedFeeAsset): SnapshotAsset {
     amount: fmtAmount(a),
     usdPrice: a.usdPrice,
     usdValue: a.usdValue,
+    usdValueThin: a.usdValueThin,
+    priceTier: a.priceTier,
+    liquidityUsd: a.liquidityUsd,
     priceSource: a.priceSource,
   };
 }
@@ -129,9 +142,13 @@ export function buildSnapshot(chains: SnapshotChain[]): FeeScanSnapshot {
   const now = new Date();
   let usdNotional = 0;
   let unpricedCount = 0;
+  let thinUsd = 0;
+  let thinCount = 0;
   for (const c of chains) {
     usdNotional += c.totals.usdNotional;
     unpricedCount += c.totals.unpricedCount ?? 0;
+    thinUsd += c.totals.thinUsd ?? 0;
+    thinCount += c.totals.thinCount ?? 0;
   }
   return {
     kind: "oku-fee-scan",
@@ -146,6 +163,8 @@ export function buildSnapshot(chains: SnapshotChain[]): FeeScanSnapshot {
       chainsErrored: chains.filter((c) => c.status === "error").length,
       usdNotional,
       unpricedCount,
+      thinUsd,
+      thinCount,
     },
   };
 }
@@ -222,18 +241,17 @@ export function renderSnapshotMarkdown(snap: FeeScanSnapshot): string {
   L.push(`| With fees | ${snap.totals.chainsWithFees} |`);
   L.push(`| Empty | ${snap.totals.chainsEmpty} |`);
   L.push(`| Errored | ${snap.totals.chainsErrored} |`);
-  L.push(`| Total notional | ${usd(snap.totals.usdNotional)} |`);
+  L.push(`| Total notional (firm prices) | ${usd(snap.totals.usdNotional)} |`);
+  L.push(`| Thin prices, not counted | ${usd(snap.totals.thinUsd ?? 0)} across ${snap.totals.thinCount ?? 0} asset(s) |`);
   L.push(`| Assets with no price | ${snap.totals.unpricedCount ?? 0} |`);
   L.push("");
-  L.push("Notional is price x balance, priced from DefiLlama.");
-  L.push("");
   L.push(
-    "There is **no liquidity signal here**. Valuation no longer reads on-chain pools, so",
+    "Notional is price x balance. Sources in order: reviewed alias, DefiLlama (confidence",
   );
   L.push(
-    "nothing below distinguishes an asset that can be sold from one that merely quotes a",
+    ">= 0.9), GeckoTerminal DEX price with >= $10k pool reserve. Thin = DefiLlama confidence",
   );
-  L.push("price. Treat every figure as an upper bound on what is actually recoverable.");
+  L.push("0.7-0.9 or a DEX pool under $10k: shown per asset, never summed into a total.");
   L.push("");
   if ((snap.totals.unpricedCount ?? 0) > 0) {
     L.push(
@@ -318,7 +336,7 @@ export function renderSnapshotMarkdown(snap: FeeScanSnapshot): string {
     L.push("|---|---:|---:|---|---|");
     for (const a of c.assets) {
       L.push(
-        `| ${a.symbol} | ${a.amount} | ${usd(a.usdValue)} | ${a.priceSource ?? "—"} | ` +
+        `| ${a.symbol} | ${a.amount} | ${a.usdValueThin !== undefined ? `~${usd(a.usdValueThin)} thin` : usd(a.usdValue)} | ${a.priceSource ?? "—"} | ` +
           `${a.token === NATIVE_SENTINEL ? "(native)" : `\`${a.token}\``} |`,
       );
     }

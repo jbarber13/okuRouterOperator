@@ -11,6 +11,6 @@
 
 | Chain | Assets | Notional | Realizable | Gas | Tx |
 |---|---:|---:|---:|---:|---|
-| [worldchain](./worldchain.md) | 33 | $549.23 | $425.51 | $0.00 | `0x339173ed95…` |
+| [worldchain](./worldchain.md) | 33 | $549.23 | $425.51 | $0.00 | `0x339173ed9518534c96dc438a64bd055ea998c91ad8103acb2d96f946d500e54e` |
 
 Realizable caps each asset at a fraction of its pool depth; notional does not. Use realizable.

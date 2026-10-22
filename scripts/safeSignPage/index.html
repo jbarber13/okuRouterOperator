@@ -297,26 +297,27 @@ function renderSweepPanel() {
   // capping. That distinction matters elsewhere (deciding whether a chain is
   // worth sweeping), but here it is just an estimate of scale for the signer,
   // and the extra caveat would only add noise.
-  var totalAssets = 0, grandTotal = 0, anyPriced = false, unpriced = 0;
+  // Firm prices only in the totals. Thin prices (low-liquidity pool or
+  // low-confidence aggregate) are shown per asset and as a separate figure,
+  // never summed in; unpriced assets are counted so "$X" never silently means
+  // "$X of what we could value".
+  var totalAssets = 0, grandTotal = 0, anyPriced = false, unpriced = 0, thinTotal = 0, thinN = 0;
   chains.forEach(function (c) {
     var assets = c.sweep.assets || [];
     totalAssets += assets.length;
     assets.forEach(function (a) {
       if (typeof a.usdValue === "number") { grandTotal += a.usdValue; anyPriced = true; }
+      else if (typeof a.usdValueThin === "number") { thinTotal += a.usdValueThin; thinN++; }
       else { unpriced++; }
     });
   });
 
   el("sweepSummary").textContent =
     totalAssets + " asset(s) across " + chains.length + " chain(s)" +
+    (thinN ? "  (" + thinN + " thin-priced, " + fmtUsd(thinTotal) + " not counted)" : "") +
     (unpriced ? "  (" + unpriced + " with no price)" : "");
-  // An unpriced asset contributes nothing to this total, so the total is a
-  // lower bound whenever there are any. Saying so here matters more than it
-  // does in the reports: this is the number a signer looks at immediately
-  // before authorizing an irreversible transfer, and "$4.21" reads very
-  // differently from "at least $4.21, 62 assets not valued".
   el("sweepGrandTotal").textContent = anyPriced
-    ? fmtUsd(grandTotal) + (unpriced ? " or more" : "")
+    ? fmtUsd(grandTotal) + (unpriced || thinN ? " or more" : "")
     : "— (no priced assets)";
 
   // More than one recipient in a single bundle is not a normal sweep; make it
@@ -348,7 +349,10 @@ function renderSweepPanel() {
     assets.forEach(function (a) {
       html += "<tr><td>" + esc(a.symbol) + "</td>" +
               '<td class="num mono">' + esc(a.amount) + "</td>" +
-              '<td class="num">' + fmtUsd(a.usdValue) + "</td>" +
+              '<td class="num"' + (a.priceSource ? ' title="' + esc(a.priceSource) + '"' : "") + ">" +
+                (typeof a.usdValueThin === "number"
+                  ? '<span class="dim">~' + fmtUsd(a.usdValueThin) + " thin</span>"
+                  : fmtUsd(a.usdValue)) + "</td>" +
               '<td class="mono dim">' +
                 (a.token === "native" ? "(native)" : esc(a.token)) + "</td></tr>";
     });

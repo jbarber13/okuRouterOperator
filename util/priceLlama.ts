@@ -1,31 +1,15 @@
 /**
  * priceLlama.ts
  *
- * USD prices from DefiLlama's free coins API, used ONLY as a fallback for
- * assets the on-chain Uniswap V3 path could not value.
+ * USD prices from DefiLlama's free coins API: the first market source in
+ * feeScan.ts priceAssets (after reviewed aliases, before GeckoTerminal).
  *
- * WHY A SECOND SOURCE AT ALL
+ * `confidence` is DefiLlama's 0..1 score. >= MIN_CONFIDENCE (0.9) is a firm
+ * price; priceAssets also asks for quotes down to 0.7 and keeps them as THIN
+ * (shown, never summed). Stale quotes (> 24h) are rejected outright.
  *
- * The V3 path is the better source where it works: it needs no key, cannot
- * disagree with the chain, and reports pool DEPTH, which is what makes a
- * price actionable rather than merely printable. But it can only price what
- * has a V3 pool, and most of what a router accrues does not. Measured on the
- * 2026-09-30 scan: 173 of 335 assets (51.6%) had no price at all, and eleven
- * chains reported exactly "$0.00" while holding assets. DefiLlama prices 137
- * of the 166 unpriced ERC20s (82.5%).
- *
- * WHAT IT IS NOT ALLOWED TO DO
- *
- * It must not inflate `realizableUsd`. A Llama price says what a token is
- * worth somewhere; it says nothing about whether this chain has the liquidity
- * to exit into. Depth remains a purely on-chain measurement, so an asset
- * priced only from here reports a notional and NO realizable figure. That
- * keeps `--min-usd` honest and preserves the module's founding rule that a
- * fabricated number is worse than an absent one.
- *
- * The other guard is `confidence`. DefiLlama returns a 0..1 score per coin;
- * low-confidence entries are frequently stale or derived from a single thin
- * venue, which is the same failure the V3 dust-pool floor exists to reject.
+ * fetchLlamaByKeys prices `coingecko:<id>` keys for the reviewed aliases in
+ * data/fee-tokens.json.
  */
 import { withRetry } from "./rpcRetry";
 import { toChecksum } from "./address";
@@ -256,39 +240,47 @@ export async function fetchLlamaPrices(
   return { prices, rejected, requests, warnings };
 }
 
-/**
- * Native-asset CoinGecko ids, by chainId, for chains where the wrapped-native
- * route cannot price the gas token (no DefiLlama slug, or no
- * `oku.pricing.nativeWrappedToken`). Used ONLY to estimate sweep gas cost in
- * USD -- never to value fees.
- *
- * Hand-verified against coins.llama.fi on 2026-10-16. Deliberately NOT read
- * from chain-config's `oracles.coingecko.native`, which records "ethereum"
- * for celo (see feeScan.ts nativeWrappedToken).
- */
-export const NATIVE_COINGECKO_ID: Record<number, string> = {
-  30: "bitcoin", // rootstock RBTC tracks BTC
-  50: "xdce-crowd-sale",
-  151: "redbelly-network-token",
-  314: "filecoin",
-  2345: "bitcoin", // goat BTC
-  6900: "nibiru",
-  42220: "celo",
-  5464: "saga-2",
-  40: "telos",
-};
+/** A reviewed price alias: "coingecko:<id>". */
+export const ALIAS_RE = /^coingecko:[a-z0-9][a-z0-9-]*$/;
 
-/** Current USD price of a chain's native asset by CoinGecko id, or null. */
-export async function nativeUsdByCoingecko(chainId: number): Promise<number | null> {
-  const id = NATIVE_COINGECKO_ID[chainId];
-  if (!id) return null;
+/**
+ * Price DefiLlama coin keys directly, e.g. "coingecko:bitcoin". Used for the
+ * reviewed aliases in data/fee-tokens.json (`priceAs`, `nativePriceAs`):
+ * wrapped-native and pegged tokens whose own address has no market.
+ *
+ * `at` uses the historical endpoint (accounting). Same confidence/staleness
+ * guards as fetchLlamaPrices. Never throws.
+ */
+export async function fetchLlamaByKeys(
+  keys: Iterable<string>,
+  opts: { at?: number; minConfidence?: number; maxAgeSec?: number; now?: number; fetchFn?: typeof fetch } = {},
+): Promise<{ prices: Map<string, LlamaPrice>; warnings: string[] }> {
+  const prices = new Map<string, LlamaPrice>();
+  const warnings: string[] = [];
+  const list = [...new Set([...keys].filter((k) => ALIAS_RE.test(k)))];
+  if (!list.length) return { prices, warnings };
+  const historical = opts.at !== undefined;
+  const refSec = historical ? opts.at! : Math.floor((opts.now ?? Date.now()) / 1000);
+  const url = historical
+    ? `${COINS_HISTORICAL}/${opts.at}/${list.join(",")}`
+    : `${COINS_CURRENT}/${list.join(",")}`;
   try {
-    const res = await fetch(`${COINS_CURRENT}/coingecko:${id}`, { signal: AbortSignal.timeout(15_000) });
-    if (!res.ok) return null;
-    const body = (await res.json()) as { coins?: Record<string, { price?: number; confidence?: number }> };
-    const q = body.coins?.[`coingecko:${id}`];
-    return q?.price && q.price > 0 && (q.confidence ?? 1) >= MIN_CONFIDENCE ? q.price : null;
-  } catch {
-    return null;
+    const res = await (opts.fetchFn ?? fetch)(url, { signal: AbortSignal.timeout(30_000) });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const body = (await res.json()) as { coins?: Record<string, Partial<LlamaPrice>> };
+    for (const k of list) {
+      const v = body.coins?.[k];
+      const price = Number(v?.price);
+      const confidence = historical ? 1 : Number(v?.confidence ?? 0);
+      const timestamp = Number(v?.timestamp ?? 0);
+      if (!Number.isFinite(price) || price <= 0) continue;
+      if (confidence < (opts.minConfidence ?? MIN_CONFIDENCE)) continue;
+      if (!timestamp || Math.abs(refSec - timestamp) > (opts.maxAgeSec ?? MAX_PRICE_AGE_SEC)) continue;
+      prices.set(k, { price, confidence, timestamp, ...(historical ? { historical: true } : {}) });
+    }
+    for (const k of list) if (!prices.has(k)) warnings.push(`price alias ${k}: no acceptable DefiLlama quote`);
+  } catch (e) {
+    warnings.push(`price aliases: DefiLlama request failed (${String((e as Error).message ?? e).slice(0, 80)})`);
   }
+  return { prices, warnings };
 }

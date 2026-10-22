@@ -202,6 +202,9 @@ check("flags a bundle that sweeps to more than one recipient",
 // per-chain figures themselves to know the scale of what they are signing.
 check("shows a cross-chain USD total at the top of the sweep panel",
   /id="sweepGrandTotal"/.test(htmlBare) && /sweepGrandTotal/.test(codeBare));
+check("thin prices are shown but never summed into the grand total",
+  /typeof a\.usdValue === "number"\) \{ grandTotal \+= a\.usdValue/.test(codeBare) &&
+  /thinTotal \+= a\.usdValueThin/.test(codeBare) && !/grandTotal \+= a\.usdValueThin/.test(codeBare));
 check("shows a per-chain USD subtotal in the itemized report",
   /chainTotal/.test(codeBare) && /class="chainTotal"/.test(codeBare));
 // HTML-escape everything interpolated from the bundle. The manifest carries

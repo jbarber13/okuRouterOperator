@@ -46,7 +46,9 @@ import type { JsonRpcProvider } from "ethers";
 import { Interface, formatUnits } from "ethers";
 import type { NetworkConfig } from "./deploymentConfig";
 import { toChecksum } from "./address";
-import { fetchLlamaPrices, llamaSlug } from "./priceLlama";
+import { fetchLlamaByKeys, fetchLlamaPrices, llamaSlug, MIN_CONFIDENCE } from "./priceLlama";
+import { fetchGeckoPrices, FIRM_MIN_LIQUIDITY_USD } from "./priceGecko";
+import { loadFeeTokens, priceAliasesFor, type FeeTokensFile } from "./feeTokens";
 import {
   multicallAddressFor,
   probeBalances,
@@ -78,12 +80,39 @@ export interface FeeAsset {
   balance: bigint;
 }
 
+/**
+ * firm: counted in totals and --min-usd.
+ * thin: a real quote from a low-liquidity pool or a low-confidence aggregate;
+ *       shown, never summed into a total.
+ */
+export type PriceTier = "firm" | "thin";
+
 export interface PricedFeeAsset extends FeeAsset {
   usdPrice?: number;
+  /** FIRM valuations only. Anything summing this gets firm-only totals for free. */
   usdValue?: number;
-  /** e.g. "llama:0.99", "llama-historical", or "unpriced:no-source". */
+  /** THIN valuations only: shown beside totals, never inside them. */
+  usdValueThin?: number;
+  priceTier?: PriceTier;
+  /** Pool reserve behind a DEX price, when the source reports one. */
+  liquidityUsd?: number;
+  /**
+   * e.g. "llama:0.99", "llama-historical@<ts>", "alias:coingecko:celo",
+   * "gecko:$1.2M", or "unpriced:no-market" / "unpriced:no-source" /
+   * "unpriced:source-error".
+   */
   priceSource?: string;
 }
+
+/** Lowest DefiLlama confidence kept at all (as thin). Below MIN_CONFIDENCE is thin. */
+export const THIN_MIN_CONFIDENCE = 0.7;
+
+/**
+ * GeckoTerminal has no simple historical price, so for a past `at` its CURRENT
+ * price is only used when `at` is this recent -- which covers safe:exec, whose
+ * accounting runs seconds after the transaction.
+ */
+export const GECKO_CURRENT_FOR_PAST_SEC = 3_600;
 
 export interface FeeScanResult {
   router: string;
@@ -200,16 +229,38 @@ function nativeWrappedToken(cfg: NetworkConfig): string | undefined {
   return toChecksum(pricing?.nativeWrappedToken);
 }
 
+interface Quote {
+  price: number;
+  tier: PriceTier;
+  source: string;
+  liquidityUsd?: number;
+}
+
+function fmtLiq(n: number): string {
+  return n >= 1e6 ? `$${(n / 1e6).toFixed(1)}M` : n >= 1e3 ? `$${(n / 1e3).toFixed(0)}k` : `$${n.toFixed(0)}`;
+}
+
 /**
- * Attach USD valuations from DefiLlama.
+ * Attach USD valuations, trying sources in order and tagging each price with
+ * a tier (see PriceTier):
  *
- * ERC20s are priced by address on their own chain. The native asset is priced
- * through its WRAPPED form, but only after confirming on chain that the
- * wrapped token really is the wrapped native -- see nativeWrappedToken above
- * for why that check is not optional.
+ *   1. reviewed alias (`priceAs` / `nativePriceAs` in data/fee-tokens.json),
+ *      priced through DefiLlama's coingecko: keys -- firm
+ *   2. DefiLlama by address: confidence >= 0.9 firm; 0.7-0.9 kept as a thin
+ *      fallback
+ *   3. GeckoTerminal DEX price: pool reserve >= $10k firm, else thin
+ *      (a thin DefiLlama quote is preferred over a thin DEX quote)
  *
- * Assets with no quote are left unpriced rather than assigned zero, so
- * "unknown" stays distinguishable from "worthless".
+ * The native asset is priced through its alias, else its WRAPPED form -- and
+ * only after confirming on chain that the wrapped token really is the wrapped
+ * native (see nativeWrappedToken for why that check is not optional).
+ *
+ * `opts.at` prices as of a past moment (accounting): DefiLlama's historical
+ * endpoint for 1 and 2; GeckoTerminal only if `at` is within the last hour.
+ *
+ * Unpriced assets say why: no-market (sources answered, nobody quotes it),
+ * source-error (a source could not be asked), no-source (no source covers the
+ * chain).
  */
 export async function priceAssets(
   provider: JsonRpcProvider,
@@ -218,77 +269,158 @@ export async function priceAssets(
   opts: {
     /** Unix seconds; price as of a past moment instead of now. */
     at?: number;
+    /** Curated list for aliases; loaded from data/fee-tokens.json when omitted. */
+    feeTokens?: FeeTokensFile | null;
+    fetchGecko?: typeof fetchGeckoPrices;
   } = {},
 ): Promise<{ priced: PricedFeeAsset[]; nativeUsd: number | null; warnings: string[] }> {
   const warnings: string[] = [];
   const priced: PricedFeeAsset[] = assets.map((a) => ({ ...a }));
+  if (priced.length === 0) return { priced, nativeUsd: null, warnings };
 
-  if (!llamaSlug(cfg.networkName)) {
-    warnings.push(
-      `${cfg.networkName}: no DefiLlama coverage for this chain; all assets are unpriced`,
-    );
-    for (const a of priced) a.priceSource = "unpriced:no-source";
-    return { priced, nativeUsd: null, warnings };
+  let ft: FeeTokensFile | undefined;
+  if (opts.feeTokens !== null) {
+    try {
+      ft = opts.feeTokens ?? loadFeeTokens();
+    } catch {
+      ft = undefined; // no curated list: aliases simply do not apply
+    }
   }
+  const aliases = priceAliasesFor(ft, cfg.chainId);
 
-  const wants = new Set<string>();
-  for (const a of priced) {
-    if (a.token !== NATIVE_SENTINEL) wants.add(a.token);
-  }
-
-  // ---- native asset: resolve its wrapped form, and verify it ----
+  // Key each asset by what we will look up: its own address, or for native,
+  // the verified wrapped token.
   const hasNative = priced.some((a) => a.token === NATIVE_SENTINEL);
   let wrapped: string | undefined;
-  if (hasNative) {
+  if (hasNative && !aliases.native) {
     wrapped = nativeWrappedToken(cfg);
-    if (!wrapped) {
-      warnings.push(
-        `${cfg.networkName}: no oku.pricing.nativeWrappedToken in chain-config, so the ` +
-          `native balance is left unpriced rather than guessed.`,
-      );
-    } else if (!(await symbolMatchesNative(provider, wrapped, cfg.nativeSymbol))) {
+    if (wrapped && !(await symbolMatchesNative(provider, wrapped, cfg.nativeSymbol))) {
       warnings.push(
         `${cfg.networkName}: ${wrapped} does not report a symbol matching ` +
-          `${cfg.nativeSymbol}, so it is not treated as the wrapped native asset and the ` +
-          `native balance is left unpriced.`,
+          `${cfg.nativeSymbol}, so it is not treated as the wrapped native asset.`,
       );
       wrapped = undefined;
-    } else {
-      wants.add(wrapped);
+    }
+    if (!wrapped) {
+      warnings.push(
+        `${cfg.networkName}: no verified wrapped native and no nativePriceAs alias; ` +
+          `the native balance cannot be priced.`,
+      );
+    }
+  }
+  const lookupOf = (a: PricedFeeAsset): string | undefined =>
+    a.token === NATIVE_SENTINEL ? wrapped : toChecksum(a.token) ?? a.token;
+  const aliasOf = (a: PricedFeeAsset): string | undefined =>
+    a.token === NATIVE_SENTINEL ? aliases.native : aliases.tokens.get(toChecksum(a.token) ?? a.token);
+
+  const firm = new Map<PricedFeeAsset, Quote>();
+  const thin = new Map<PricedFeeAsset, Quote>();
+  const errored = new Set<PricedFeeAsset>();
+  const noMarket = new Set<PricedFeeAsset>();
+
+  // ---- 1. aliases ----
+  const aliasKeys = new Set(priced.map(aliasOf).filter((k): k is string => !!k));
+  if (aliasKeys.size) {
+    const r = await fetchLlamaByKeys(aliasKeys, { at: opts.at });
+    warnings.push(...r.warnings);
+    for (const a of priced) {
+      const k = aliasOf(a);
+      const q = k ? r.prices.get(k) : undefined;
+      if (q) firm.set(a, { price: q.price, tier: "firm", source: `alias:${k}${q.historical ? `@${q.timestamp}` : ""}` });
     }
   }
 
-  if (wants.size === 0) return { priced, nativeUsd: null, warnings };
-
-  const res = await fetchLlamaPrices(cfg.networkName, wants, { at: opts.at });
-  warnings.push(...res.warnings);
-
-  const nativeQuote = wrapped ? res.prices.get(wrapped) : undefined;
-  const nativeUsd = nativeQuote ? nativeQuote.price : null;
-
-  let unpriced = 0;
-  for (const a of priced) {
-    const quote =
-      a.token === NATIVE_SENTINEL ? nativeQuote : res.prices.get(toChecksum(a.token) ?? a.token);
-    if (!quote) {
-      a.priceSource = "unpriced:no-source";
-      unpriced++;
-      continue;
+  // ---- 2. DefiLlama by address ----
+  const needLlama = priced.filter((a) => !firm.has(a) && lookupOf(a));
+  const slug = llamaSlug(cfg.networkName);
+  if (needLlama.length && slug) {
+    const res = await fetchLlamaPrices(cfg.networkName, needLlama.map((a) => lookupOf(a)!), {
+      at: opts.at,
+      minConfidence: THIN_MIN_CONFIDENCE,
+    });
+    warnings.push(...res.warnings.filter((w) => !/rejected as low-confidence/.test(w)));
+    if (res.warnings.some((w) => /request failed/.test(w))) for (const a of needLlama) errored.add(a);
+    for (const a of needLlama) {
+      const q = res.prices.get(lookupOf(a)!);
+      if (!q) continue;
+      const source = q.historical ? `llama-historical@${q.timestamp}` : `llama:${q.confidence.toFixed(2)}`;
+      if (q.confidence >= MIN_CONFIDENCE) {
+        firm.set(a, { price: q.price, tier: "firm", source });
+        errored.delete(a);
+      } else {
+        thin.set(a, { price: q.price, tier: "thin", source });
+      }
     }
-    a.usdPrice = quote.price;
-    a.usdValue = Number(formatUnits(a.balance, a.decimals)) * quote.price;
-    a.priceSource = quote.historical
-      ? `llama-historical@${quote.timestamp}`
-      : `llama:${quote.confidence.toFixed(2)}`;
   }
 
-  if (unpriced > 0) {
+  // ---- 3. GeckoTerminal ----
+  const nowSec = Math.floor(Date.now() / 1000);
+  const geckoOk = opts.at === undefined || nowSec - opts.at <= GECKO_CURRENT_FOR_PAST_SEC;
+  const needGecko = priced.filter((a) => !firm.has(a) && lookupOf(a));
+  if (needGecko.length && geckoOk) {
+    const g = await (opts.fetchGecko ?? fetchGeckoPrices)(cfg.networkName, needGecko.map((a) => lookupOf(a)!));
+    warnings.push(...g.warnings);
+    for (const a of needGecko) {
+      const key = toChecksum(lookupOf(a)!)!;
+      const q = g.prices.get(key);
+      if (q) {
+        errored.delete(a);
+        const src = `gecko${opts.at !== undefined ? "-current" : ""}:${fmtLiq(q.reserveUsd)}`;
+        if (q.reserveUsd >= FIRM_MIN_LIQUIDITY_USD) {
+          firm.set(a, { price: q.price, tier: "firm", source: src, liquidityUsd: q.reserveUsd });
+          thin.delete(a);
+        } else if (!thin.has(a)) {
+          thin.set(a, { price: q.price, tier: "thin", source: src, liquidityUsd: q.reserveUsd });
+        }
+      } else if (g.failed.has(key)) {
+        errored.add(a);
+      } else if (g.noMarket.has(key)) {
+        noMarket.add(a);
+      }
+    }
+  } else if (needGecko.length && !geckoOk) {
     warnings.push(
-      `${cfg.networkName}: ${unpriced} asset(s) have no DefiLlama quote and are reported ` +
-        `unpriced, contributing $0 to the totals.`,
+      `${cfg.networkName}: ${needGecko.length} asset(s) without a historical DefiLlama price; ` +
+        `GeckoTerminal has no historical prices, so they stay unpriced in this record`,
     );
   }
 
+  // ---- assign ----
+  let nativeUsd: number | null = null;
+  let thinCount = 0;
+  let unpricedCount = 0;
+  for (const a of priced) {
+    const q = firm.get(a) ?? thin.get(a);
+    if (!q) {
+      a.priceSource = !lookupOf(a)
+        ? "unpriced:no-source"
+        : errored.has(a)
+          ? "unpriced:source-error"
+          : noMarket.has(a)
+            ? "unpriced:no-market"
+            : "unpriced:no-source";
+      unpricedCount++;
+      continue;
+    }
+    const value = Number(formatUnits(a.balance, a.decimals)) * q.price;
+    a.usdPrice = q.price;
+    a.priceTier = q.tier;
+    a.priceSource = q.source;
+    if (q.liquidityUsd !== undefined) a.liquidityUsd = q.liquidityUsd;
+    if (q.tier === "firm") a.usdValue = value;
+    else {
+      a.usdValueThin = value;
+      thinCount++;
+    }
+    if (a.token === NATIVE_SENTINEL) nativeUsd = q.price;
+  }
+
+  if (thinCount || unpricedCount) {
+    warnings.push(
+      `${cfg.networkName}: ${thinCount} thin price(s) shown but not counted, ` +
+        `${unpricedCount} asset(s) unpriced`,
+    );
+  }
   return { priced, nativeUsd, warnings };
 }
 
@@ -395,7 +527,10 @@ export async function scanChainFees(
     at: opts.at,
   });
   warnings.push(...priceWarnings);
-  priced.sort((a, b) => (b.usdValue ?? -1) - (a.usdValue ?? -1));
+  priced.sort(
+    (a, b) =>
+      (b.usdValue ?? -1) - (a.usdValue ?? -1) || (b.usdValueThin ?? -1) - (a.usdValueThin ?? -1),
+  );
 
   return {
     router,
@@ -418,14 +553,21 @@ export async function scanChainFees(
  * "we do not know". Anything rendering these figures must be able to say how
  * many assets are behind them.
  */
-export function totalUsd(assets: PricedFeeAsset[]): { notional: number; unpriced: number } {
+export function totalUsd(
+  assets: Pick<PricedFeeAsset, "usdValue" | "usdValueThin">[],
+): { notional: number; unpriced: number; thinUsd: number; thinCount: number } {
   let notional = 0;
   let unpriced = 0;
+  let thinUsd = 0;
+  let thinCount = 0;
   for (const a of assets) {
-    if (a.usdValue === undefined) unpriced++;
-    else notional += a.usdValue;
+    if (a.usdValue !== undefined) notional += a.usdValue;
+    else if (a.usdValueThin !== undefined) {
+      thinUsd += a.usdValueThin;
+      thinCount++;
+    } else unpriced++;
   }
-  return { notional, unpriced };
+  return { notional, unpriced, thinUsd, thinCount };
 }
 
 /** Human-readable amount, for tables and the accounting markdown. */

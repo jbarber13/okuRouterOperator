@@ -124,7 +124,7 @@ task("fees:cycle", "Scan every chain for idle fees, build the sweep bundle, emit
       console.log("Nothing on any chain.");
     } else {
       console.log(
-        `  ${pad("chain", 14)}${pad("assets", 8)}${pad("unpriced", 10)}${pad("notional", 13)}` +
+        `  ${pad("chain", 14)}${pad("assets", 8)}${pad("unpriced", 10)}${pad("notional", 13)}${pad("thin", 11)}` +
           `${pad("candidates", 12)}unchecked`,
       );
       for (const c of sweepable) {
@@ -133,17 +133,21 @@ task("fees:cycle", "Scan every chain for idle fees, build the sweep bundle, emit
           `  ${pad(c.network, 14)}${pad(String(c.totals.assetCount), 8)}` +
             `${pad(String(c.totals.unpricedCount || "-"), 10)}` +
             `${pad(usd(c.totals.usdNotional), 13)}` +
+            `${pad(c.totals.thinCount ? usd(c.totals.thinUsd ?? 0) : "-", 11)}` +
             `${pad(String(c.probe?.candidates ?? "-"), 12)}${un ? `${un}  <-- NOT CHECKED` : "-"}`,
         );
       }
     }
     console.log("-".repeat(96));
     console.log(
-      `  TOTAL  notional ${usd(snap.totals.usdNotional)}   across ${sweepable.length} chain(s)`,
+      `  TOTAL  notional ${usd(snap.totals.usdNotional)}` +
+        `${snap.totals.thinCount ? `  + ${usd(snap.totals.thinUsd ?? 0)} thin (${snap.totals.thinCount}, not counted)` : ""}` +
+        `${snap.totals.unpricedCount ? `  ${snap.totals.unpricedCount} with no price` : ""}` +
+        `   across ${sweepable.length} chain(s)`,
     );
     console.log(
-      "  Priced from DefiLlama. There is NO liquidity signal: nothing here says whether\n" +
-        "  an asset can actually be sold, and unpriced assets contribute $0.",
+      "  Firm prices only in totals: reviewed alias, DefiLlama >= 0.9 confidence, or a DEX\n" +
+        "  pool with >= $10k reserve. Thin and unpriced assets contribute $0.",
     );
 
     // Chains that could not be read are NOT chains with nothing to collect.

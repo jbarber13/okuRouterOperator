@@ -91,9 +91,9 @@ task("fees:scan", "Report idle protocol fees held by each OkuRouter")
         continue;
       }
 
-      const unp = r.totals.unpricedCount
-        ? `  (${r.totals.unpricedCount} unpriced)`
-        : "";
+      const unp =
+        (r.totals.thinCount ? `  + $${(r.totals.thinUsd ?? 0).toFixed(2)} thin (${r.totals.thinCount})` : "") +
+        (r.totals.unpricedCount ? `  (${r.totals.unpricedCount} unpriced)` : "");
       console.log(
         `=== ${r.network} (${r.chainId})  router ${r.router}  ` +
           `${r.totals.assetCount} asset(s)  notional ${usd(r.totals.usdNotional)}${unp}`,
@@ -108,13 +108,13 @@ task("fees:scan", "Report idle protocol fees held by each OkuRouter")
       }
       if (r.assets.length) {
         console.log(
-          `    ${pad("symbol", 12)}${pad("amount", 26)}${pad("usd", 12)}price source`,
+          `    ${pad("symbol", 12)}${pad("amount", 26)}${pad("usd", 12)}${pad("price source", 32)}token`,
         );
       }
       for (const a of r.assets) {
         console.log(
           `    ${pad(a.symbol.slice(0, 11), 12)}${pad(a.amount, 26)}` +
-            `${pad(usd(a.usdValue), 12)}${pad(a.priceSource ?? "-", 22)}` +
+            `${pad(a.usdValueThin !== undefined ? `~${usd(a.usdValueThin)}` : usd(a.usdValue), 12)}${pad(a.priceSource ?? "-", 32)}` +
             `${a.token === NATIVE_SENTINEL ? "(native)" : a.token}`,
         );
       }
@@ -126,14 +126,16 @@ task("fees:scan", "Report idle protocol fees held by each OkuRouter")
 
     console.log("-".repeat(92));
     const totalAssets = results.reduce((s, r) => s + r.totals.assetCount, 0);
-    const pricedAssets = totalAssets - snap.totals.unpricedCount;
+    const pricedAssets = totalAssets - snap.totals.unpricedCount - (snap.totals.thinCount ?? 0);
     const pct = totalAssets ? ((100 * pricedAssets) / totalAssets).toFixed(1) : "0.0";
     console.log(
       `TOTAL across ${snap.totals.chainsScanned} chain(s):  ` +
         `notional ${usd(snap.totals.usdNotional)}`,
     );
     console.log(
-      `Price coverage: ${pricedAssets}/${totalAssets} asset(s) priced (${pct}%)`,
+      `Price coverage: ${pricedAssets}/${totalAssets} asset(s) firm-priced (${pct}%), ` +
+        `${snap.totals.thinCount ?? 0} thin ($${(snap.totals.thinUsd ?? 0).toFixed(2)}, not counted), ` +
+        `${snap.totals.unpricedCount} with no price`,
     );
     if (snap.totals.unpricedCount > 0) {
       // Without this line the total above reads as a valuation. It is not: an
@@ -145,7 +147,7 @@ task("fees:scan", "Report idle protocol fees held by each OkuRouter")
       );
     }
     console.log(
-      "There is no liquidity signal: nothing here says whether an asset can be sold.",
+      "Firm = alias, DefiLlama >= 0.9 confidence, or a DEX pool with >= $10k reserve.",
     );
 
     if (snap.totals.chainsErrored > 0) {
