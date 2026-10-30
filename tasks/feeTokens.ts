@@ -11,8 +11,11 @@
  *                               - tokens on the published Oku list that hold a
  *                                 balance on the router right now
  *   fees:tokens               print the list (counts, mode) per chain
- *   fees:audit [--write]      probe the published list for balances the curated
- *                             list misses; --write adds them after vetting.
+ *   fees:audit [--write]      find held tokens the curated list misses: via the
+ *                             balance APIs (util/balanceDiscovery.ts) where a
+ *                             chain is covered -- the same path fees:cycle runs
+ *                             automatically -- and by probing the published Oku
+ *                             list elsewhere. --write adds them after vetting.
  *
  * Every candidate is VETTED before it can enter the list:
  *   1. balanceOf(router) must return a full word (has code, is an ERC20);
@@ -51,7 +54,9 @@ import {
   type FeeTokenEntry,
   type FeeTokensFile,
 } from "../util/feeTokens";
-import { estimateSweepGas, simulateSweep, sweepGasCap } from "../util/sweepCall";
+import { vetChain, type VetResult } from "../util/feeTokenVet";
+import { discoverHoldings } from "../util/balanceDiscovery";
+import { applyDiscovery, DEFAULT_DISCOVERY_MIN_USD } from "../util/feeDiscovery";
 import { toChecksum } from "../util/address";
 
 const REPORTS_DATA = path.resolve(__dirname, "..", "fee-reports", "data");
@@ -81,119 +86,7 @@ function sweptHistory(): Map<number, Set<string>> {
   return out;
 }
 
-interface ChainResult {
-  network: string;
-  chainId: number;
-  added: FeeTokenEntry[];
-  excluded: { address: string; symbol?: string; reason: string }[];
-  total: number;
-  fullGas: bigint | null;
-  error?: string;
-}
-
-/**
- * Vet `candidates` (address -> provenance) against one chain and merge the
- * survivors into `entry`. Existing entries are re-vetted too: a token that
- * started reverting since the last run must come out, loudly.
- */
-async function vetChain(
-  chain: SafeChain,
-  entry: FeeTokenChain,
-  candidates: Map<string, Set<string>>,
-  safe: string,
-): Promise<ChainResult> {
-  const res: ChainResult = {
-    network: chain.network,
-    chainId: chain.chainId,
-    added: [],
-    excluded: [],
-    total: 0,
-    fullGas: null,
-  };
-  const cfg = NETWORK_CONFIGS[chain.network];
-  const provider = makeProvider(chain.rpcUrl, chain.chainId);
-  const now = new Date().toISOString();
-  try {
-    const existing = new Map(entry.tokens.map((t) => [t.address, t]));
-    const previouslyExcluded = new Set((entry.excluded ?? []).map((e) => e.address));
-    const fresh = [...candidates.keys()].filter(
-      (a) => !existing.has(a) && !previouslyExcluded.has(a),
-    );
-    const all = [...existing.keys(), ...fresh];
-
-    // 1. balanceOf must answer with a word.
-    const probe = await probeBalances(provider as unknown as BalanceProbeProvider, chain.router!, all, {
-      multicall: multicallAddressFor(cfg),
-    });
-    if (!probe.available) throw new Error(probe.warnings.join("; ") || "multicall unavailable");
-    if (probe.unchecked > 0) {
-      throw new Error(`${probe.unchecked} candidate(s) could not be checked; re-run with a better RPC`);
-    }
-    const responding = all.filter((a) => probe.responding.has(a));
-    for (const a of all) {
-      if (!probe.responding.has(a)) {
-        res.excluded.push({ address: a, reason: "balanceOf(router) did not return a word (no code / not ERC20)" });
-      }
-    }
-
-    // 2. the whole list must sweep. Bisect any revert to the culprits.
-    const to = OKU_FEE_RECIPIENT;
-    const bad = await bisectFailures(responding, async (subset) =>
-      (await simulateSweep(provider, safe, chain.router!, subset, false, to)).ok,
-    );
-    for (const a of bad) {
-      const sim = await simulateSweep(provider, safe, chain.router!, [a], false, to);
-      res.excluded.push({ address: a, reason: `sweepAll([token]) reverts: ${sim.reason ?? "unknown"}` });
-    }
-    const badSet = new Set(bad);
-    const keep = responding.filter((a) => !badSet.has(a));
-
-    const { meta } = await probeMetadata(provider as unknown as BalanceProbeProvider, keep, {
-      multicall: multicallAddressFor(cfg),
-    });
-    const tokens: FeeTokenEntry[] = keep.map((a) => {
-      const prev = existing.get(a);
-      const m = meta.get(a);
-      const srcs = new Set([...(prev?.source ? prev.source.split(",") : []), ...(candidates.get(a) ?? [])]);
-      const t: FeeTokenEntry = {
-        address: a,
-        symbol: m?.symbol ?? prev?.symbol ?? "?",
-        decimals: m?.decimals ?? prev?.decimals ?? null,
-        source: [...srcs].sort().join(","),
-        addedAt: prev?.addedAt ?? now,
-        ...(prev?.priceAs ? { priceAs: prev.priceAs } : {}),
-      };
-      if (!prev) res.added.push(t);
-      return t;
-    });
-
-    const symOf = new Map(tokens.map((t) => [t.address, t.symbol]));
-    entry.tokens = sortTokens(tokens);
-    const excl = new Map((entry.excluded ?? []).map((e) => [e.address, e]));
-    for (const e of res.excluded) {
-      excl.set(e.address, { address: e.address, symbol: symOf.get(e.address), reason: e.reason, excludedAt: now });
-    }
-    entry.excluded = [...excl.values()];
-    res.total = entry.tokens.length;
-    res.fullGas = await estimateSweepGas(
-      provider,
-      safe,
-      chain.router!,
-      entry.tokens.map((t) => t.address),
-      true,
-      to,
-    );
-    const cap = await sweepGasCap(provider);
-    if (res.fullGas !== null && res.fullGas > cap) {
-      res.error = `full-list sweep estimates ${res.fullGas} gas > cap ${cap}; this chain must run nonzero`;
-    }
-  } catch (e) {
-    res.error = String((e as { shortMessage?: string; message?: string }).shortMessage ?? (e as Error).message ?? e).slice(0, 200);
-  } finally {
-    provider.destroy();
-  }
-  return res;
-}
+type ChainResult = VetResult;
 
 function report(results: ChainResult[]): void {
   console.log(
@@ -292,14 +185,47 @@ task("fees:tokens", "Show or bootstrap data/fee-tokens.json (the curated sweep l
 
 task("fees:audit", "Find router balances in tokens the curated list does not cover")
   .addOptionalParam("networks", "Comma-separated network names (default: all deployed)")
+  .addOptionalParam(
+    "minUsd",
+    `Balance-API chains: firm USD value a token needs to be added (default ${DEFAULT_DISCOVERY_MIN_USD})`,
+  )
   .addFlag("write", "Vet and add the missing tokens to data/fee-tokens.json")
   .setAction(async (args, hre) => {
     const safe = getOkuSafeDeployment().address;
-    const chains = selectChains(hre, args.networks);
+    const all = selectChains(hre, args.networks);
     const file = loadFeeTokens();
+    const minUsd = args.minUsd !== undefined ? Number(args.minUsd) : DEFAULT_DISCOVERY_MIN_USD;
+
+    // 1. Chains a balance API covers: the same path fees:cycle runs. In
+    //    memory unless --write.
+    const holdings = await discoverHoldings(all.map((c) => ({ network: c.network, router: c.router! })));
+    const outcomes = await mapLimit(all, 4, (chain) =>
+      applyDiscovery(chain, file, holdings.get(chain.network), { safe, minUsd }),
+    );
+    let discChanged = false;
+    console.log(`\nBalance-API discovery (add if firm >= $${minUsd}):`);
+    for (const o of outcomes) {
+      if (o.status === "unsupported") continue;
+      console.log(
+        `  ${pad(o.network, 12)} ${pad(o.status === "covered" ? o.source : "FAILED", 14)}` +
+          `held ${pad(o.held, 5)} new ${pad(o.evaluated, 5)} add ${pad(o.added.length, 4)} ignore ${o.ignored.length}` +
+          `${o.error ? `   ! ${o.error}` : ""}`,
+      );
+      for (const a of o.added) {
+        console.log(`      + ${pad(a.symbol, 12)} $${a.usdValue.toFixed(2).padEnd(10)} ${a.token}  ${a.priceSource ?? ""}`);
+      }
+      for (const e of o.excluded) console.log(`      ! excluded ${e.token}  ${e.reason}`);
+      if (o.added.length || o.ignored.length || o.excluded.length) discChanged = true;
+    }
+
+    // 2. Everything else (no API, or the API failed this run): probe the
+    //    published Oku list, as before.
+    const covered = new Set(outcomes.filter((o) => o.status === "covered" && !o.error).map((o) => o.network));
+    const chains = all.filter((c) => !covered.has(c.network));
+    console.log(`\nPublished-list probe for ${chains.length} chain(s) without balance-API coverage:`);
     const list = await loadOkuTokenList({ strict: true });
     const listByChain = indexByChain(list.tokens);
-    let missingTotal = 0;
+    let missingTotal = outcomes.reduce((n, o) => n + o.added.length, 0);
 
     const results = await mapLimit(chains, 4, async (chain) => {
       const cfg = NETWORK_CONFIGS[chain.network];
@@ -345,11 +271,11 @@ task("fees:audit", "Find router balances in tokens the curated list does not cov
       return r;
     });
 
-    console.log(`\n${missingTotal} held token(s) not on the curated list.`);
+    console.log(`\n${missingTotal} held token(s) to add (balance API: firm-priced; published list: all held).`);
     if (args.write) {
       const done = results.filter((r): r is ChainResult => r !== null);
-      if (done.length) {
-        report(done);
+      if (done.length) report(done);
+      if (done.length || discChanged) {
         saveFeeTokens(file);
         console.log(`\nWritten: ${path.relative(process.cwd(), FEE_TOKENS_FILE)}  -- review the diff, then commit.`);
       }

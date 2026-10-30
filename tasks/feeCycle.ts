@@ -34,15 +34,31 @@
  *   npx hardhat fees:cycle --networks base,arbitrum --name sweep-2026-09-22
  *   npx hardhat fees:cycle --min-usd 25
  *
- * Candidates come from the curated data/fee-tokens.json; run `fees:audit`
- * periodically to find held tokens it does not cover.
+ * Candidates come from the curated data/fee-tokens.json. Before the scan,
+ * every chain a balance API covers (util/balanceDiscovery.ts: Alchemy
+ * Portfolio + Ankr) is asked for EVERYTHING the router holds; held tokens
+ * the list does not know are re-read on chain, priced, and -- if worth at
+ * least --discover-min-usd at a firm price and they pass the sweep vet --
+ * ADDED to data/fee-tokens.json and swept this cycle. The rest are recorded
+ * as `ignored` so spam airdrops are not re-priced every run. Additions are
+ * listed in the snapshot, the bundle manifest and the signing page.
+ *
+ * With --scan-only the additions are applied in memory (so the report shows
+ * them) but data/fee-tokens.json is not written. --no-discover skips the step.
  */
 import * as fs from "fs";
 import * as path from "path";
 import { task } from "hardhat/config";
 import { listSafeChains, mapLimit, pad } from "../util/safeChains";
 import { scanChainForSnapshot } from "../util/feeSweepScan";
-import { loadFeeTokens } from "../util/feeTokens";
+import { loadFeeTokens, saveFeeTokens } from "../util/feeTokens";
+import { discoverHoldings } from "../util/balanceDiscovery";
+import {
+  applyDiscovery,
+  DEFAULT_DISCOVERY_MIN_USD,
+  type ChainDiscoveryOutcome,
+} from "../util/feeDiscovery";
+import { getOkuSafeDeployment } from "../util/safeConfig";
 import {
   buildSnapshot,
   chainsAboveThreshold,
@@ -56,12 +72,52 @@ function usd(n: number): string {
   return `$${n.toFixed(2)}`;
 }
 
+function printDiscovery(outcomes: ChainDiscoveryOutcome[], minUsd: number): void {
+  console.log(`\n  ${pad("chain", 14)}${pad("source", 15)}${pad("held", 7)}${pad("new", 6)}${pad("added", 7)}ignored`);
+  for (const o of outcomes) {
+    const src = o.status === "covered" ? o.source : o.status === "failed" ? "FAILED" : "none";
+    console.log(
+      `  ${pad(o.network, 14)}${pad(src, 15)}${pad(o.status === "covered" ? String(o.held) : "-", 7)}` +
+        `${pad(o.status === "covered" ? String(o.evaluated) : "-", 6)}${pad(String(o.added.length || "-"), 7)}` +
+        `${o.ignored.length || "-"}${o.error ? `   ! ${o.error}` : ""}`,
+    );
+  }
+  const added = outcomes.flatMap((o) => o.added.map((a) => ({ o, a })));
+  if (added.length) {
+    console.log(`\n  ADDED to the sweep list (${added.length}):`);
+    for (const { o, a } of added) {
+      console.log(`    ${pad(o.network, 12)}${pad(a.symbol, 12)}${pad(usd(a.usdValue), 11)}${a.token}  ${a.priceSource ?? ""}`);
+    }
+  }
+  // Thin-priced holdings worth >= the bar are ignored like spam (a thin
+  // price cannot be realised), but a real token with a shallow market looks
+  // the same. Shown so a human can promote one by hand if it is genuine.
+  const review = outcomes.flatMap((o) =>
+    o.ignored.filter((i) => (i.usdValueThin ?? 0) >= minUsd).map((i) => ({ o, i })),
+  );
+  if (review.length) {
+    console.log(`\n  IGNORED but thin-valued >= ${usd(minUsd)} (not swept; usually impostors -- check before promoting):`);
+    for (const { o, i } of review) {
+      console.log(`    ${pad(o.network, 12)}${pad(i.symbol ?? "?", 12)}${pad(usd(i.usdValueThin!), 11)}${i.token}  ${i.reason}`);
+    }
+  }
+  for (const o of outcomes) {
+    for (const e of o.excluded) console.log(`  ! ${o.network}: excluded ${e.token}  ${e.reason}`);
+    for (const w of o.warnings) if (/balance API failed/.test(w)) console.log(`  ! ${w}`);
+  }
+}
+
 task("fees:cycle", "Scan every chain for idle fees, build the sweep bundle, emit the signing page")
   .addOptionalParam("networks", "Comma-separated hardhat network names (default: all deployed)")
   .addOptionalParam("name", "Bundle name (default: sweep-<date>)")
   .addOptionalParam("to", "Sweep recipient (default: OKU_FEE_RECIPIENT)")
   .addOptionalParam("minUsd", "Skip chains whose realizable total is below this (default 0)")
   .addOptionalParam("concurrency", "Chains scanned in parallel (default 4)")
+  .addOptionalParam(
+    "discoverMinUsd",
+    `Firm USD value a newly discovered token needs to be added (default ${DEFAULT_DISCOVERY_MIN_USD})`,
+  )
+  .addFlag("noDiscover", "Skip balance-API discovery; sweep the curated list as-is")
   .addFlag("scanOnly", "Stop after the snapshot; do not build a bundle")
   .addFlag("noEth", "Do NOT sweep the native balance")
   .addFlag("force", "Overwrite an existing bundle of the same name")
@@ -91,9 +147,34 @@ task("fees:cycle", "Scan every chain for idle fees, build the sweep bundle, emit
     console.log(`FEE CYCLE  ${started.toISOString()}`);
     console.log("=".repeat(96));
     console.log(`Chains       : ${chains.length}`);
-    console.log(`Candidates   : data/fee-tokens.json (curated; fees:audit looks beyond it)`);
+    console.log(`Candidates   : data/fee-tokens.json (curated)`);
     const curated = loadFeeTokens();
     console.log("");
+
+    // ---- 0. discovery -----------------------------------------------------
+    const discovery = new Map<string, ChainDiscoveryOutcome>();
+    if (!args.noDiscover) {
+      const discMin = args.discoverMinUsd !== undefined ? Number(args.discoverMinUsd) : DEFAULT_DISCOVERY_MIN_USD;
+      if (!(Number.isFinite(discMin) && discMin >= 0)) throw new Error("--discover-min-usd must be a number >= 0");
+      console.log(`Discovery    : balance APIs (Alchemy Portfolio, Ankr), add if firm >= ${usd(discMin)}`);
+      const holdings = await discoverHoldings(
+        chains.filter((c) => c.router).map((c) => ({ network: c.network, router: c.router! })),
+      );
+      const safe = getOkuSafeDeployment().address;
+      const outcomes = await mapLimit(chains, concurrency, (chain) =>
+        applyDiscovery(chain, curated, holdings.get(chain.network), { safe, minUsd: discMin }),
+      );
+      for (const o of outcomes) discovery.set(o.network, o);
+      printDiscovery(outcomes, discMin);
+      const changed = outcomes.some((o) => o.added.length || o.ignored.length || o.excluded.length);
+      if (changed && !args.scanOnly) {
+        saveFeeTokens(curated);
+        console.log(`\n  data/fee-tokens.json updated -- commit it with this cycle's reports.`);
+      } else if (changed) {
+        console.log(`\n  --scan-only: changes applied in memory for this report; data/fee-tokens.json NOT written.`);
+      }
+      console.log("");
+    }
 
     // ---- 1. scan ----------------------------------------------------------
     let done = 0;
@@ -111,6 +192,25 @@ task("fees:cycle", "Scan every chain for idle fees, build the sweep bundle, emit
     });
 
     // ---- 2. snapshot ------------------------------------------------------
+    for (const r of results) {
+      const o = discovery.get(r.network);
+      if (!o) continue;
+      r.discovery = {
+        status: o.status,
+        source: o.source,
+        held: o.held,
+        added: o.added.map((a) => ({
+          token: a.token,
+          symbol: a.symbol,
+          amountRaw: a.amountRaw,
+          usdValue: a.usdValue,
+          ...(a.priceSource ? { priceSource: a.priceSource } : {}),
+        })),
+        ignored: o.ignored.length,
+        excluded: o.excluded.length,
+        ...(o.error ? { error: o.error } : {}),
+      };
+    }
     const snap = buildSnapshot(results);
     const written = writeSnapshot(snap, stamp);
 

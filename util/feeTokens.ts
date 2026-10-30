@@ -16,8 +16,11 @@
  * a `full`-mode chain signs the SAME token array every cycle, so signers can
  * recognise it.
  *
- * Additions happen by review (`fees:tokens --bootstrap` once, then
- * `fees:audit --write` / post-exec reports), never silently at build time.
+ * Additions happen in three places, never silently at build time:
+ * `fees:tokens --bootstrap`, `fees:audit --write`, and the balance-API
+ * discovery step at the start of `fees:cycle` (util/feeDiscovery.ts), which
+ * adds firm-priced, vetted tokens automatically and lists every addition in
+ * the bundle manifest so signers see why the calldata changed.
  *
  * SWEEP MODES
  *
@@ -64,6 +67,24 @@ export interface FeeTokenExclusion {
   excludedAt: string;
 }
 
+/**
+ * A held token that balance discovery found but did not add, because it had
+ * no firm price >= the discovery threshold (spam airdrops, dust, no market).
+ *
+ * Distinct from `excluded`, which means "breaks the sweep". An ignored token
+ * is harmless, just not worth calldata. It is re-evaluated only when the
+ * router's balance of it GROWS past `balanceRaw` -- i.e. when it looks like a
+ * real fee arrived -- so a static airdrop is priced once, not every cycle.
+ */
+export interface FeeTokenIgnored {
+  address: string;
+  symbol?: string;
+  reason: string;
+  /** Router balance (raw) when last evaluated. */
+  balanceRaw: string;
+  ignoredAt: string;
+}
+
 export interface FeeTokenChain {
   network: string;
   mode: SweepMode;
@@ -72,6 +93,8 @@ export interface FeeTokenChain {
   tokens: FeeTokenEntry[];
   /** Candidates rejected during bootstrap/audit, kept so they are not re-proposed blindly. */
   excluded?: FeeTokenExclusion[];
+  /** Held but below the discovery value threshold. See FeeTokenIgnored. */
+  ignored?: FeeTokenIgnored[];
 }
 
 export interface FeeTokensFile {
@@ -129,6 +152,18 @@ export function parseFeeTokens(raw: unknown): FeeTokensFile {
       seen.add(a);
       t.address = a;
     }
+    const seenIgnored = new Set<string>();
+    for (const t of c.ignored ?? []) {
+      const a = toChecksum(t.address);
+      if (!a) throw new Error(`fee-tokens: chain ${id} has malformed ignored address ${t.address}`);
+      if (seen.has(a)) throw new Error(`fee-tokens: chain ${id} lists ${a} as both a token and ignored`);
+      if (seenIgnored.has(a)) throw new Error(`fee-tokens: chain ${id} ignores ${a} twice`);
+      if (!/^[0-9]+$/.test(String(t.balanceRaw))) {
+        throw new Error(`fee-tokens: chain ${id} ignored ${a} has a non-integer balanceRaw`);
+      }
+      seenIgnored.add(a);
+      t.address = a;
+    }
   }
   return f;
 }
@@ -154,6 +189,7 @@ export function saveFeeTokens(f: FeeTokensFile, file = FEE_TOKENS_FILE): void {
       ...(c.nativePriceAs ? { nativePriceAs: c.nativePriceAs } : {}),
       tokens: sortTokens(c.tokens),
       ...(c.excluded?.length ? { excluded: sortTokens(c.excluded) } : {}),
+      ...(c.ignored?.length ? { ignored: sortTokens(c.ignored) } : {}),
     };
   }
   const out: FeeTokensFile = { ...f, updatedAt: new Date().toISOString(), chains };

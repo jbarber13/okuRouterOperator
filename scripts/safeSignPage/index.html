@@ -528,7 +528,14 @@ function renderCard(c, v) {
       (c.sweep.mode ? "token list mode: <b>" + esc(c.sweep.mode) + "</b> — " + esc(c.sweep.modeReason || "") + "<br>" : "") +
       "build-time balances: " + (c.sweep.assets || []).length + " asset(s), " +
       fmtUsd(c.sweep.usdNotional) + " estimated (see the fund-movement panel). " +
-      "sweepAll moves whatever each listed token's balance is at execution.</section>";
+      "sweepAll moves whatever each listed token's balance is at execution." +
+      ((c.sweep.addedTokens || []).length
+        ? "<br><b>New in the token list this cycle</b> (found by balance API, priced, sweep simulated): " +
+          c.sweep.addedTokens.map(function (t) {
+            return esc(t.symbol) + " " + fmtUsd(t.usdValue) + ' <span class="mono dim">' + esc(t.token) + "</span>";
+          }).join(", ")
+        : "") +
+      "</section>";
   }
   h += "</div>";
   return h;

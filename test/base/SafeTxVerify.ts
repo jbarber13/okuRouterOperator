@@ -74,8 +74,14 @@ describe("safeTxVerify: primitives", () => {
 describe("safeTxVerify: hashes", () => {
   it("matches ethers on every chain of every bundle in safe-bundles/", () => {
     let n = 0;
-    for (const f of fs.readdirSync(BUNDLES).filter((x) => x.endsWith(".json"))) {
-      const b = JSON.parse(fs.readFileSync(path.join(BUNDLES, f), "utf8"));
+    // Executed bundles live in safe-bundles/archive/; they are the bulk of the corpus.
+    const ARCHIVE = path.join(BUNDLES, "archive");
+    const files = [BUNDLES, ...(fs.existsSync(ARCHIVE) ? [ARCHIVE] : [])].flatMap((d) =>
+      fs.readdirSync(d).filter((x) => x.endsWith(".json")).map((x) => path.join(d, x)),
+    );
+    for (const file of files) {
+      const f = path.relative(BUNDLES, file);
+      const b = JSON.parse(fs.readFileSync(file, "utf8"));
       for (const c of b.chains ?? []) {
         const h = V.hashSafeTxPayload(c.eip712);
         const types = { SafeTx: c.eip712.types.SafeTx };

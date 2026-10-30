@@ -81,6 +81,21 @@ export interface SnapshotChain {
     sources: { seed: number; tokenList: number; chainConfig: number; curated?: number };
   };
   warnings: string[];
+  /**
+   * Balance-API discovery for this chain (fees:cycle). Absent on older
+   * snapshots and when discovery was skipped.
+   */
+  discovery?: {
+    status: "covered" | "failed" | "unsupported";
+    /** "alchemy", "ankr", "alchemy+ankr", or "none". */
+    source: string;
+    held: number;
+    /** Tokens added to data/fee-tokens.json by this cycle. */
+    added: { token: string; symbol: string; amountRaw: string; usdValue: number; priceSource?: string }[];
+    ignored: number;
+    excluded: number;
+    error?: string;
+  };
   assets: SnapshotAsset[];
   totals: {
     assetCount: number;
@@ -283,6 +298,40 @@ export function renderSnapshotMarkdown(snap: FeeScanSnapshot): string {
     }
   }
   L.push("");
+
+  const withDiscovery = snap.chains.filter((c) => c.discovery);
+  if (withDiscovery.length) {
+    const covered = withDiscovery.filter((c) => c.discovery!.status === "covered");
+    const added = withDiscovery.flatMap((c) => c.discovery!.added.map((a) => ({ c, a })));
+    L.push("## Token discovery (balance API)");
+    L.push("");
+    L.push(
+      `${covered.length} of ${withDiscovery.length} chain(s) covered by a balance API. ` +
+        `The rest were swept from the curated list only.`,
+    );
+    L.push("");
+    if (added.length) {
+      L.push("New tokens added to `data/fee-tokens.json` this cycle (now in the sweep calldata):");
+      L.push("");
+      L.push("| Chain | Token | Symbol | USD | Price source |");
+      L.push("|---|---|---|---:|---|");
+      for (const { c, a } of added) {
+        L.push(`| ${c.network} | \`${a.token}\` | ${a.symbol} | ${usd(a.usdValue)} | ${a.priceSource ?? ""} |`);
+      }
+    } else {
+      L.push("No new tokens added this cycle.");
+    }
+    L.push("");
+    const failed = withDiscovery.filter((c) => c.discovery!.status === "failed" || c.discovery!.error);
+    if (failed.length) {
+      L.push("Discovery problems (curated list still swept):");
+      L.push("");
+      for (const c of failed) {
+        L.push(`- **${c.network}**: ${c.discovery!.error ?? "every balance API failed"}`);
+      }
+      L.push("");
+    }
+  }
 
   // A batch the node refused is not an empty router. Surfaced separately
   // because it is the one failure the probe cannot make good on its own.

@@ -630,7 +630,10 @@ npx hardhat safe:exec --name sweep-2026-09-29
 npx hardhat safe:exec --name sweep-2026-09-29 --broadcast
 ```
 
-The scan reads balances for the curated list (see
+Before scanning, the cycle runs **balance-API discovery** (see
+[Discovery](#discovery--balance-apis-in-every-cycle)): new tokens the router
+holds are added to the curated list, so they are swept the same cycle. The scan
+then reads balances for the curated list (see
 [Which tokens a sweep names](#which-tokens-a-sweep-names--datafee-tokensjson))
 and the build consumes that exact snapshot via `safe:build --from-scan`, so the
 report and the bundle cannot disagree.
@@ -661,7 +664,8 @@ npx hardhat fees:cycle --networks base,arbitrum,worldchain   # or pick by hand
 ```
 
 Useful flags: `--name` (bundle name, default `sweep-<date>`), `--scan-only`,
-`--no-eth`, `--concurrency`, `--force`, `--accept-partial`.
+`--no-eth`, `--concurrency`, `--force`, `--accept-partial`,
+`--discover-min-usd` (default `1`), `--no-discover`.
 
 Rebuilding an existing bundle name is refused unless `--force`. A rebuild picks
 up fresh Safe nonces, which changes every `safeTxHash` and silently kills any
@@ -683,7 +687,8 @@ about. That list is committed and reviewed:
 
 **`data/fee-tokens.json`** — per chain: a sweep `mode` and its tokens
 (`address, symbol, decimals, source, addedAt`), plus `excluded` entries with
-the reason they were rejected. Calldata order is canonical (sorted by
+the reason they were rejected (they break the sweep) and `ignored` entries
+(held, but below the discovery value bar — see below). Calldata order is canonical (sorted by
 address), so the same list always encodes to the same bytes.
 
 Every token was vetted before entering the list: `balanceOf(router)` must
@@ -715,25 +720,64 @@ DELEGATECALL — capped at half the chain's block gas limit. `safe:build` also
 checks the relayer can pay 3× the estimate and prints any top-up needed before
 broadcast (signing can proceed meanwhile).
 
+#### Discovery — balance APIs in every cycle
+
+The router has **no token whitelist** (only swap targets and warrant signers
+are gated), and ERC-20 fees are kept in the token the user **sells**
+(`_fillQuoteTokenToToken` approves `sellAmount - feeAmount`). So fee tokens are
+open-ended: about 80% of the ERC-20s swept through 2026-10-22 were never in
+chain-config. Instead of log indexing, `fees:cycle` asks indexed balance APIs
+for everything the router holds (`util/balanceDiscovery.ts`):
+
+| provider | endpoint | chains (verified 2026-10-22) |
+|---|---|---|
+| Alchemy Portfolio (`ALCHEMY_API_KEY`) | `api.g.alchemy.com/data/v1/<key>/assets/tokens/by-address` | mainnet, op, arbitrum, base, bsc, polygon, avax, linea, worldchain, unichain, celo, gnosis, rootstock, scroll, monad, robinhood, hyperevm, gensyn |
+| Ankr Advanced API (`ANKR_FREEMIUM_API_KEY`) | `ankr_getAccountBalance` | mainnet, op, arbitrum, base, bsc, polygon, avax, gnosis, linea, scroll (second opinion; results unioned) |
+
+The Portfolio API is gated separately from Alchemy RPC and works on chains
+whose RPC says "not enabled". **No discovery** on: telos, xdc, redbelly, boba,
+filecoin, sei, pharos, goat, mantle, saga, nibiru, plasma, zerog, etherlink,
+hemi, bob — those sweep the curated list only, and `fees:audit` probes the
+published Oku list for them.
+
+Each held token the list does not know is:
+
+1. re-read **on chain** (`balanceOf`, `decimals`, `symbol` via Multicall3) —
+   the API only says where to look;
+2. priced through the normal chain — only a **firm** value
+   `>= --discover-min-usd` (default **$1**) passes;
+3. vetted like any other addition (`balanceOf` answers, simulated `sweepAll` of
+   the whole list succeeds; failures go to `excluded`).
+
+Survivors are **added automatically** (source `balance-api`), swept the same
+cycle, and listed in the cycle output, the snapshot report, the bundle manifest
+(`sweep.addedTokens`) and the signing page. Everything else goes to `ignored`
+with the reason and the balance it was judged at; it is re-evaluated only when
+that balance grows, so ~300 spam airdrops on base/robinhood are priced once,
+not every cycle. Ignored tokens with a thin value above the bar are printed for
+review (they are usually impostors — robinhood has ~20 fake "USDG"s).
+
+A provider failing mid-pagination counts as failed, never as a short list.
+`--scan-only` applies discoveries in memory for the report but does not write
+`data/fee-tokens.json`; a full cycle writes it — commit it with the reports.
+
 #### Keeping the list current
 
 ```bash
 npx hardhat fees:tokens                          # show the list per chain
-npx hardhat fees:audit                           # held tokens the list misses (probes the published Oku list)
+npx hardhat fees:audit                           # held tokens the list misses: balance API where covered, published Oku list elsewhere
 npx hardhat fees:audit --write --networks base   # vet and add them, then review the diff and commit
 npx hardhat fees:tokens --bootstrap              # (re)seed from every source; extends, never removes
 ```
 
-`--bootstrap` sources: `data/known-fee-assets.json` (OrderFilled seed),
+`--bootstrap` sources: `data/known-fee-assets.json` (a one-time OrderFilled
+export from before log indexing was removed; nothing regenerates it),
 chain-config tokens, every asset in `fee-reports/data/`, and published-list
 tokens holding a balance right now. `safe:exec` notes any swept asset that is
 not on the list.
 
-The router accepts **any** ERC-20 as `tokenIn`, so no list is complete by
-construction. Run `fees:audit` periodically (it is the old 40k-token balance
-probe, now a maintenance step instead of part of every scan); a token first
-traded by direct contract call and listed nowhere only surfaces if someone adds
-it by hand.
+On chains without a balance API, a token listed nowhere (not on the published
+Oku list) only surfaces if someone adds it by hand.
 
 #### Failure modes that are reported, not swallowed
 

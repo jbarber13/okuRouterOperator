@@ -226,6 +226,12 @@ interface BundleChain {
     gasEstimate?: string;
     /** The calldata token array in order, with symbols, for the sign page. */
     tokens?: { token: string; symbol: string }[];
+    /**
+     * Tokens balance-API discovery added to data/fee-tokens.json in the cycle
+     * that produced this bundle: the reason the calldata differs from last
+     * cycle's. Absent when nothing was added.
+     */
+    addedTokens?: { token: string; symbol: string; usdValue: number; source: string }[];
   };
 }
 
@@ -685,6 +691,9 @@ async function callsForIntent(
         extraUsd: decision.extraUsd,
         gasEstimate: gasChosen?.toString(),
         tokens: callTokens.map((t) => ({ token: t, symbol: symbolOf.get(t) ?? "?" })),
+        ...(scanAddedByNetwork.get(chain.network)?.length
+          ? { addedTokens: scanAddedByNetwork.get(chain.network) }
+          : {}),
       });
 
       return { calls };
@@ -723,6 +732,9 @@ const sweepManifests = new Map<string, NonNullable<BundleChain["sweep"]>>();
  * page, where they are labelled as an estimate.
  */
 const scanAssetsByNetwork = new Map<string, SnapshotAsset[]>();
+
+/** Discovery additions per network from the `--from-scan` snapshot. */
+const scanAddedByNetwork = new Map<string, NonNullable<NonNullable<BundleChain["sweep"]>["addedTokens"]>>();
 
 /**
  * The curated sweep list (data/fee-tokens.json), loaded once per build.
@@ -1038,6 +1050,7 @@ task("safe:build", "Diff on-chain state and emit a per-chain SafeTx bundle")
       if (taskArgs.minUsd) params.minUsd = Number(taskArgs.minUsd);
       sweepManifests.clear();
       scanAssetsByNetwork.clear();
+      scanAddedByNetwork.clear();
       sweepFeeTokens = undefined;
       if (!params.tokens) {
         sweepFeeTokens = loadFeeTokens();
@@ -1052,6 +1065,17 @@ task("safe:build", "Diff on-chain state and emit a per-chain SafeTx bundle")
         const snapPath = path.resolve(String(taskArgs.fromScan));
         const snap = readSnapshot(snapPath);
         for (const c of snap.chains) {
+          if (c.discovery?.added.length) {
+            scanAddedByNetwork.set(
+              c.network,
+              c.discovery.added.map((a) => ({
+                token: a.token,
+                symbol: a.symbol,
+                usdValue: a.usdValue,
+                source: `balance-api:${c.discovery!.source}`,
+              })),
+            );
+          }
           if (c.status !== "has-fees") continue;
           scanAssetsByNetwork.set(c.network, c.assets);
         }
