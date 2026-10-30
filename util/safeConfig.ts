@@ -249,8 +249,14 @@ export const OKU_DEPLOYER_EOA = "0x3CB68a6762041aA05E762814A8791CA9d98E79A0";
  * valid EIP-55 checksum, no contract code / zero nonce / zero balance on
  * mainnet, arbitrum, op. Any bundle built against the old recipient has the
  * old address baked into its calldata and must be rebuilt, not resigned.
+ *
+ * Changed 2026-10-30 from 0x8288Ba381e07EA5E9Fc4053a97545161D7d4683C to this
+ * address (team-confirmed). It is the recipient the 2026-10-22 plasma sweep
+ * already paid out to via `--to`. Unlike the earlier addresses it is NOT a
+ * fresh EOA everywhere: on plasma it carries an EIP-7702 delegation
+ * (code 0xef0100...), so it is not "no contract code" on every chain.
  */
-export const OKU_FEE_RECIPIENT = "0x8288Ba381e07EA5E9Fc4053a97545161D7d4683C";
+export const OKU_FEE_RECIPIENT = "0x7C547b4760feC978a26c76FE451BA3F5B00237C6";
 
 // ---------------------------------------------------------------------------
 // Safe Transaction Service coverage
