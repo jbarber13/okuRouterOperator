@@ -2,7 +2,7 @@
   "kind": "oku-fee-tokens",
   "schemaVersion": 1,
   "fullSweepMaxUsd": 0.1,
-  "updatedAt": "2026-10-16T23:12:30.693Z",
+  "updatedAt": "2026-10-30T14:29:57.907Z",
   "chains": {
     "1": {
       "network": "mainnet",
@@ -254,6 +254,13 @@
           "addedAt": "2026-10-16T23:12:01.775Z"
         },
         {
+          "address": "0x12970E6868f88f6557B76120662c1B3E50A646bf",
+          "symbol": "LADYS",
+          "decimals": 18,
+          "source": "balance-api",
+          "addedAt": "2026-10-22T22:11:42.751Z"
+        },
+        {
           "address": "0x1494CA1F11D487c2bBe4543E90080AeBa4BA3C2b",
           "symbol": "DPI",
           "decimals": 18,
@@ -311,7 +318,7 @@
         },
         {
           "address": "0x181d606E5FA001b81f37215B85548b155fe70fEA",
-          "symbol": "BLSEYE\ud83c\udfaf",
+          "symbol": "BLSEYE🎯",
           "decimals": 10,
           "source": "seed",
           "addedAt": "2026-10-16T23:12:01.775Z"
@@ -394,6 +401,13 @@
           "addedAt": "2026-10-16T23:12:01.775Z"
         },
         {
+          "address": "0x236501327e701692a281934230AF0b6BE8Df3353",
+          "symbol": "FLT",
+          "decimals": 18,
+          "source": "balance-api",
+          "addedAt": "2026-10-22T22:11:42.751Z"
+        },
+        {
           "address": "0x23878914EFE38d27C4D67Ab83ed1b93A74D4086a",
           "symbol": "aEthUSDT",
           "decimals": 6,
@@ -427,6 +441,13 @@
           "decimals": 18,
           "source": "tokenlist-balance",
           "addedAt": "2026-10-16T23:12:01.775Z"
+        },
+        {
+          "address": "0x26E550AC11B26f78A04489d5F20f24E3559f7Dd9",
+          "symbol": "KEKIUS",
+          "decimals": 9,
+          "source": "balance-api",
+          "addedAt": "2026-10-22T22:11:42.751Z"
         },
         {
           "address": "0x2791BfD60D232150Bff86b39B7146c0eaAA2BA81",
@@ -483,6 +504,20 @@
           "decimals": 18,
           "source": "seed",
           "addedAt": "2026-10-16T23:12:01.775Z"
+        },
+        {
+          "address": "0x2fb652314C3d850E9049057bBE9813F1eEe882d3",
+          "symbol": "RVF",
+          "decimals": 18,
+          "source": "balance-api",
+          "addedAt": "2026-10-30T14:29:53.210Z"
+        },
+        {
+          "address": "0x31c8EAcBFFdD875c74b94b077895Bd78CF1E64A3",
+          "symbol": "RAD",
+          "decimals": 18,
+          "source": "balance-api",
+          "addedAt": "2026-10-30T14:29:53.210Z"
         },
         {
           "address": "0x320623b8E4fF03373931769A31Fc52A4E78B5d70",
@@ -639,6 +674,13 @@
           "addedAt": "2026-10-16T23:12:01.775Z"
         },
         {
+          "address": "0x467Bccd9d29f223BcE8043b84E8C8B282827790F",
+          "symbol": "TEL",
+          "decimals": 2,
+          "source": "balance-api",
+          "addedAt": "2026-10-22T22:11:42.751Z"
+        },
+        {
           "address": "0x4a220E6096B25EADb88358cb44068A3248254675",
           "symbol": "QNT",
           "decimals": 18,
@@ -651,6 +693,13 @@
           "decimals": 18,
           "source": "seed",
           "addedAt": "2026-10-16T23:12:01.775Z"
+        },
+        {
+          "address": "0x4c26BeBd3EC5B0329f24dfeD0de10a7AD205D8c3",
+          "symbol": "QTUMon",
+          "decimals": 18,
+          "source": "balance-api",
+          "addedAt": "2026-10-30T14:29:53.210Z"
         },
         {
           "address": "0x4c9EDD5852cd905f086C759E8383e09bff1E68B3",
@@ -772,6 +821,13 @@
           "addedAt": "2026-10-16T23:12:01.775Z"
         },
         {
+          "address": "0x57B946008913B82E4dF85f501cbAeD910e58D26C",
+          "symbol": "POND",
+          "decimals": 18,
+          "source": "balance-api",
+          "addedAt": "2026-10-22T22:11:42.751Z"
+        },
+        {
           "address": "0x57e114B691Db790C35207b2e685D4A43181e6061",
           "symbol": "ENA",
           "decimals": 18,
@@ -891,6 +947,13 @@
           "addedAt": "2026-10-16T23:12:01.775Z"
         },
         {
+          "address": "0x69af81e73A73B40adF4f3d4223Cd9b1ECE623074",
+          "symbol": "MASK",
+          "decimals": 18,
+          "source": "balance-api",
+          "addedAt": "2026-10-30T14:29:53.210Z"
+        },
+        {
           "address": "0x6B175474E89094C44Da98b954EedeAC495271d0F",
           "symbol": "DAI",
           "decimals": 18,
@@ -975,6 +1038,13 @@
           "addedAt": "2026-10-16T23:12:01.775Z"
         },
         {
+          "address": "0x73968b9a57c6E53d41345FD57a6E6ae27d6CDB2F",
+          "symbol": "SDT",
+          "decimals": 18,
+          "source": "balance-api",
+          "addedAt": "2026-10-22T22:11:42.751Z"
+        },
+        {
           "address": "0x73A15FeD60Bf67631dC6cd7Bc5B6e8da8190aCF5",
           "symbol": "USD0",
           "decimals": 18,
@@ -982,11 +1052,25 @@
           "addedAt": "2026-10-16T23:12:01.775Z"
         },
         {
+          "address": "0x75E2Fc69Ff2ac12aF65Ba7D321bBf4f878c535d2",
+          "symbol": "STOCKER",
+          "decimals": 18,
+          "source": "balance-api",
+          "addedAt": "2026-10-22T22:11:42.751Z"
+        },
+        {
           "address": "0x761A3557184cbC07b7493da0661c41177b2f97fA",
           "symbol": "GROW",
           "decimals": 18,
           "source": "tokenlist-balance",
           "addedAt": "2026-10-16T23:12:01.775Z"
+        },
+        {
+          "address": "0x76972F054aB43829064d31fF5f3AcC5Fabe57FE8",
+          "symbol": "thUSD",
+          "decimals": 18,
+          "source": "balance-api",
+          "addedAt": "2026-10-22T22:11:42.751Z"
         },
         {
           "address": "0x76BC677d444f1E9d57dAf5187ee2b7dC852745aE",
@@ -1143,6 +1227,13 @@
           "addedAt": "2026-10-16T23:12:01.775Z"
         },
         {
+          "address": "0x8d0D000Ee44948FC98c9B98A4FA4921476f08B0d",
+          "symbol": "USD1",
+          "decimals": 18,
+          "source": "balance-api",
+          "addedAt": "2026-10-22T22:11:42.751Z"
+        },
+        {
           "address": "0x8D7A1FCFaf626f8db3852c12D4cdC863D9441283",
           "symbol": "BRAINon",
           "decimals": 18,
@@ -1169,6 +1260,13 @@
           "decimals": 18,
           "source": "seed",
           "addedAt": "2026-10-16T23:12:01.775Z"
+        },
+        {
+          "address": "0x940a2dB1B7008B6C776d4faaCa729d6d4A4AA551",
+          "symbol": "DUSK",
+          "decimals": 18,
+          "source": "balance-api",
+          "addedAt": "2026-10-30T14:29:53.210Z"
         },
         {
           "address": "0x94a8b4EE5CD64C79D0Ee816f467EA73009f51aA0",
@@ -1283,6 +1381,13 @@
           "addedAt": "2026-10-16T23:12:01.775Z"
         },
         {
+          "address": "0xA12CC123ba206d4031D1c7f6223D1C2Ec249f4f3",
+          "symbol": "ZAMA",
+          "decimals": 18,
+          "source": "balance-api",
+          "addedAt": "2026-10-30T14:29:53.210Z"
+        },
+        {
           "address": "0xa1fA7777974312f7d801A8880714a218F76233f8",
           "symbol": "USDx",
           "decimals": 18,
@@ -1304,11 +1409,25 @@
           "addedAt": "2026-10-16T23:12:01.775Z"
         },
         {
+          "address": "0xA2cd3D43c775978A96BdBf12d733D5A1ED94fb18",
+          "symbol": "XCN",
+          "decimals": 18,
+          "source": "balance-api",
+          "addedAt": "2026-10-30T14:29:53.210Z"
+        },
+        {
           "address": "0xa3931d71877C0E7a3148CB7Eb4463524FEc27fbD",
           "symbol": "sUSDS",
           "decimals": 18,
           "source": "seed",
           "addedAt": "2026-10-16T23:12:01.775Z"
+        },
+        {
+          "address": "0xa3EE21C306A700E682AbCdfe9BaA6A08F3820419",
+          "symbol": "G-CRE",
+          "decimals": 18,
+          "source": "balance-api",
+          "addedAt": "2026-10-22T22:11:42.751Z"
         },
         {
           "address": "0xA9E8aCf069C58aEc8825542845Fd754e41a9489A",
@@ -1395,6 +1514,13 @@
           "addedAt": "2026-10-16T23:12:01.775Z"
         },
         {
+          "address": "0xB1c2Db5d6cA03FCe73dBd304d320bF76C55Ae1B1",
+          "symbol": "USG",
+          "decimals": 18,
+          "source": "balance-api",
+          "addedAt": "2026-10-30T14:29:53.210Z"
+        },
+        {
           "address": "0xB1D1eae60EEA9525032a6DCb4c1CE336a1dE71BE",
           "symbol": "DRV",
           "decimals": 18,
@@ -1407,6 +1533,13 @@
           "decimals": 18,
           "source": "seed",
           "addedAt": "2026-10-16T23:12:01.775Z"
+        },
+        {
+          "address": "0xb26C4B3Ca601136Daf98593feAeff9E0CA702a8D",
+          "symbol": "ALD",
+          "decimals": 18,
+          "source": "balance-api",
+          "addedAt": "2026-10-30T14:29:53.210Z"
         },
         {
           "address": "0xb2a25f7D864636E44Bc1Bf7a316897652Bf07463",
@@ -1568,6 +1701,13 @@
           "decimals": 18,
           "source": "seed,swept,tokenlist-balance",
           "addedAt": "2026-10-16T23:12:01.775Z"
+        },
+        {
+          "address": "0xcb1592591996765Ec0eFc1f92599A19767ee5ffA",
+          "symbol": "BIO",
+          "decimals": 18,
+          "source": "balance-api",
+          "addedAt": "2026-10-22T22:11:42.751Z"
         },
         {
           "address": "0xcb46C550539ac3DB72dc7aF7c89B11c306C727c2",
@@ -1899,6 +2039,13 @@
           "addedAt": "2026-10-16T23:12:01.775Z"
         },
         {
+          "address": "0xf3b9569F82B18aEf890De263B84189bd33EBe452",
+          "symbol": "CAW",
+          "decimals": 18,
+          "source": "balance-api",
+          "addedAt": "2026-10-30T14:29:53.210Z"
+        },
+        {
           "address": "0xF3e4872e6a4cF365888D93b6146a2bAA7348F1A4",
           "symbol": "SLVon",
           "decimals": 18,
@@ -1962,6 +2109,13 @@
           "addedAt": "2026-10-16T23:12:01.775Z"
         },
         {
+          "address": "0xFeAc2Eae96899709a43E252B6B92971D32F9C0F9",
+          "symbol": "ANYONE",
+          "decimals": 18,
+          "source": "balance-api",
+          "addedAt": "2026-10-22T22:11:42.751Z"
+        },
+        {
           "address": "0xff56Cc6b1E6dEd347aA0B7676C85AB0B3D08B0FA",
           "symbol": "ORBS",
           "decimals": 18,
@@ -1975,6 +2129,127 @@
           "reason": "balanceOf(router) did not return a word (no code / not ERC20)",
           "excludedAt": "2026-10-16T23:12:01.775Z"
         }
+      ],
+      "ignored": [
+        {
+          "address": "0x19Ae0678082aBf8a5B8514cF315619e3510F6c8c",
+          "symbol": "PZEN",
+          "reason": "thin price only ($0.2474, gecko:$2k)",
+          "balanceRaw": "993710088154",
+          "ignoredAt": "2026-10-22T22:11:39.853Z"
+        },
+        {
+          "address": "0x1D926bbE67425C9F507b9A0E8030eEdc7880BF33",
+          "symbol": "UP",
+          "reason": "firm $0.0170 < $1",
+          "balanceRaw": "299808101502632613",
+          "ignoredAt": "2026-10-22T22:11:39.853Z"
+        },
+        {
+          "address": "0x31F69dE127C8A0fF10819C0955490a4Ae46fcc2a",
+          "symbol": "GBYTE",
+          "reason": "firm $0.4786 < $1",
+          "balanceRaw": "113274962776182645",
+          "ignoredAt": "2026-10-30T14:29:52.752Z"
+        },
+        {
+          "address": "0x48f9e38f3070AD8945DFEae3FA70987722E3D89c",
+          "symbol": "iUSD",
+          "reason": "firm $0.0258 < $1",
+          "balanceRaw": "25774957742950589",
+          "ignoredAt": "2026-10-22T22:11:39.853Z"
+        },
+        {
+          "address": "0x491604c0FDF08347Dd1fa4Ee062a822A5DD06B5D",
+          "symbol": "CTSI",
+          "reason": "firm $0.4571 < $1",
+          "balanceRaw": "15424250000000000000",
+          "ignoredAt": "2026-10-22T22:11:39.853Z"
+        },
+        {
+          "address": "0x4C19596f5aAfF459fA38B0f7eD92F11AE6543784",
+          "symbol": "TRU",
+          "reason": "firm $0.1792 < $1",
+          "balanceRaw": "23543045720",
+          "ignoredAt": "2026-10-30T14:29:52.752Z"
+        },
+        {
+          "address": "0x4Dd942bAa75810a3C1E876e79d5cD35E09C97A76",
+          "symbol": "D2T",
+          "reason": "firm $0.2479 < $1",
+          "balanceRaw": "3064072587908766000000",
+          "ignoredAt": "2026-10-22T22:11:39.853Z"
+        },
+        {
+          "address": "0x51cB253744189f11241becb29BeDd3F1b5384fdB",
+          "symbol": "DMTR",
+          "reason": "firm $0.9779 < $1",
+          "balanceRaw": "136821870000000000000",
+          "ignoredAt": "2026-10-22T22:11:39.853Z"
+        },
+        {
+          "address": "0x5c147e74D63B1D31AA3Fd78Eb229B65161983B2b",
+          "symbol": "WFLOW",
+          "reason": "firm $0.1129 < $1",
+          "balanceRaw": "3937317671132224726",
+          "ignoredAt": "2026-10-22T22:11:39.853Z"
+        },
+        {
+          "address": "0x6944E1DF6Bf5972305f9Ab25dF47ef10De01bcc8",
+          "symbol": "UB",
+          "reason": "firm $0.2280 < $1",
+          "balanceRaw": "1820000000000000000",
+          "ignoredAt": "2026-10-22T22:11:39.853Z"
+        },
+        {
+          "address": "0x6982508145454Ce325dDbE47a25d4ec3d2311933",
+          "symbol": "PEPE",
+          "reason": "firm $0.1320 < $1",
+          "balanceRaw": "29965612500000000000000",
+          "ignoredAt": "2026-10-22T22:11:39.853Z"
+        },
+        {
+          "address": "0x6E0615a03eD9527a6013FcD5B556E36EF4DaB1FF",
+          "symbol": "HNB",
+          "reason": "firm $0.0199 < $1",
+          "balanceRaw": "1348361298800000000000",
+          "ignoredAt": "2026-10-30T14:29:52.752Z"
+        },
+        {
+          "address": "0xB705268213D593B8FD88d3FDEFF93AFF5CbDcfAE",
+          "symbol": "IDEX",
+          "reason": "firm $0.0326 < $1",
+          "balanceRaw": "137539996000000000000",
+          "ignoredAt": "2026-10-22T22:11:39.853Z"
+        },
+        {
+          "address": "0xD1b5651E55D4CeeD36251c61c50C889B36F6abB5",
+          "symbol": "sdCRV",
+          "reason": "firm $0.7085 < $1",
+          "balanceRaw": "3693414294759918505",
+          "ignoredAt": "2026-10-22T22:11:39.853Z"
+        },
+        {
+          "address": "0xD9343a049D5DBd89CD19DC6BcA8c48fB3a0a42a7",
+          "symbol": "LUMIA",
+          "reason": "firm $0.9697 < $1",
+          "balanceRaw": "13503300000000000000",
+          "ignoredAt": "2026-10-22T22:11:39.853Z"
+        },
+        {
+          "address": "0xDb298285FE4C5410B05390cA80e8Fbe9DE1F259B",
+          "symbol": "FOREX",
+          "reason": "firm $0.0149 < $1",
+          "balanceRaw": "68981929600000000000",
+          "ignoredAt": "2026-10-30T14:29:52.752Z"
+        },
+        {
+          "address": "0xF404E5f887dBd5508e16a1198fCDD5DE1A4296B8",
+          "symbol": "MRVLon",
+          "reason": "firm $0.2178 < $1",
+          "balanceRaw": "1083000000000000",
+          "ignoredAt": "2026-10-30T14:29:52.752Z"
+        }
       ]
     },
     "10": {
@@ -1983,7 +2258,7 @@
       "tokens": [
         {
           "address": "0x01bFF41798a0BcF287b996046Ca68b395DbC1071",
-          "symbol": "USD\u20ae0",
+          "symbol": "USD₮0",
           "decimals": 6,
           "source": "seed,swept,tokenlist-balance",
           "addedAt": "2026-10-16T23:11:55.310Z"
@@ -2057,6 +2332,20 @@
           "decimals": 18,
           "source": "tokenlist-balance",
           "addedAt": "2026-10-16T23:11:55.310Z"
+        },
+        {
+          "address": "0x33800De7E817A70A694F31476313A7c572BBa100",
+          "symbol": "DRV",
+          "decimals": 18,
+          "source": "balance-api",
+          "addedAt": "2026-10-30T14:29:53.455Z"
+        },
+        {
+          "address": "0x350a791Bfc2C21F9Ed5d10980Dad2e2638ffa7f6",
+          "symbol": "LINK",
+          "decimals": 18,
+          "source": "balance-api",
+          "addedAt": "2026-10-22T22:11:44.853Z"
         },
         {
           "address": "0x3E29D3A9316dAB217754d13b28646B76607c5f04",
@@ -2199,6 +2488,13 @@
           "addedAt": "2026-10-16T23:11:55.310Z"
         },
         {
+          "address": "0xc55E93C62874D8100dBd2DfE307EDc1036ad5434",
+          "symbol": "mooBIFI",
+          "decimals": 18,
+          "source": "balance-api",
+          "addedAt": "2026-10-30T14:29:53.455Z"
+        },
+        {
           "address": "0xc5b001DC33727F8F26880B184090D3E252470D45",
           "symbol": "ERN",
           "decimals": 18,
@@ -2247,6 +2543,29 @@
           "source": "seed",
           "addedAt": "2026-10-16T23:11:55.310Z"
         }
+      ],
+      "ignored": [
+        {
+          "address": "0x4727b1F0610aB69a3862442d48152516D8EF4727",
+          "symbol": "optibase.website 🟢🟢",
+          "reason": "no price (unpriced:no-market)",
+          "balanceRaw": "3349000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:39.855Z"
+        },
+        {
+          "address": "0x9A601C5bb360811d96A23689066af316a30c3027",
+          "symbol": "PIKA",
+          "reason": "firm $0.0049 < $1",
+          "balanceRaw": "12548487988117555",
+          "ignoredAt": "2026-10-22T22:11:39.855Z"
+        },
+        {
+          "address": "0xc40F949F8a4e094D1b49a23ea9241D289B7b2819",
+          "symbol": "LUSD",
+          "reason": "firm $0.0677 < $1",
+          "balanceRaw": "67419327904454613",
+          "ignoredAt": "2026-10-22T22:11:39.855Z"
+        }
       ]
     },
     "30": {
@@ -2291,7 +2610,7 @@
         },
         {
           "address": "0x779Ded0c9e1022225f8E0630b35a9b54bE713736",
-          "symbol": "USD\u20ae0",
+          "symbol": "USD₮0",
           "decimals": 6,
           "source": "chain-config,seed,tokenlist-balance",
           "addedAt": "2026-10-16T23:11:52.294Z"
@@ -3081,6 +3400,13 @@
           "addedAt": "2026-10-16T23:12:05.767Z"
         },
         {
+          "address": "0x6dc200b21894Af4660b549B678ea8df22BF7cfAc",
+          "symbol": "WARD",
+          "decimals": 18,
+          "source": "balance-api",
+          "addedAt": "2026-10-30T14:29:53.811Z"
+        },
+        {
           "address": "0x6E88056E8376Ae7709496Ba64d37fa2f8015ce3e",
           "symbol": "DEXE",
           "decimals": 18,
@@ -3096,7 +3422,7 @@
         },
         {
           "address": "0x6FBc7ae9Ffe8942B00e339ebBed26F2fF0507777",
-          "symbol": "\u4e2d\u672c\u806a",
+          "symbol": "中本聪",
           "decimals": 18,
           "source": "seed,swept",
           "addedAt": "2026-10-16T23:12:05.767Z"
@@ -3215,7 +3541,7 @@
         },
         {
           "address": "0x87aE267002cD1eA0eC86Bf3601D4a8AD76A47777",
-          "symbol": "\u8774\u8776\u4eba\u751f",
+          "symbol": "蝴蝶人生",
           "decimals": 18,
           "source": "seed",
           "addedAt": "2026-10-16T23:12:05.767Z"
@@ -3551,7 +3877,7 @@
         },
         {
           "address": "0xBEEA1D618e533a387D941F58a7d4c9b7bD377777",
-          "symbol": "\u725b\u6765",
+          "symbol": "牛来",
           "decimals": 18,
           "source": "seed",
           "addedAt": "2026-10-16T23:12:05.767Z"
@@ -3660,6 +3986,13 @@
           "decimals": 18,
           "source": "seed",
           "addedAt": "2026-10-16T23:12:05.767Z"
+        },
+        {
+          "address": "0xCE7de646e7208a4Ef112cb6ed5038FA6cC6b12e3",
+          "symbol": "TRX",
+          "decimals": 6,
+          "source": "balance-api",
+          "addedAt": "2026-10-22T22:11:40.741Z"
         },
         {
           "address": "0xcF6BB5389c92Bdda8a3747Ddb454cB7a64626C63",
@@ -3796,7 +4129,7 @@
         },
         {
           "address": "0xeCCBb861c0dda7eFd964010085488B69317e4444",
-          "symbol": "\u9f99\u867e",
+          "symbol": "龙虾",
           "decimals": 18,
           "source": "seed",
           "addedAt": "2026-10-16T23:12:05.767Z"
@@ -3849,6 +4182,13 @@
           "decimals": 18,
           "source": "seed,swept",
           "addedAt": "2026-10-16T23:12:05.767Z"
+        },
+        {
+          "address": "0xf5cB7cc90040aa717a16887C8b7D7c10a7c60984",
+          "symbol": "WARD",
+          "decimals": 18,
+          "source": "balance-api",
+          "addedAt": "2026-10-30T14:29:53.811Z"
         },
         {
           "address": "0xfA273B076Feb8c0FB34e554ae341082323D016A3",
@@ -3940,6 +4280,358 @@
           "decimals": 18,
           "source": "seed,swept,tokenlist-balance",
           "addedAt": "2026-10-16T23:12:05.767Z"
+        }
+      ],
+      "ignored": [
+        {
+          "address": "0x0Be38F45eF69E84beDd2386bF2a8b9Ba5f132Da1",
+          "symbol": "币安世界",
+          "reason": "no price (unpriced:no-market)",
+          "balanceRaw": "291310000000000000000",
+          "ignoredAt": "2026-10-22T22:11:39.855Z"
+        },
+        {
+          "address": "0x10B8ca4d3CF7eE71313F5ED5bF69B6E6ED1AB4A0",
+          "symbol": "分身",
+          "reason": "thin price only ($0.0000, gecko:$1)",
+          "balanceRaw": "191678617200000000000",
+          "ignoredAt": "2026-10-22T22:11:39.855Z"
+        },
+        {
+          "address": "0x17EAfd08994305D8AcE37EfB82F1523177eC70EE",
+          "symbol": "USDA",
+          "reason": "firm $0.3125 < $1",
+          "balanceRaw": "327000000000000000",
+          "ignoredAt": "2026-10-30T14:29:52.754Z"
+        },
+        {
+          "address": "0x19636fB845150606e89F319e38407E0098Ba8AaE",
+          "symbol": "刀哥",
+          "reason": "no price (unpriced:no-market)",
+          "balanceRaw": "214530000000000000000",
+          "ignoredAt": "2026-10-22T22:11:39.855Z"
+        },
+        {
+          "address": "0x1a9db038Edaf3c11f461AaFAC1a2F8Ce3ed7c01A",
+          "symbol": "真武",
+          "reason": "thin price only ($0.0000, gecko:$13)",
+          "balanceRaw": "231674715800000000000",
+          "ignoredAt": "2026-10-22T22:11:39.855Z"
+        },
+        {
+          "address": "0x24B518b332543a4E1C3649d063daB199d103760a",
+          "symbol": "oANTHROPIC",
+          "reason": "firm $0.2215 < $1",
+          "balanceRaw": "259454170462005",
+          "ignoredAt": "2026-10-30T14:29:52.754Z"
+        },
+        {
+          "address": "0x2dfF88A56767223A5529eA5960Da7A3F5f766406",
+          "symbol": "ID",
+          "reason": "firm $0.0083 < $1",
+          "balanceRaw": "294900000000000000",
+          "ignoredAt": "2026-10-30T14:29:52.754Z"
+        },
+        {
+          "address": "0x322469c0A717d8a30D725A74d026aBd27BA1115d",
+          "symbol": "相信",
+          "reason": "no price (unpriced:no-market)",
+          "balanceRaw": "23213160000000000000000",
+          "ignoredAt": "2026-10-22T22:11:39.855Z"
+        },
+        {
+          "address": "0x37CfD87F760Bc95029262e6c3106D365bEF0EFA2",
+          "symbol": "咯咯",
+          "reason": "firm $0.2931 < $1",
+          "balanceRaw": "50776080000000000000000",
+          "ignoredAt": "2026-10-30T14:29:52.754Z"
+        },
+        {
+          "address": "0x387dEa1D2772D716d081A29116f3EfFA0fFE1F36",
+          "symbol": "SMCIB",
+          "reason": "firm $0.0891 < $1",
+          "balanceRaw": "2657195640000000",
+          "ignoredAt": "2026-10-22T22:11:39.855Z"
+        },
+        {
+          "address": "0x3c8D1d6ef0a46C2f7d6c51ed9A78A889dbAA90fB",
+          "symbol": "取款机",
+          "reason": "thin price only ($0.0000, gecko:$17)",
+          "balanceRaw": "12518560000000000000000",
+          "ignoredAt": "2026-10-22T22:11:39.855Z"
+        },
+        {
+          "address": "0x3CB7378565718c64Ab86970802140Cc48eF1f969",
+          "symbol": "WING",
+          "reason": "thin price only ($0.0442, gecko:$78)",
+          "balanceRaw": "2683860310",
+          "ignoredAt": "2026-10-30T14:29:52.754Z"
+        },
+        {
+          "address": "0x3f61e8fD9B333f7F81bbe3053a2F0ee778b25C40",
+          "symbol": "币安生态",
+          "reason": "no price (unpriced:no-market)",
+          "balanceRaw": "221510005800000000000",
+          "ignoredAt": "2026-10-22T22:11:39.855Z"
+        },
+        {
+          "address": "0x41622a9125A22767Df8C1dC79FC17299BAc4Bd0b",
+          "symbol": "RDDTB",
+          "reason": "firm $0.0970 < $1",
+          "balanceRaw": "1011487500000000",
+          "ignoredAt": "2026-10-30T14:29:52.754Z"
+        },
+        {
+          "address": "0x46D502Fac9aEA7c5bC7B13C8Ec9D02378C33D36F",
+          "symbol": "WSPP",
+          "reason": "firm $0.0054 < $1",
+          "balanceRaw": "29080636",
+          "ignoredAt": "2026-10-22T22:11:39.855Z"
+        },
+        {
+          "address": "0x55beC4FeE9152c4809e7D64862db9B3b243B7ff3",
+          "symbol": "567Ucom",
+          "reason": "thin price only ($0.0127, gecko:$27)",
+          "balanceRaw": "10567000000000000000",
+          "ignoredAt": "2026-10-30T14:29:52.754Z"
+        },
+        {
+          "address": "0x583CeB2e79186D1145Be4f64705aF12De9C40CFc",
+          "symbol": "claim-usd.com🎁",
+          "reason": "no price (unpriced:no-market)",
+          "balanceRaw": "15768000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:39.855Z"
+        },
+        {
+          "address": "0x59c4D49dBd580d6350D4D8b5431D8466067Bd3a1",
+          "symbol": "硬币",
+          "reason": "no price (unpriced:no-market)",
+          "balanceRaw": "35746160000000000000000",
+          "ignoredAt": "2026-10-22T22:11:39.855Z"
+        },
+        {
+          "address": "0x5A0e74E66282A2796B51145Ca12b7F1d5A535750",
+          "symbol": "我的女友景甜",
+          "reason": "no price (unpriced:no-market)",
+          "balanceRaw": "244900000000000000000",
+          "ignoredAt": "2026-10-22T22:11:39.855Z"
+        },
+        {
+          "address": "0x5ab12f648414BAA7e887Be0bAcB9355370f66275",
+          "symbol": "yoki酱",
+          "reason": "thin price only ($0.0000, gecko:$11)",
+          "balanceRaw": "155638990000000000000",
+          "ignoredAt": "2026-10-22T22:11:39.855Z"
+        },
+        {
+          "address": "0x5d2C98b2800B5b8C6f6945b9F1A446b721F36ACF",
+          "symbol": "智能体犬",
+          "reason": "thin price only ($0.0000, gecko:$36)",
+          "balanceRaw": "46655610000000000000000",
+          "ignoredAt": "2026-10-30T14:29:52.754Z"
+        },
+        {
+          "address": "0x65e43aA579eb32bd7C25a59670a38388FD2C8c78",
+          "symbol": "友谊使者",
+          "reason": "thin price only ($0.0000, gecko:$8)",
+          "balanceRaw": "25550970000000000000000",
+          "ignoredAt": "2026-10-22T22:11:39.855Z"
+        },
+        {
+          "address": "0x69fdcee1651E08974a18C08ad7386d0Ef7Cb72CA",
+          "symbol": "币安金兔",
+          "reason": "no price (unpriced:no-market)",
+          "balanceRaw": "20751820000000000000000",
+          "ignoredAt": "2026-10-22T22:11:39.855Z"
+        },
+        {
+          "address": "0x75dF6071aC25Fc70f0795e98C0FC9eD8Cd4703a6",
+          "symbol": "萌兰",
+          "reason": "thin price only ($0.0000, gecko:$5)",
+          "balanceRaw": "20835780000000000000000",
+          "ignoredAt": "2026-10-22T22:11:39.855Z"
+        },
+        {
+          "address": "0x7E2C82277fE1342E739b3e11D9a6Db4F7dff6E24",
+          "symbol": "哈基米",
+          "reason": "no price (unpriced:no-market)",
+          "balanceRaw": "19111690000000000000000",
+          "ignoredAt": "2026-10-22T22:11:39.855Z"
+        },
+        {
+          "address": "0x810DF4c7Daf4eE06AE7c621D0680E73a505C9A06",
+          "symbol": "P",
+          "reason": "firm $0.7956 < $1",
+          "balanceRaw": "60060000000000000000",
+          "ignoredAt": "2026-10-22T22:11:39.855Z"
+        },
+        {
+          "address": "0x82d033B9b66e19A31EddDCb4D461DD7821dD2e94",
+          "symbol": "币安金库",
+          "reason": "thin price only ($0.0000, gecko:$16)",
+          "balanceRaw": "238178550000000000000",
+          "ignoredAt": "2026-10-22T22:11:39.855Z"
+        },
+        {
+          "address": "0x873507265dDd4151E8b0aA244A8730F077E3A8FA",
+          "symbol": "破茧成蝶",
+          "reason": "thin price only ($0.0000, gecko:$19)",
+          "balanceRaw": "24173560000000000000000",
+          "ignoredAt": "2026-10-22T22:11:39.855Z"
+        },
+        {
+          "address": "0x891609c0b389e3FC99AA2d757641114c1C72785c",
+          "symbol": "Nailoong",
+          "reason": "no price (unpriced:no-market)",
+          "balanceRaw": "291310000000000000000",
+          "ignoredAt": "2026-10-22T22:11:39.855Z"
+        },
+        {
+          "address": "0x8D279274789CceC8af94a430A5996eAaCE9609A9",
+          "symbol": "INSP",
+          "reason": "firm $0.4052 < $1",
+          "balanceRaw": "4922655001271100000000",
+          "ignoredAt": "2026-10-22T22:11:39.855Z"
+        },
+        {
+          "address": "0x9244c432b809ee0aae6d770Ae9D25af307472Fe4",
+          "symbol": "币安股票",
+          "reason": "thin price only ($0.0000, gecko:$5)",
+          "balanceRaw": "216990000000000000000",
+          "ignoredAt": "2026-10-30T14:29:52.754Z"
+        },
+        {
+          "address": "0x924fa68a0FC644485b8df8AbfA0A41C2e7744444",
+          "symbol": "币安人生",
+          "reason": "firm $0.2617 < $1",
+          "balanceRaw": "521528000000000000",
+          "ignoredAt": "2026-10-22T22:11:39.855Z"
+        },
+        {
+          "address": "0x932d75a58e69dc344a67D8031CcF63842a099b52",
+          "symbol": "拉盘币",
+          "reason": "thin price only ($0.0000, gecko:$3k)",
+          "balanceRaw": "9500000000000000",
+          "ignoredAt": "2026-10-30T14:29:52.754Z"
+        },
+        {
+          "address": "0xa0540079FD22e86897A8AfBfDF7ffd855A7187fc",
+          "symbol": "AST",
+          "reason": "no price (unpriced:no-market)",
+          "balanceRaw": "19624350000000000000000",
+          "ignoredAt": "2026-10-22T22:11:39.855Z"
+        },
+        {
+          "address": "0xa226dFdD0E2168676bA13889e93c07cE3A0b4e37",
+          "symbol": "RWS",
+          "reason": "firm $0.0140 < $1",
+          "balanceRaw": "1980000000000000000",
+          "ignoredAt": "2026-10-22T22:11:39.855Z"
+        },
+        {
+          "address": "0xb0AF81311fc9D2b41c5CcA905E7906C20E9cD1A0",
+          "symbol": "果蝇",
+          "reason": "no price (unpriced:no-market)",
+          "balanceRaw": "218248182600000000000",
+          "ignoredAt": "2026-10-22T22:11:39.855Z"
+        },
+        {
+          "address": "0xBA17aacF40E8B0D08774e979a324d01bD73abf83",
+          "symbol": "人生回忆录",
+          "reason": "no price (unpriced:no-market)",
+          "balanceRaw": "31457230000000000000000",
+          "ignoredAt": "2026-10-22T22:11:39.855Z"
+        },
+        {
+          "address": "0xBBC4aab6bAd5464273CF501AE2dc0A25BFc0b81A",
+          "symbol": "拍手黑猫",
+          "reason": "thin price only ($0.0000, gecko:$1)",
+          "balanceRaw": "28581620000000000000000",
+          "ignoredAt": "2026-10-22T22:11:39.855Z"
+        },
+        {
+          "address": "0xbC4f5C369702A1Dd80EEc6fd497100a60F0b8f78",
+          "symbol": "喜羊羊",
+          "reason": "thin price only ($0.0000, gecko:$1)",
+          "balanceRaw": "40676590000000000000000",
+          "ignoredAt": "2026-10-22T22:11:39.855Z"
+        },
+        {
+          "address": "0xC47Ce083F18776E711c4365Bc4daa283229Cb6CA",
+          "symbol": "DW",
+          "reason": "thin price only ($0.0000, gecko:$4k)",
+          "balanceRaw": "7788000000000000",
+          "ignoredAt": "2026-10-22T22:11:39.855Z"
+        },
+        {
+          "address": "0xC8Da12cbCCE7c45180692a6420b0076e03a5179a",
+          "symbol": "RKLBB",
+          "reason": "firm $0.0458 < $1",
+          "balanceRaw": "900000000000000",
+          "ignoredAt": "2026-10-22T22:11:39.855Z"
+        },
+        {
+          "address": "0xc915EB04931C3AB7a1cbe8Ba8769C1E20C9a4d33",
+          "symbol": "BINA",
+          "reason": "thin price only ($0.0000, gecko:$10)",
+          "balanceRaw": "313571690000000000000",
+          "ignoredAt": "2026-10-30T14:29:52.754Z"
+        },
+        {
+          "address": "0xCBA88eD49A3ec4a87D6162892B556e55ADe6E696",
+          "symbol": "币安股票",
+          "reason": "firm $0.0000 < $1",
+          "balanceRaw": "6000000000000000000",
+          "ignoredAt": "2026-10-30T14:29:52.754Z"
+        },
+        {
+          "address": "0xd294ab4825e131C1E9377208397952CbEa41ee08",
+          "symbol": "边界之外",
+          "reason": "no price (unpriced:no-market)",
+          "balanceRaw": "372370000000000000000",
+          "ignoredAt": "2026-10-22T22:11:39.855Z"
+        },
+        {
+          "address": "0xD431E0257154B255628fc3A0a6b2Ea940EB27777",
+          "symbol": "MERA",
+          "reason": "firm $0.0000 < $1",
+          "balanceRaw": "1015000000000000",
+          "ignoredAt": "2026-10-22T22:11:39.855Z"
+        },
+        {
+          "address": "0xe485050EF170385eb3e1EFE4DE4e47aAF7017C79",
+          "symbol": "万福金安",
+          "reason": "thin price only ($0.0000, gecko:$16)",
+          "balanceRaw": "29514590000000000000000",
+          "ignoredAt": "2026-10-22T22:11:39.855Z"
+        },
+        {
+          "address": "0xEaFCf7148B980Bf52245DE86ce898314Ba670781",
+          "symbol": "中国龙",
+          "reason": "thin price only ($0.0000, gecko:$22)",
+          "balanceRaw": "25118160000000000000000",
+          "ignoredAt": "2026-10-22T22:11:39.855Z"
+        },
+        {
+          "address": "0xecd83D01A0d0721327200cE9296C44d937622300",
+          "symbol": "TAIGAN",
+          "reason": "no price (unpriced:no-market)",
+          "balanceRaw": "15618850000000000000000",
+          "ignoredAt": "2026-10-22T22:11:39.855Z"
+        },
+        {
+          "address": "0xF64c0EDE6C33c521fBFcd82F63D427bDAB3E1082",
+          "symbol": "币安日记",
+          "reason": "firm $0.0000 < $1",
+          "balanceRaw": "5000000000000000000",
+          "ignoredAt": "2026-10-30T14:29:52.754Z"
+        },
+        {
+          "address": "0xf9909A6371ceE3f9A60D276CF26F58A9f13eEc2e",
+          "symbol": "牛币",
+          "reason": "thin price only ($0.0000, gecko:$0)",
+          "balanceRaw": "3000000000000000000",
+          "ignoredAt": "2026-10-30T14:29:52.754Z"
         }
       ]
     },
@@ -4101,6 +4793,29 @@
           "reason": "balanceOf(router) did not return a word (no code / not ERC20)",
           "excludedAt": "2026-10-16T23:11:54.848Z"
         }
+      ],
+      "ignored": [
+        {
+          "address": "0x2995D1317DcD4f0aB89f4AE60F3f020A4F17C7CE",
+          "symbol": "SUSHI",
+          "reason": "firm $0.8874 < $1",
+          "balanceRaw": "4674417857029041168",
+          "ignoredAt": "2026-10-30T14:29:52.755Z"
+        },
+        {
+          "address": "0x48b1B0d077b4919b65b4E4114806dD803901E1D9",
+          "symbol": "DIP",
+          "reason": "firm $0.8565 < $1",
+          "balanceRaw": "861940200000000000000",
+          "ignoredAt": "2026-10-30T14:29:52.755Z"
+        },
+        {
+          "address": "0xFAdc59D012Ba3c110B08A15B7755A5cb7Cbe77D7",
+          "symbol": "GRT",
+          "reason": "firm $0.2083 < $1",
+          "balanceRaw": "8825547051112941499",
+          "ignoredAt": "2026-10-22T22:11:39.856Z"
+        }
       ]
     },
     "130": {
@@ -4200,7 +4915,7 @@
         },
         {
           "address": "0x9151434b16b9763660705744891fA906F660EcC5",
-          "symbol": "USD\u20ae0",
+          "symbol": "USD₮0",
           "decimals": 6,
           "source": "chain-config,seed,swept,tokenlist-balance",
           "addedAt": "2026-10-16T23:12:00.361Z"
@@ -4218,6 +4933,15 @@
           "decimals": 18,
           "source": "seed",
           "addedAt": "2026-10-16T23:12:00.361Z"
+        }
+      ],
+      "ignored": [
+        {
+          "address": "0xbdE8A5331E8Ac4831cf8ea9e42e229219EafaB97",
+          "symbol": "SOL",
+          "reason": "firm $0.3485 < $1",
+          "balanceRaw": "3365322",
+          "ignoredAt": "2026-10-22T22:11:40.548Z"
         }
       ]
     },
@@ -4631,6 +5355,64 @@
           "source": "seed",
           "addedAt": "2026-10-16T23:12:02.603Z"
         }
+      ],
+      "ignored": [
+        {
+          "address": "0x0A02D33031917d836Bd7Af02F9f7F6c74d67805F",
+          "symbol": "oKAIA",
+          "reason": "thin price only ($0.1579, gecko:$3k)",
+          "balanceRaw": "3890106000664854312",
+          "ignoredAt": "2026-10-22T22:11:41.010Z"
+        },
+        {
+          "address": "0x3cBFcd1CC5016aB6AEe067c309065cDF077e3e67",
+          "symbol": "Apple",
+          "reason": "firm $0.0004 < $1",
+          "balanceRaw": "50000000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:41.010Z"
+        },
+        {
+          "address": "0x440017A1b021006d556d7fc06A54c32E42Eb745B",
+          "symbol": "@G",
+          "reason": "firm $0.7383 < $1",
+          "balanceRaw": "95609763343757959065",
+          "ignoredAt": "2026-10-22T22:11:41.010Z"
+        },
+        {
+          "address": "0x4A6f010861EEc637aE7a40FB92BA9327df074a41",
+          "symbol": "STONKEX",
+          "reason": "thin price only ($0.0070, gecko:$2)",
+          "balanceRaw": "25000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:41.010Z"
+        },
+        {
+          "address": "0x547c6F95bB15782038A8CDcD3981ECf68578612F",
+          "symbol": "JPYC",
+          "reason": "thin price only ($0.0100, gecko:$1)",
+          "balanceRaw": "100000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:41.010Z"
+        },
+        {
+          "address": "0x5B8Bda661D8108eE7BE5A8ffaA25567796B37809",
+          "symbol": "UMIA",
+          "reason": "no price (unpriced:no-market)",
+          "balanceRaw": "1000000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:41.010Z"
+        },
+        {
+          "address": "0x5bEF2617eCCA9a39924c09017c5F1E25Efbb3bA8",
+          "symbol": "oUSDC",
+          "reason": "thin price only ($0.0956, gecko:$6k)",
+          "balanceRaw": "334391",
+          "ignoredAt": "2026-10-22T22:11:41.010Z"
+        },
+        {
+          "address": "0xBbba073C31bF03b8ACf7c28EF0738DeCF3695683",
+          "symbol": "SAND",
+          "reason": "firm $0.0038 < $1",
+          "balanceRaw": "84564580402793368",
+          "ignoredAt": "2026-10-30T14:29:53.345Z"
+        }
       ]
     },
     "143": {
@@ -4664,6 +5446,13 @@
           "decimals": 18,
           "source": "tokenlist-balance",
           "addedAt": "2026-10-16T23:12:01.713Z"
+        },
+        {
+          "address": "0x371c7ec6D8039ff7933a2AA28EB827Ffe1F52f07",
+          "symbol": "JOE",
+          "decimals": 18,
+          "source": "balance-api",
+          "addedAt": "2026-10-22T22:11:42.688Z"
         },
         {
           "address": "0x3bd359C1119dA7Da1D913D1C4D2B7c461115433A",
@@ -4728,6 +5517,15 @@
           "source": "seed,tokenlist-balance",
           "addedAt": "2026-10-16T23:12:01.713Z"
         }
+      ],
+      "ignored": [
+        {
+          "address": "0xBC69212B8E4d445b2307C9D32dD68E2A4Df00115",
+          "symbol": "USDm",
+          "reason": "firm $0.0469 < $1",
+          "balanceRaw": "46929540289434574",
+          "ignoredAt": "2026-10-22T22:11:41.878Z"
+        }
       ]
     },
     "151": {
@@ -4737,7 +5535,7 @@
       "tokens": [
         {
           "address": "0x420e07cec544b8A52B7d0c62b1C9BF990cc58083",
-          "symbol": "USD\u20ae0",
+          "symbol": "USD₮0",
           "decimals": 6,
           "source": "chain-config",
           "addedAt": "2026-10-16T23:12:02.562Z"
@@ -4917,7 +5715,7 @@
         },
         {
           "address": "0x102d758f688a4C1C5a80b116bD945d4455460282",
-          "symbol": "USD\u20ae0",
+          "symbol": "USD₮0",
           "decimals": 6,
           "source": "seed,swept,tokenlist-balance",
           "addedAt": "2026-10-16T23:12:03.292Z"
@@ -5448,7 +6246,7 @@
         },
         {
           "address": "0xB8CE59FC3717ada4C02eaDF9682A9e934F625ebb",
-          "symbol": "USD\u20ae0",
+          "symbol": "USD₮0",
           "decimals": 6,
           "source": "chain-config,seed,swept",
           "addedAt": "2026-10-16T23:12:04.219Z"
@@ -5466,6 +6264,13 @@
           "decimals": 18,
           "source": "seed",
           "addedAt": "2026-10-16T23:12:04.219Z"
+        },
+        {
+          "address": "0xd0Ee0CF300DFB598270cd7F4D0c6E0D8F6e13f29",
+          "symbol": "AVLT",
+          "decimals": 6,
+          "source": "balance-api",
+          "addedAt": "2026-10-22T22:11:43.924Z"
         },
         {
           "address": "0xE443D488a8988262f35B921B36F1c8F5b2FA38e1",
@@ -5501,6 +6306,29 @@
           "decimals": 6,
           "source": "seed,swept",
           "addedAt": "2026-10-16T23:12:04.219Z"
+        }
+      ],
+      "ignored": [
+        {
+          "address": "0x58538e6A46E07434d7E7375Bc268D3cb839C0133",
+          "symbol": "ENA",
+          "reason": "firm $0.0752 < $1",
+          "balanceRaw": "378340000000000000",
+          "ignoredAt": "2026-10-22T22:11:42.943Z"
+        },
+        {
+          "address": "0x90A2a4c76b5D8c0bc892A69EA28Aa775a8f2dD48",
+          "symbol": "SPYx",
+          "reason": "firm $0.0000 < $1",
+          "balanceRaw": "1",
+          "ignoredAt": "2026-10-30T14:29:53.610Z"
+        },
+        {
+          "address": "0xc845b2894dBddd03858fd2D643B4eF725fE0849d",
+          "symbol": "NVDAx",
+          "reason": "firm $0.0000 < $1",
+          "balanceRaw": "1",
+          "ignoredAt": "2026-10-30T14:29:53.610Z"
         }
       ]
     },
@@ -5545,7 +6373,7 @@
         },
         {
           "address": "0x9151434b16b9763660705744891fA906F660EcC5",
-          "symbol": "USD\u20ae0",
+          "symbol": "USD₮0",
           "decimals": 6,
           "source": "chain-config,seed,tokenlist-balance",
           "addedAt": "2026-10-16T23:12:04.005Z"
@@ -7182,7 +8010,7 @@
         },
         {
           "address": "0xAE2Df3c1749daEE721c1BFcbbFDde5D61ae7cb99",
-          "symbol": "BTCETHUSDTBNBUSDCXRPSOLTRXHYPEDOGERAINZECDELLEOXLMXMRLINKADACCDAIBCHUSD1USDEGRAMLTCUSDGSUIDEXEHBARPYUSDAVAXCRONEARXAUTSHIBUNITAOUSDYWLFIPAXGOKBASTERONDOMHTXRLUSDUSDDSKYDOTMNTAAVEWLDUSDFICPBGBPEPEETCUMORPHOUSDGOPIKCSCTMSTABLEPOLJLPJSTATOMQNTENARENDERKASALGOBEATGT\u5e01\u5b89\u4eba\u751fPUMPBDXJUPGHOFILXDCTBLLXFLRVVVLITARBUSD0USXINJAPTUSDAITUSDNEXONIGHTCAKEETHFIDASHAEROEURCVETVIRTUALTRUMPPENGUPYTHFETSUNFDUSDSEITIACRVSPXLUNCLDOSTXGNOZROJTOBSVBTTDUCKYPENDLENFTIMXMONXTZCFXBONKJASMYFRAXUB2ZDCRVELVETOPSTRCXKOGEXPLSYRUPKAIAKITEAUSDKAITOSTRKAPEPEFLOKIZBCNEIGENXECUSATGRTENSHWFIRAYFFPIEVERSECOMPTELAAPLXBIOTACHZAXSSPYXAKTWIFMXEDGEBORGMUXZANOGUSDTSLAXEURCVRUNEHOODXQQQXTWTAPETHETANEOXCNSANDMANABTWFARTCOININTCXRIFGOOGLXNVDAXTRACALEVSNARTBKBPCVXWEMIXCRCLXBATAWEAGOMININGTIBBIRUDSTAGSHFLFRXUSDRLBUSSFPGENIUSDUSDMRVLX1INCHNEXDYDXSOSOBMXEUSXGALAGLMREALSENTEGLDSMILEKABJSMCFGDATAAVVGLDXDEEPZKKMNOOCRCLONVCNTMETAXALLOSOONDRVYZYATHAMDXGRASSCHEEMSMSFTXGEODQUSDONSPCXBUAIFLUIDWOULDLIGHTMELANIASNDKBBANKRAVECSCOXBEAMSNXCOWZAMANMRANTFUNORDIRSRYFIZENKOXQTUMLISUSDZBUANSEMVTXLPTBANMSTRXLURMETXPRLINXLBTNXPCCOINXZRXORCAPLTRXWALHUMAARCBANANAS31MUBGASSFORMIVVONKTABASDGBGMXFTTCARDSMAXNILAUSDSUIRIVERBILLCVXXSHXIEMGXAIOZFIDDQFISAFEUSELESSHOTCHIPVXPLUMERVNGSXPFEXREDOGQUBICVBUSDPRESPCXZIGXPINAIHKSMLABVELOTFUELGCOINPGXSCHFXCOAIMINATURBOBIOWCASHCATMAGMAZILABBVXENJVTIXEWUXBERAAVGOXDHNBABYDOGEIOSUPERJELLYJELLYLINEAAPRDIEMGWEISYNHDXAZNXXPNPCZETASPKBRETTXOMXUNHXELFBRK.BXBABYTONXXGPSPROSGMEXIDHONXKUBMEGABRAXLTOSHISKHYXCYSSOXXXKAVAXNOCRCLBUPOPENLIONHOLOXVSSUSHISN4AKEIWMXSN51CCDOMIJCTCKBTQQQXXAUMREDVVSCOPXXMNGOMOVECTCONTASTRTROLLBLURBTBTXELGCRWDXTCELOSMHXAPPXFLOWREQPURRASSETACHROSEBDCATRBARRRDHRXSRXMRKXRONZCHFALTMUONPOPCATAPEXIBITONXYOBARDSUTJNJXEWYXSPYONNOCKPNUTLLYXRPLYUSDSKRFUNAGTPEAQPCIPMXBACXICNTAMZNXXUSDNVDAONMOGSENTISMYMASKJPMXEURIPOLYXAMPGHNTFBBUSDAZTECSTARVTHOPROVEESPMOODENGNOTMEVAMGLIDRMMTBIMORCLXAMBRXGOHOMEBNKRKGENB2ATAMPLCUSD0GMOCAANKRTMOXSOXLXWMTXPRONVOXKLACXSNTFOGOMEMETGBPNFLXXPEPXREKTBURNMANTRAUMAVANAXVGWAVESAIATSCQQQONZEREBRODUSKCOINONLOCUSCROSSHIMSONPMLUNASPACEDBRELONIRYSATOSZBTSSVBSBCMCSAXHSKUSDPOREMEWZESTNESSAHARAABTXDEGENARXKNTQACNXSQDCSPRSTORJLAYERAISN44MANTALUSDWKCCOREPRLHOMEUPCNOWACXUSTCMBGSKYAIDFDVXCAPBOLDAVNTBANDBMNRXBNTPLAYXANMCDXSUSDOPENXSERVUSDKDEPWHITETORNZORAMYXESPORTSEUSDHIVEBOMEUNSUQCLITEXB3PEOPLEBORASMARTTRUTHCATITAKLKWUSDMDTXGIGGLEETHWORBSFOLKSOSMOIBMXSWFTCSN9SLXAITCOLLECTASTEROIDCRMXICXRAILVRNEIRORLCUNPVANTAOPGSIRENPOWRAIOPROMAOPORBRATMARKMWOOSKLSOMICYBERALEONAORISMVLQANXHANAROBOHYPERCALCHAINEDUONGISIKCAUCTIONMERLKNCDAGSNEKEULIOSTGMTIOTXLCXSLVONGOOGLONWINSTEEMEVSLVXCOTIBBILVBASEDMUSDSLTFAIPREOPAIPUNDIXDODOFIDALONCOINDEPOSTRAXCTSIPYTHIAGIGAARKCHEELARDRMTLMLKPHAMETISROGLISTASIGNNOSSLPSATSREZCVCPYBOBOWOJAKSTGIQTLTONSNCYGGAIOTCLOAUDIOPMTANTTPTDKABLASTTXCNEETDOGSCARVXCHXYMLSKABTCPOOLAPI3TRIAMSTRONRIZEBREVPOKTSN3SAPIENERGAIXBTWAXPWBXCGOCBKSTRXIDOLAPTMLRCDRAMBPPLTXRTXWCTYNGFLUXCETUSCGPTOHOSOXLBBIGTIMESONICTACGAMEFULPOWERPIPPINAEVOKMDONEIEFAONSPELLACUEDENEGL1BLESSTAIKOMEDMOVRCTKGCBBOXNILUSUALMOBBTGOXBFCTNSRADSARARAABEYMGOMRVLON\u9f99\u867eTOKAMAKBIRBPIXELOXTLQTYZENTPARTIETNWETGOLDGRTSLAONXNYINAOCHRSTBLEPICFTRBXAIINTCONQUAISCRTONRMUHEZANIMEFRSNDKBTRSTNYMEVAAAGLDENSOXAUT0AGGONBLUAIRUJIGNSSN56MAGICQKCNMCBICOINXMETAAURORAMBLDFGGOATCLANKERCHEXELSABANANAMEYPDDONARROW\u54c8\u57fa\u7c73CELRIBSFLOCKUSDHZKCSTRCONSOFIONINTCBNEWTC98DESOZKPMMUIARPAQIELUCICWXTRADORDERITOTONHPGYENJOECTRRECALLUSDCVBITCOINMPLXUFDVANRYUSDBSLNDOGCORNSBBTCMIRADIAYBDIAMIAUONLUMIASAUCEBLENDHMSTRFIROIXSBCDXSGDBROCCOLIMUBARAKXRDISLMALICEOSAKOPNFUSDOGNAVATLMFELYREIKATTIPONKISHUDOODAVAILSOLVTUTMSFTONEFAONKCTPONKEWECANKAIOVENOMAMZNONALIAERGOINITREPWANMAVGLMRFARSXTBONEMWXTSFIAIARSCRAREACNBULLAABELESETSTHUNTSN62GODSMSTRBNSTGUNVEREMRBNTBOBAFARTBOYLAERATGCCWUCOLXKERNELSN5CATDOLONXAAPXRCRCLMANIFESTBERTHEGICCOLAMDONPORTALUSDMLYNARIAPROMPTIEMGONCHILLGUYNCTFHESTOFCTEVEREPSYELLOWCETBUTTCOINCLASHSOPHGLEECDESUHEIBOBAAPLONMETAONOWBIWFONVOWXIONLMTSROLLTT4VINEEWTAURATXRESOLVPSGCHECKPRIMEREPPOSANTOSTRUSTXU3O8EURRADXWALLETDYMGRIFFAINBELIAGGRSSPCXSHELLRAMPTAITRADOORDRIFTMOCUCNQQQBPPCWILDBMTQIAVICIREADYAICSPCXONUSDQDEXTSDACTHONEYGRNDDORASPCXX\u6211\u8e0f\u9a6c\u6765\u4e86BEEAGRSFORTGUAMCOINGALSKHYBNVDABSTCINVTKOBOUNTYASRASMPNKBARDADDYAGIBALHFTDEODIKAAHTNIMSOILNETXOMGLYXLOANSOLOVDAISLERFTHEMCBARTXEEMONDXIHAEDALPEPBTCLESQGROWSUPRAOLASMBXTSMONTAKETOWNSNUMIBADGERMAPOESIMSWARMSALPINEXSGOVONOUSDCREPECOOKIEACEWRXLOOMACSOGYFIGHTPIKAPEPECOINMNSRYPUFFERMAVIAREDOQUICKMUSNDKONWENKNNBISONELAAUKIL3ELKONETKGSTMPCBGSCPORTOPONDDIVIANYONENAVXBRISEUSDRBETATLOSRACAUSDPTKANAPUFUELGTCANTHROPICBTRSDEXTREETQQQONPOLSMAMOPAALUTKRIONARGAMOBTXIWNONVULTVATRENIDAOZRCSAVESPARKLETAVGOONMOBILECITYVNXAUBFGAQTEDELASPMAMEPHNIXJUVVLINKPPTCAWGPHDNMINTURTLESAGALLYONZKJCOQPITEWYBPOPMCDULLORCLONRIOXWCARMONSUREETHDYDXVCHFALPHRHEADNTKRLUSDUCARENAPNGWEXOBLUECRETAOMIKAMITOKEALCXLMWRRSS3LVLADYSPDTLAZIOATSPYRVICHOPRDEUSKYVEATLASSPAODOSDOGINMEBCNMLNXPLAMORIGSTMONANEONMIMGEARKOMACOREUMRMRVLANONPTBSPCMPAYAIBMNRONSCRSPSHEMIFWOGNOMGBYTESIXLINGOBOSONM87PZMWOLFREFWAIGALEONROAMHOODONSKIPIBDMDAUDDKEYCATELIZAOSTONICSWAPLAVASUNDOGSYMMPKOINBTSEGFALPORKOLORAIACMXEM$PURPEVLTCQCOMONLATRSPCXSCORSPACEXSNANDYVESTGMMTDGMAMITOQUQLMTONPIVXGHXSHAREASMLONEURQKLVPBTCMNTXTSLABSBDGRINLQKOONSEND\u54ed\u54ed\u9a6cCATEAFCKEKIUSIHCSWELLSPECTREPUSSBNBTIGERCRTSLOFIPOLISFEISWEATSTNKCESSWOLFONRMSTRFARMBTGNSJAGERGFIRINTCIWMONAVLSPCDRAMONWENDRGNBLZAIVMETFIALUVTCWODPUNDIAIRENVITABTSDJEDDMCRLS\u5ba2\u670d\u5c0f\u4f55DSYNCOCTAGEMSMVCFOXPALMIJHONWSPPXCPDIMOBUYPFEONNEURALA8CXTUBTBIFIRNBWBABAONNOBODYSN88XBGZTCOVPPMEASHDWKENDUIDIASUKUUSOONGROKASTSONWNCGFLMCOLSPROPCFREYAGMETETCULTCARDINGOVOOIGAIBMAJORMEVREEFBFMANYUYEEEMTIBMONRMETAQAITDENTXFCNBISBCSCOONNAKAMIGGLESJPMONALTSZNAVTPGONXEPPLTRONBELLSZYPTOUSDC(WORMHOLE)NATIXCTXCLVTSMBNIZAMATHGOLDAOPXPAINA47PEIPEIABBCALEPHINTERCVXONROAOASIMPTPRCLRAMDIRFEGVARAMINIMA\u96ea\u7403NVOONOBSRMYROUSDVPANWONLOTRDRAMOFCKOSYSMCDONCLOAKVALFORESTQSTRNVDANEXASHIDOVFYGHSTHEARTLEASHVAIDMTRBOOEFORTHVOLTLNQARWOORTWMTONLIBERTYAECOOKGMEESWCHKARRATDJI6930RTSLABAYNODLTRUAZEROSNSSTREAMZEUSPORNROCKETLQRIDRTPEPONSTATUSAVONDLHEROEURTMRVLBALTTTOKENBZZSBUXONCEEKPARTPBRONTRUFRWALUCKYCAFOXSYBIDDOBOSISSHARPSDTTRUUHIGHGLWBBORGYSTUFFMANEKISRMRTSMTAROTPLUDCEATYURUPXCFTRDRXAMDBPINRUSSELLRQQQKIBSHIRYULMBRNFTYECCEURXTNJESUSCUBERMSFTPUPSNXRAVNOMDTEPTBLKONTMONMYSTXSWAPVERSEMYTHDEUROJOBYAIDOGESOLCEXNUMGOALASKPAPARAZZIKUJIAURYMSFTBTAOBOTMCMBXNWHALEBOTTORAVGORGOOGLLINONBIOTBOTGMCOINTEMCOMOBYOBTXPMGOOGLBLIBRAKINDBIDZHOOKEQIXONLIMEMTADNNUBINDYTHQREGENTRARIGEONHOLDBOOPRZRCSWAPKWENTAIDEXCOPXONVERTAIADPLUCA401JKPROPSKDABENJIMIABITCIP2PWHITEWHALETTNSTIKHIUOSCWEBHAROLDQCOMBVEURTRIASSTRIKEVEXTRA0X0AST67WINRXTERHOSKYSNOWONMETAVGOATEDBTC2TRWARBNNOWONSOULCHATMOEWCUMMIESBFICSMTOPENAIDAMMCHCRYPTOZCLHOGESAROSCRPTMAYCRPNMTMONKYTAVAUNHONKORIALXELNOKBDEVVEBILLYEGGZTXOVROCICATDOPUCAGAQUACKFANCBYTESHPINGCEREHTREVDCSCAABTONRVFNYACTPXFIRETARDIOMLCPALUMERYLUMINTAXMXDBAREAIOTRISEWFCONGAFIPENGUINHODLSOXXONRENECMULTICAMP$HACHIXMNGSONCOINBCROWN10SETSTORMTRADESCSSKEYMCADEMDAOBAONABNBONSPURSGHUBNKEONBIDUONAIXDDXSNDKOGPUBULLSHIBDOGESMCIONPERPDHTRICEBSAIRSOXLSHRBABYASTEROIDHACHIKOHOUSERNBISCYCHGPTSERAPHASTRACHEQRHOODBABYSHARKSIGMAPYPLONADMMAONEURAUANDURILSIGNACOHRONMETABCOSALONHIPPOIRENONCOSTONPUBLICVRTONECHOGHOSTLXVLXJDONGAIXQCADBCOINRKLBONNAPMAIGAPIPESLRSRXDATTSTARLAACDLLUXCRWVONHASHAIPORHOPPYKARATEAZITHAIGOGAEURRAIVADERAOL\u4e00KAITKPALEXGOCHUIZIROBOTSRDDTONDEFXDTECPLTRBWELFPXL1PHOTONSKHYPEPEONTRONXPASSBEB1MGXACMGONBLOCKWEPE3ULLLITEBMCNPANDORAXAVIERBUILDOUTXTPJMPTIDRXSKHYONWARDAAOIBCRMONFLQLONINCEONCELLNIBIPSYOPANIMENEOCLOUDMYRIATOPEWYONAXPONSPGIONSOV\u4eba\u751fK\u7ebfKIMAEQBJAILSTOOLARIA20WAGMIGAMESTSUKAOPUSUNCXROARYFIIHELLOOBOLHYGONLITKEYMAGAWIKENNRGARIOGRGRWAINCIMUNODESQQQONBSTSOXLONPHBPAWSSLXMEZOVSYSWUFTEAGORKPIGGYMGPDBCNOICENIKOTPTUHNSXDAGGPUSHOGGOTHSWASHFUTUONSOGNISALTADBEONFRICURANUSHEHEBXEDISONSBETVRAICHIGROWACNONDASHONRNOKITABESTSTCREAMSLAPCHKNVINUFIONFLXONSTRDCPHRMVXRPHSHRAPOPTIGAIATOWERHYDRANTXDNXUBERONSPYBPUNCHAARTMOTHERDEROCBRSBHOSICOCORALLRDSFACTVOXELNOKONZFISAMOGLDONCASPWEASEGRACYRDNTMOCHILOBOHTDBUNKERVISTAETNONSAITOCOCOROPSPSUPSHILITEONXCLFLIXMANCUDISSCPGLWONA2ZSOLVEXPEPUWCOTCOMRKLBBZKMLAPOONWDCBNFPFISQOMTXNONPXPMELIONCAHCOINBERRYPIRATEATRSHIRODUREVBCAAARKPEPE2.0NBT\u4fee\u4ed9OXYONAIPONBXXHYPCVBCHBOTONUFOUXLINKSLOTHWOZXKILOWHYROOT$1CLORESNDKXJYAIKATATMXUNIBOTAVGOBKOMPETEINTUONZEXTURBOSSHRUBKINICMATAWCFUSETERMINUSSHOPONCPRUSDNEMCMEMEFIBASEYOOSHITSPACEXCWIFRTQQQBABABIMGNIBMBHINTPVTKEXMOONGLQEXAAEROBUDGMRXSQTRRKLBFNCTPDAIRISASEQBTSONUNA\u8001\u5b50CHIRPHEGEJEWELNRNNAFTSCAMFLIXXMNWRASMLAGIALPHABNBHOLDERABYSSEXRDARMBBTC.\u210fRORCLZOONCHIATAWARXRPHAIBTCBAMSHFTTITDRTRBCRWSPKTGGRCOHRAXOLPUSHDPRBONDOKLOONKOINRINGSHMSGTHOODBENXAI3AMATONMAIVNURARSPYWSIMAKOSCARSPECRIFT1DEFIPACEMEFAISLAYSPOTONPOOHAAOIONFIGONEQTYIDNGBAXBNCLNWBAIMTVCEGONMSTRLKYNUTUSDSFOXYCHOXNACREOTOTOLMCSWAPQORPOGMMPNICPEPONKTC$MICHIFLHYONLOOKAPPONGAINMADREMXONMDXBCUTSDAOANOMEPATRIOTJETTONDFIGTAI\u5b89DUCKSLIMBC2WEFIFFOGONCIRCLEMEMESEAIBXCRAMZNVSGISLANDPINOCHAMPDOLANALLNITROFLTAIKEKSLC4EVERWDCONGOUTKMCELBCRASHOIIAOIIASNAIKPOPCAPTAINBNBBOSSWYACLVNCAPSU2UGOZENPHONHEMULEEFI42SMURFCATNOTHINGMNTCSTUPIDRAAOISTMXLOLXELSGEVONKEYCELRFOXBASEDAIFGDLONURAONRDWONARTYVKORABGLPLNSOLAMAHTSHAKKAMTRGFROGBABYPEPERIOTONISKNULSSTRMXPRTDEMOWL$WAFFLESFAIR3CREDIDELABSBOSTHLMENGOGMEONMIDASMLZSWAPCANNMSQHAPPYMUBARAKAHEFCLC\u9ed1\u9a6cKP3RBADRAAPLRFCRIBMNUXBUCKAZOIDSTROGLABUBUNPCSJAMDEGOSBETONDUKOHMNDDIPMBOXBCCOINBZRPORT3ENDVERTCKPTIMEGZONEBEONRITEPOXALPHARABITRVLMASQSAMBUZZSSGXCXSFUNDBRGOVLSABAIBHCBUBBLEEDGENMTDKUNCIRVVORCSIPHERVCFLUCEACAESBDOGITOHOODBEERDCDRBABAHOLYRPLTRMRXMYSTERYMCRTHONKXMONEYNAVINBLUTITNCARRXRBIOFIGLXYONGENEALVAVTIONTBULLHORDVDOT$TOADPOOLXAKITALTXLISATIMIROOBEEMILLIBUSYMPONSCFJUNODFSAUBERCHONKYONDSON",
+          "symbol": "BTCETHUSDTBNBUSDCXRPSOLTRXHYPEDOGERAINZECDELLEOXLMXMRLINKADACCDAIBCHUSD1USDEGRAMLTCUSDGSUIDEXEHBARPYUSDAVAXCRONEARXAUTSHIBUNITAOUSDYWLFIPAXGOKBASTERONDOMHTXRLUSDUSDDSKYDOTMNTAAVEWLDUSDFICPBGBPEPEETCUMORPHOUSDGOPIKCSCTMSTABLEPOLJLPJSTATOMQNTENARENDERKASALGOBEATGT币安人生PUMPBDXJUPGHOFILXDCTBLLXFLRVVVLITARBUSD0USXINJAPTUSDAITUSDNEXONIGHTCAKEETHFIDASHAEROEURCVETVIRTUALTRUMPPENGUPYTHFETSUNFDUSDSEITIACRVSPXLUNCLDOSTXGNOZROJTOBSVBTTDUCKYPENDLENFTIMXMONXTZCFXBONKJASMYFRAXUB2ZDCRVELVETOPSTRCXKOGEXPLSYRUPKAIAKITEAUSDKAITOSTRKAPEPEFLOKIZBCNEIGENXECUSATGRTENSHWFIRAYFFPIEVERSECOMPTELAAPLXBIOTACHZAXSSPYXAKTWIFMXEDGEBORGMUXZANOGUSDTSLAXEURCVRUNEHOODXQQQXTWTAPETHETANEOXCNSANDMANABTWFARTCOININTCXRIFGOOGLXNVDAXTRACALEVSNARTBKBPCVXWEMIXCRCLXBATAWEAGOMININGTIBBIRUDSTAGSHFLFRXUSDRLBUSSFPGENIUSDUSDMRVLX1INCHNEXDYDXSOSOBMXEUSXGALAGLMREALSENTEGLDSMILEKABJSMCFGDATAAVVGLDXDEEPZKKMNOOCRCLONVCNTMETAXALLOSOONDRVYZYATHAMDXGRASSCHEEMSMSFTXGEODQUSDONSPCXBUAIFLUIDWOULDLIGHTMELANIASNDKBBANKRAVECSCOXBEAMSNXCOWZAMANMRANTFUNORDIRSRYFIZENKOXQTUMLISUSDZBUANSEMVTXLPTBANMSTRXLURMETXPRLINXLBTNXPCCOINXZRXORCAPLTRXWALHUMAARCBANANAS31MUBGASSFORMIVVONKTABASDGBGMXFTTCARDSMAXNILAUSDSUIRIVERBILLCVXXSHXIEMGXAIOZFIDDQFISAFEUSELESSHOTCHIPVXPLUMERVNGSXPFEXREDOGQUBICVBUSDPRESPCXZIGXPINAIHKSMLABVELOTFUELGCOINPGXSCHFXCOAIMINATURBOBIOWCASHCATMAGMAZILABBVXENJVTIXEWUXBERAAVGOXDHNBABYDOGEIOSUPERJELLYJELLYLINEAAPRDIEMGWEISYNHDXAZNXXPNPCZETASPKBRETTXOMXUNHXELFBRK.BXBABYTONXXGPSPROSGMEXIDHONXKUBMEGABRAXLTOSHISKHYXCYSSOXXXKAVAXNOCRCLBUPOPENLIONHOLOXVSSUSHISN4AKEIWMXSN51CCDOMIJCTCKBTQQQXXAUMREDVVSCOPXXMNGOMOVECTCONTASTRTROLLBLURBTBTXELGCRWDXTCELOSMHXAPPXFLOWREQPURRASSETACHROSEBDCATRBARRRDHRXSRXMRKXRONZCHFALTMUONPOPCATAPEXIBITONXYOBARDSUTJNJXEWYXSPYONNOCKPNUTLLYXRPLYUSDSKRFUNAGTPEAQPCIPMXBACXICNTAMZNXXUSDNVDAONMOGSENTISMYMASKJPMXEURIPOLYXAMPGHNTFBBUSDAZTECSTARVTHOPROVEESPMOODENGNOTMEVAMGLIDRMMTBIMORCLXAMBRXGOHOMEBNKRKGENB2ATAMPLCUSD0GMOCAANKRTMOXSOXLXWMTXPRONVOXKLACXSNTFOGOMEMETGBPNFLXXPEPXREKTBURNMANTRAUMAVANAXVGWAVESAIATSCQQQONZEREBRODUSKCOINONLOCUSCROSSHIMSONPMLUNASPACEDBRELONIRYSATOSZBTSSVBSBCMCSAXHSKUSDPOREMEWZESTNESSAHARAABTXDEGENARXKNTQACNXSQDCSPRSTORJLAYERAISN44MANTALUSDWKCCOREPRLHOMEUPCNOWACXUSTCMBGSKYAIDFDVXCAPBOLDAVNTBANDBMNRXBNTPLAYXANMCDXSUSDOPENXSERVUSDKDEPWHITETORNZORAMYXESPORTSEUSDHIVEBOMEUNSUQCLITEXB3PEOPLEBORASMARTTRUTHCATITAKLKWUSDMDTXGIGGLEETHWORBSFOLKSOSMOIBMXSWFTCSN9SLXAITCOLLECTASTEROIDCRMXICXRAILVRNEIRORLCUNPVANTAOPGSIRENPOWRAIOPROMAOPORBRATMARKMWOOSKLSOMICYBERALEONAORISMVLQANXHANAROBOHYPERCALCHAINEDUONGISIKCAUCTIONMERLKNCDAGSNEKEULIOSTGMTIOTXLCXSLVONGOOGLONWINSTEEMEVSLVXCOTIBBILVBASEDMUSDSLTFAIPREOPAIPUNDIXDODOFIDALONCOINDEPOSTRAXCTSIPYTHIAGIGAARKCHEELARDRMTLMLKPHAMETISROGLISTASIGNNOSSLPSATSREZCVCPYBOBOWOJAKSTGIQTLTONSNCYGGAIOTCLOAUDIOPMTANTTPTDKABLASTTXCNEETDOGSCARVXCHXYMLSKABTCPOOLAPI3TRIAMSTRONRIZEBREVPOKTSN3SAPIENERGAIXBTWAXPWBXCGOCBKSTRXIDOLAPTMLRCDRAMBPPLTXRTXWCTYNGFLUXCETUSCGPTOHOSOXLBBIGTIMESONICTACGAMEFULPOWERPIPPINAEVOKMDONEIEFAONSPELLACUEDENEGL1BLESSTAIKOMEDMOVRCTKGCBBOXNILUSUALMOBBTGOXBFCTNSRADSARARAABEYMGOMRVLON龙虾TOKAMAKBIRBPIXELOXTLQTYZENTPARTIETNWETGOLDGRTSLAONXNYINAOCHRSTBLEPICFTRBXAIINTCONQUAISCRTONRMUHEZANIMEFRSNDKBTRSTNYMEVAAAGLDENSOXAUT0AGGONBLUAIRUJIGNSSN56MAGICQKCNMCBICOINXMETAAURORAMBLDFGGOATCLANKERCHEXELSABANANAMEYPDDONARROW哈基米CELRIBSFLOCKUSDHZKCSTRCONSOFIONINTCBNEWTC98DESOZKPMMUIARPAQIELUCICWXTRADORDERITOTONHPGYENJOECTRRECALLUSDCVBITCOINMPLXUFDVANRYUSDBSLNDOGCORNSBBTCMIRADIAYBDIAMIAUONLUMIASAUCEBLENDHMSTRFIROIXSBCDXSGDBROCCOLIMUBARAKXRDISLMALICEOSAKOPNFUSDOGNAVATLMFELYREIKATTIPONKISHUDOODAVAILSOLVTUTMSFTONEFAONKCTPONKEWECANKAIOVENOMAMZNONALIAERGOINITREPWANMAVGLMRFARSXTBONEMWXTSFIAIARSCRAREACNBULLAABELESETSTHUNTSN62GODSMSTRBNSTGUNVEREMRBNTBOBAFARTBOYLAERATGCCWUCOLXKERNELSN5CATDOLONXAAPXRCRCLMANIFESTBERTHEGICCOLAMDONPORTALUSDMLYNARIAPROMPTIEMGONCHILLGUYNCTFHESTOFCTEVEREPSYELLOWCETBUTTCOINCLASHSOPHGLEECDESUHEIBOBAAPLONMETAONOWBIWFONVOWXIONLMTSROLLTT4VINEEWTAURATXRESOLVPSGCHECKPRIMEREPPOSANTOSTRUSTXU3O8EURRADXWALLETDYMGRIFFAINBELIAGGRSSPCXSHELLRAMPTAITRADOORDRIFTMOCUCNQQQBPPCWILDBMTQIAVICIREADYAICSPCXONUSDQDEXTSDACTHONEYGRNDDORASPCXX我踏马来了BEEAGRSFORTGUAMCOINGALSKHYBNVDABSTCINVTKOBOUNTYASRASMPNKBARDADDYAGIBALHFTDEODIKAAHTNIMSOILNETXOMGLYXLOANSOLOVDAISLERFTHEMCBARTXEEMONDXIHAEDALPEPBTCLESQGROWSUPRAOLASMBXTSMONTAKETOWNSNUMIBADGERMAPOESIMSWARMSALPINEXSGOVONOUSDCREPECOOKIEACEWRXLOOMACSOGYFIGHTPIKAPEPECOINMNSRYPUFFERMAVIAREDOQUICKMUSNDKONWENKNNBISONELAAUKIL3ELKONETKGSTMPCBGSCPORTOPONDDIVIANYONENAVXBRISEUSDRBETATLOSRACAUSDPTKANAPUFUELGTCANTHROPICBTRSDEXTREETQQQONPOLSMAMOPAALUTKRIONARGAMOBTXIWNONVULTVATRENIDAOZRCSAVESPARKLETAVGOONMOBILECITYVNXAUBFGAQTEDELASPMAMEPHNIXJUVVLINKPPTCAWGPHDNMINTURTLESAGALLYONZKJCOQPITEWYBPOPMCDULLORCLONRIOXWCARMONSUREETHDYDXVCHFALPHRHEADNTKRLUSDUCARENAPNGWEXOBLUECRETAOMIKAMITOKEALCXLMWRRSS3LVLADYSPDTLAZIOATSPYRVICHOPRDEUSKYVEATLASSPAODOSDOGINMEBCNMLNXPLAMORIGSTMONANEONMIMGEARKOMACOREUMRMRVLANONPTBSPCMPAYAIBMNRONSCRSPSHEMIFWOGNOMGBYTESIXLINGOBOSONM87PZMWOLFREFWAIGALEONROAMHOODONSKIPIBDMDAUDDKEYCATELIZAOSTONICSWAPLAVASUNDOGSYMMPKOINBTSEGFALPORKOLORAIACMXEM$PURPEVLTCQCOMONLATRSPCXSCORSPACEXSNANDYVESTGMMTDGMAMITOQUQLMTONPIVXGHXSHAREASMLONEURQKLVPBTCMNTXTSLABSBDGRINLQKOONSEND哭哭马CATEAFCKEKIUSIHCSWELLSPECTREPUSSBNBTIGERCRTSLOFIPOLISFEISWEATSTNKCESSWOLFONRMSTRFARMBTGNSJAGERGFIRINTCIWMONAVLSPCDRAMONWENDRGNBLZAIVMETFIALUVTCWODPUNDIAIRENVITABTSDJEDDMCRLS客服小何DSYNCOCTAGEMSMVCFOXPALMIJHONWSPPXCPDIMOBUYPFEONNEURALA8CXTUBTBIFIRNBWBABAONNOBODYSN88XBGZTCOVPPMEASHDWKENDUIDIASUKUUSOONGROKASTSONWNCGFLMCOLSPROPCFREYAGMETETCULTCARDINGOVOOIGAIBMAJORMEVREEFBFMANYUYEEEMTIBMONRMETAQAITDENTXFCNBISBCSCOONNAKAMIGGLESJPMONALTSZNAVTPGONXEPPLTRONBELLSZYPTOUSDC(WORMHOLE)NATIXCTXCLVTSMBNIZAMATHGOLDAOPXPAINA47PEIPEIABBCALEPHINTERCVXONROAOASIMPTPRCLRAMDIRFEGVARAMINIMA雪球NVOONOBSRMYROUSDVPANWONLOTRDRAMOFCKOSYSMCDONCLOAKVALFORESTQSTRNVDANEXASHIDOVFYGHSTHEARTLEASHVAIDMTRBOOEFORTHVOLTLNQARWOORTWMTONLIBERTYAECOOKGMEESWCHKARRATDJI6930RTSLABAYNODLTRUAZEROSNSSTREAMZEUSPORNROCKETLQRIDRTPEPONSTATUSAVONDLHEROEURTMRVLBALTTTOKENBZZSBUXONCEEKPARTPBRONTRUFRWALUCKYCAFOXSYBIDDOBOSISSHARPSDTTRUUHIGHGLWBBORGYSTUFFMANEKISRMRTSMTAROTPLUDCEATYURUPXCFTRDRXAMDBPINRUSSELLRQQQKIBSHIRYULMBRNFTYECCEURXTNJESUSCUBERMSFTPUPSNXRAVNOMDTEPTBLKONTMONMYSTXSWAPVERSEMYTHDEUROJOBYAIDOGESOLCEXNUMGOALASKPAPARAZZIKUJIAURYMSFTBTAOBOTMCMBXNWHALEBOTTORAVGORGOOGLLINONBIOTBOTGMCOINTEMCOMOBYOBTXPMGOOGLBLIBRAKINDBIDZHOOKEQIXONLIMEMTADNNUBINDYTHQREGENTRARIGEONHOLDBOOPRZRCSWAPKWENTAIDEXCOPXONVERTAIADPLUCA401JKPROPSKDABENJIMIABITCIP2PWHITEWHALETTNSTIKHIUOSCWEBHAROLDQCOMBVEURTRIASSTRIKEVEXTRA0X0AST67WINRXTERHOSKYSNOWONMETAVGOATEDBTC2TRWARBNNOWONSOULCHATMOEWCUMMIESBFICSMTOPENAIDAMMCHCRYPTOZCLHOGESAROSCRPTMAYCRPNMTMONKYTAVAUNHONKORIALXELNOKBDEVVEBILLYEGGZTXOVROCICATDOPUCAGAQUACKFANCBYTESHPINGCEREHTREVDCSCAABTONRVFNYACTPXFIRETARDIOMLCPALUMERYLUMINTAXMXDBAREAIOTRISEWFCONGAFIPENGUINHODLSOXXONRENECMULTICAMP$HACHIXMNGSONCOINBCROWN10SETSTORMTRADESCSSKEYMCADEMDAOBAONABNBONSPURSGHUBNKEONBIDUONAIXDDXSNDKOGPUBULLSHIBDOGESMCIONPERPDHTRICEBSAIRSOXLSHRBABYASTEROIDHACHIKOHOUSERNBISCYCHGPTSERAPHASTRACHEQRHOODBABYSHARKSIGMAPYPLONADMMAONEURAUANDURILSIGNACOHRONMETABCOSALONHIPPOIRENONCOSTONPUBLICVRTONECHOGHOSTLXVLXJDONGAIXQCADBCOINRKLBONNAPMAIGAPIPESLRSRXDATTSTARLAACDLLUXCRWVONHASHAIPORHOPPYKARATEAZITHAIGOGAEURRAIVADERAOL一KAITKPALEXGOCHUIZIROBOTSRDDTONDEFXDTECPLTRBWELFPXL1PHOTONSKHYPEPEONTRONXPASSBEB1MGXACMGONBLOCKWEPE3ULLLITEBMCNPANDORAXAVIERBUILDOUTXTPJMPTIDRXSKHYONWARDAAOIBCRMONFLQLONINCEONCELLNIBIPSYOPANIMENEOCLOUDMYRIATOPEWYONAXPONSPGIONSOV人生K线KIMAEQBJAILSTOOLARIA20WAGMIGAMESTSUKAOPUSUNCXROARYFIIHELLOOBOLHYGONLITKEYMAGAWIKENNRGARIOGRGRWAINCIMUNODESQQQONBSTSOXLONPHBPAWSSLXMEZOVSYSWUFTEAGORKPIGGYMGPDBCNOICENIKOTPTUHNSXDAGGPUSHOGGOTHSWASHFUTUONSOGNISALTADBEONFRICURANUSHEHEBXEDISONSBETVRAICHIGROWACNONDASHONRNOKITABESTSTCREAMSLAPCHKNVINUFIONFLXONSTRDCPHRMVXRPHSHRAPOPTIGAIATOWERHYDRANTXDNXUBERONSPYBPUNCHAARTMOTHERDEROCBRSBHOSICOCORALLRDSFACTVOXELNOKONZFISAMOGLDONCASPWEASEGRACYRDNTMOCHILOBOHTDBUNKERVISTAETNONSAITOCOCOROPSPSUPSHILITEONXCLFLIXMANCUDISSCPGLWONA2ZSOLVEXPEPUWCOTCOMRKLBBZKMLAPOONWDCBNFPFISQOMTXNONPXPMELIONCAHCOINBERRYPIRATEATRSHIRODUREVBCAAARKPEPE2.0NBT修仙OXYONAIPONBXXHYPCVBCHBOTONUFOUXLINKSLOTHWOZXKILOWHYROOT$1CLORESNDKXJYAIKATATMXUNIBOTAVGOBKOMPETEINTUONZEXTURBOSSHRUBKINICMATAWCFUSETERMINUSSHOPONCPRUSDNEMCMEMEFIBASEYOOSHITSPACEXCWIFRTQQQBABABIMGNIBMBHINTPVTKEXMOONGLQEXAAEROBUDGMRXSQTRRKLBFNCTPDAIRISASEQBTSONUNA老子CHIRPHEGEJEWELNRNNAFTSCAMFLIXXMNWRASMLAGIALPHABNBHOLDERABYSSEXRDARMBBTC.ℏRORCLZOONCHIATAWARXRPHAIBTCBAMSHFTTITDRTRBCRWSPKTGGRCOHRAXOLPUSHDPRBONDOKLOONKOINRINGSHMSGTHOODBENXAI3AMATONMAIVNURARSPYWSIMAKOSCARSPECRIFT1DEFIPACEMEFAISLAYSPOTONPOOHAAOIONFIGONEQTYIDNGBAXBNCLNWBAIMTVCEGONMSTRLKYNUTUSDSFOXYCHOXNACREOTOTOLMCSWAPQORPOGMMPNICPEPONKTC$MICHIFLHYONLOOKAPPONGAINMADREMXONMDXBCUTSDAOANOMEPATRIOTJETTONDFIGTAI安DUCKSLIMBC2WEFIFFOGONCIRCLEMEMESEAIBXCRAMZNVSGISLANDPINOCHAMPDOLANALLNITROFLTAIKEKSLC4EVERWDCONGOUTKMCELBCRASHOIIAOIIASNAIKPOPCAPTAINBNBBOSSWYACLVNCAPSU2UGOZENPHONHEMULEEFI42SMURFCATNOTHINGMNTCSTUPIDRAAOISTMXLOLXELSGEVONKEYCELRFOXBASEDAIFGDLONURAONRDWONARTYVKORABGLPLNSOLAMAHTSHAKKAMTRGFROGBABYPEPERIOTONISKNULSSTRMXPRTDEMOWL$WAFFLESFAIR3CREDIDELABSBOSTHLMENGOGMEONMIDASMLZSWAPCANNMSQHAPPYMUBARAKAHEFCLC黑马KP3RBADRAAPLRFCRIBMNUXBUCKAZOIDSTROGLABUBUNPCSJAMDEGOSBETONDUKOHMNDDIPMBOXBCCOINBZRPORT3ENDVERTCKPTIMEGZONEBEONRITEPOXALPHARABITRVLMASQSAMBUZZSSGXCXSFUNDBRGOVLSABAIBHCBUBBLEEDGENMTDKUNCIRVVORCSIPHERVCFLUCEACAESBDOGITOHOODBEERDCDRBABAHOLYRPLTRMRXMYSTERYMCRTHONKXMONEYNAVINBLUTITNCARRXRBIOFIGLXYONGENEALVAVTIONTBULLHORDVDOT$TOADPOOLXAKITALTXLISATIMIROOBEEMILLIBUSYMPONSCFJUNODFSAUBERCHONKYONDSON",
           "decimals": 18,
           "source": "seed",
           "addedAt": "2026-10-16T23:12:06.519Z"
@@ -7838,6 +8666,519 @@
           "source": "seed",
           "addedAt": "2026-10-16T23:12:06.519Z"
         }
+      ],
+      "ignored": [
+        {
+          "address": "0x0002e1f78217D5430948C5bE3dAC1BA2BAb88a91",
+          "symbol": "USDG",
+          "reason": "thin price only ($0.0110, gecko:$3)",
+          "balanceRaw": "9000000000000000000",
+          "ignoredAt": "2026-10-30T14:29:54.403Z"
+        },
+        {
+          "address": "0x02c3c77f724c699742218D38081c73286ecd0150",
+          "symbol": "USDCash",
+          "reason": "thin price only ($0.0255, gecko:$4)",
+          "balanceRaw": "50000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:44.254Z"
+        },
+        {
+          "address": "0x06993AE1230d3755B54F25022028dAA66772Bc3D",
+          "symbol": "USDG",
+          "reason": "thin price only ($0.0119, gecko:$17)",
+          "balanceRaw": "25000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:44.254Z"
+        },
+        {
+          "address": "0x07C0141f5eE465fb0DD532Fb2FF63ea6D6C74cb0",
+          "symbol": "SPDR",
+          "reason": "thin price only ($0.0214, gecko:$42)",
+          "balanceRaw": "30000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:44.254Z"
+        },
+        {
+          "address": "0x07e0682A712a103F2386DBDaF03E39396Ab0768e",
+          "symbol": "SEASN",
+          "reason": "thin price only ($0.0083, gecko:$0)",
+          "balanceRaw": "15000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:44.254Z"
+        },
+        {
+          "address": "0x09902F5C6EcBb0c6EABCbAE09152a57a39f23d7c",
+          "symbol": "USDG",
+          "reason": "thin price only ($0.0001, gecko:$0)",
+          "balanceRaw": "11000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:44.254Z"
+        },
+        {
+          "address": "0x0C4A9B43407dD395Bc17bdA7628EaAF47d3D23f1",
+          "symbol": "USDG",
+          "reason": "thin price only ($0.0001, gecko:$2k)",
+          "balanceRaw": "40000000000000000000",
+          "ignoredAt": "2026-10-30T14:29:54.403Z"
+        },
+        {
+          "address": "0x0E47020543a7dAcBaAb655D81F8AeC78eb9335AD",
+          "symbol": "STONKBROKER",
+          "reason": "thin price only ($0.0011, gecko:$27)",
+          "balanceRaw": "5000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:44.254Z"
+        },
+        {
+          "address": "0x0EF3fcCbC4C73BE8BB14411cFe801df141e309C0",
+          "symbol": "USDG",
+          "reason": "thin price only ($0.0097, gecko:$9)",
+          "balanceRaw": "4000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:44.254Z"
+        },
+        {
+          "address": "0x1197D6F948b6C4BE5b76087F3C2564AD705Cb42A",
+          "symbol": "CAT",
+          "reason": "thin price only ($0.0122, gecko:$0)",
+          "balanceRaw": "25000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:44.254Z"
+        },
+        {
+          "address": "0x14FE7e8F9e27b8Ffd6e9011Bb79b73b349a1Bbc3",
+          "symbol": "USDe",
+          "reason": "thin price only ($0.0288, gecko:$6)",
+          "balanceRaw": "50000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:44.254Z"
+        },
+        {
+          "address": "0x16121DE8b5B81eDbEc05D1FBB6A86954497110D2",
+          "symbol": "TGC",
+          "reason": "thin price only ($0.0069, gecko:$4)",
+          "balanceRaw": "10000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:44.254Z"
+        },
+        {
+          "address": "0x195c0eCF9BDB698Bcae123Cf31af99f3317bc7C9",
+          "symbol": " USDC",
+          "reason": "thin price only ($0.0102, gecko:$7)",
+          "balanceRaw": "13000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:44.254Z"
+        },
+        {
+          "address": "0x1dC878194328A96680C23B8d3c1186637b199eB3",
+          "symbol": "USDG",
+          "reason": "thin price only ($0.0001, gecko:$28)",
+          "balanceRaw": "10000000000000000",
+          "ignoredAt": "2026-10-22T22:11:44.254Z"
+        },
+        {
+          "address": "0x1ED6808f46a7D136B8Eec104cc67bD3Ce6D4354e",
+          "symbol": "STONKS",
+          "reason": "thin price only ($0.0054, gecko:$182)",
+          "balanceRaw": "5000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:44.254Z"
+        },
+        {
+          "address": "0x1Ee1A8FCC194a4fCdbCe10f958AEA8a18E831458",
+          "symbol": "USDG",
+          "reason": "no price (unpriced:no-market)",
+          "balanceRaw": "12000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:44.254Z"
+        },
+        {
+          "address": "0x23bE57302B9686c4F7421B597458132B761c4B4b",
+          "symbol": "ODYSSEY",
+          "reason": "thin price only ($0.0011, gecko:$1)",
+          "balanceRaw": "5000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:44.254Z"
+        },
+        {
+          "address": "0x2504Cc3B84585A5CdF88f4c4f50b2afE9181150C",
+          "symbol": "USDG",
+          "reason": "thin price only ($0.0007, gecko:$7)",
+          "balanceRaw": "20000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:44.254Z"
+        },
+        {
+          "address": "0x26a9C2e639A71323787Fd8da96da602ac045B63B",
+          "symbol": "USTR",
+          "reason": "thin price only ($0.0060, gecko:$1)",
+          "balanceRaw": "10000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:44.254Z"
+        },
+        {
+          "address": "0x2CE3E396E069Ac9FA62046F423267072E06E77af",
+          "symbol": "USDG",
+          "reason": "thin price only ($0.0001, gecko:$9)",
+          "balanceRaw": "2000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:44.254Z"
+        },
+        {
+          "address": "0x3277F3A55bE95fD6b8d9f335C7f9F6DB1Ddafa98",
+          "symbol": "LOL",
+          "reason": "thin price only ($0.0108, gecko:$8)",
+          "balanceRaw": "15000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:44.254Z"
+        },
+        {
+          "address": "0x32C3cE734cf52F9429C8a8eC2982e4fd714960Ed",
+          "symbol": "WALLET",
+          "reason": "thin price only ($0.0060, gecko:$6)",
+          "balanceRaw": "12000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:44.254Z"
+        },
+        {
+          "address": "0x36f4d7f0Fa5c7348416282e04380dDfF30ca4be2",
+          "symbol": "USDG",
+          "reason": "no price (unpriced:no-market)",
+          "balanceRaw": "6000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:44.254Z"
+        },
+        {
+          "address": "0x378F906eAD242F0C3aa9ed45AA07612A2C088030",
+          "symbol": "USDC",
+          "reason": "thin price only ($0.0058, gecko:$8)",
+          "balanceRaw": "2000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:44.254Z"
+        },
+        {
+          "address": "0x3c261Bf9087b11bd30861881492Ed02e9aD1c7dE",
+          "symbol": "USDG",
+          "reason": "no price (unpriced:no-market)",
+          "balanceRaw": "50000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:44.254Z"
+        },
+        {
+          "address": "0x3cAe51882495B2A2DCE68b062E5143245D2B7f5d",
+          "symbol": "AVNT",
+          "reason": "thin price only ($220.9840, gecko:$75)",
+          "balanceRaw": "2026000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:44.254Z"
+        },
+        {
+          "address": "0x42B4FA90438eCB1A0C2676ff25A9F27355DD53c2",
+          "symbol": "USDG",
+          "reason": "thin price only ($0.0006, gecko:$179)",
+          "balanceRaw": "10000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:44.254Z"
+        },
+        {
+          "address": "0x42e140c4b439c42DC01AA29Be1fce2bc64d7f160",
+          "symbol": "USDG",
+          "reason": "thin price only ($0.0189, gecko:$13)",
+          "balanceRaw": "15354627000000000000",
+          "ignoredAt": "2026-10-22T22:11:44.254Z"
+        },
+        {
+          "address": "0x4d6e66c687EA3E134401bC498c9Dde4517983124",
+          "symbol": "XL",
+          "reason": "thin price only ($0.0050, gecko:$2)",
+          "balanceRaw": "7000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:44.254Z"
+        },
+        {
+          "address": "0x4FF7f19A6C4c7EBcba25248610dBE642BBD0B792",
+          "symbol": "USDG",
+          "reason": "thin price only ($0.0146, gecko:$1)",
+          "balanceRaw": "25000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:44.254Z"
+        },
+        {
+          "address": "0x51e54df87eA599A5ADe1A074ab95AbDD7CE8a114",
+          "symbol": "SEASON",
+          "reason": "thin price only ($0.0945, gecko:$0)",
+          "balanceRaw": "200000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:44.254Z"
+        },
+        {
+          "address": "0x5411257CedF60bC40F4beaD410BF8D02079056A2",
+          "symbol": "USDG",
+          "reason": "thin price only ($38.5874, gecko:$2)",
+          "balanceRaw": "39000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:44.254Z"
+        },
+        {
+          "address": "0x56Cb52174592A72C570bd9980e3879Fd768519f5",
+          "symbol": "USDG",
+          "reason": "thin price only ($0.0071, gecko:$8)",
+          "balanceRaw": "10000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:44.254Z"
+        },
+        {
+          "address": "0x577c0fcFfd909C9e47B98B37091fbF71A57a753c",
+          "symbol": "COMS",
+          "reason": "thin price only ($0.0775, gecko:$3k)",
+          "balanceRaw": "24195331233386834839527",
+          "ignoredAt": "2026-10-22T22:11:44.254Z"
+        },
+        {
+          "address": "0x5dB4e79E4d055c273bd0E093FA8e235861e9f877",
+          "symbol": "USDG",
+          "reason": "thin price only ($0.0062, gecko:$0)",
+          "balanceRaw": "501000000000000000000",
+          "ignoredAt": "2026-10-30T14:29:54.403Z"
+        },
+        {
+          "address": "0x623613C0E9211A7215b4fD4ab80656fcbD1186E0",
+          "symbol": "USDG",
+          "reason": "thin price only ($0.1188, gecko:$1)",
+          "balanceRaw": "200000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:44.254Z"
+        },
+        {
+          "address": "0x72548C880e1A1729301c49D745E0CACD0C49c48B",
+          "symbol": "WALLET",
+          "reason": "thin price only ($0.0214, gecko:$0)",
+          "balanceRaw": "25000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:44.254Z"
+        },
+        {
+          "address": "0x73ACFC8352B6A9F0BaAcd02a266E58fDE4b1C183",
+          "symbol": "USDG",
+          "reason": "no price (unpriced:no-market)",
+          "balanceRaw": "5000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:44.254Z"
+        },
+        {
+          "address": "0x7c45d5ac74e1aef9Fcfe64E73e0D7a0822801a5a",
+          "symbol": "AD",
+          "reason": "thin price only ($0.0046, gecko:$2)",
+          "balanceRaw": "7000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:44.254Z"
+        },
+        {
+          "address": "0x7D5AfaBD12a30eC1e213BBcEfaCeD2ffbdE56948",
+          "symbol": "USDG",
+          "reason": "thin price only ($0.0209, gecko:$7)",
+          "balanceRaw": "25000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:44.254Z"
+        },
+        {
+          "address": "0x898465EE001cfa56CED7Ec64786Fd4B6Ae30d39E",
+          "symbol": "WALLET",
+          "reason": "thin price only ($0.0054, gecko:$7)",
+          "balanceRaw": "2000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:44.254Z"
+        },
+        {
+          "address": "0x91A2DAe9699f0B82540B5886b0d8759C22820bA3",
+          "symbol": "musebook",
+          "reason": "firm $0.0251 < $1",
+          "balanceRaw": "1948062849612202153917",
+          "ignoredAt": "2026-10-30T14:29:54.403Z"
+        },
+        {
+          "address": "0x941AE714EC6D8130c7B75d67160Ca08f1e7d11Dd",
+          "symbol": "DELL",
+          "reason": "firm $0.1730 < $1",
+          "balanceRaw": "400000000000000",
+          "ignoredAt": "2026-10-30T14:29:54.403Z"
+        },
+        {
+          "address": "0x9909C4e8CAe5ada810c7297943AE767f87D00A3e",
+          "symbol": "USDG",
+          "reason": "thin price only ($0.0009, gecko:$1)",
+          "balanceRaw": "25000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:44.254Z"
+        },
+        {
+          "address": "0x9EFeBeb94C840341d8864a003385760Dc0D578ef",
+          "symbol": "GOOD",
+          "reason": "thin price only ($0.0110, gecko:$64)",
+          "balanceRaw": "3000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:44.254Z"
+        },
+        {
+          "address": "0xA39e8Fcfd20915800eDDf1a222Ea1559D79Ad52f",
+          "symbol": "PAWS",
+          "reason": "thin price only ($0.0093, gecko:$7)",
+          "balanceRaw": "9000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:44.254Z"
+        },
+        {
+          "address": "0xA3A43894e980b4096d53bD5CEc18403bb612E71E",
+          "symbol": "USDG",
+          "reason": "thin price only ($0.0207, gecko:$52)",
+          "balanceRaw": "32000000000000000000",
+          "ignoredAt": "2026-10-30T14:29:54.403Z"
+        },
+        {
+          "address": "0xA913C4C2F28AA7b0B15A7C6008a6e19Ff8Bf85c0",
+          "symbol": "USDG",
+          "reason": "thin price only ($0.0037, gecko:$217)",
+          "balanceRaw": "1522100000000000000",
+          "ignoredAt": "2026-10-22T22:11:44.254Z"
+        },
+        {
+          "address": "0xAb2C3719B8daEC68d76af9ce8a684D7A6061cf8F",
+          "symbol": "SENSE",
+          "reason": "firm $0.0304 < $1",
+          "balanceRaw": "9005255838186535161281",
+          "ignoredAt": "2026-10-22T22:11:44.254Z"
+        },
+        {
+          "address": "0xAd7eDBC6655816766C136240B7846B88339302F7",
+          "symbol": "USDG",
+          "reason": "thin price only ($0.0220, gecko:$2)",
+          "balanceRaw": "50000000000000000000",
+          "ignoredAt": "2026-10-30T14:29:54.403Z"
+        },
+        {
+          "address": "0xaE2ff165Ac69C41F43B1Bdb6ff996256E1Ecff38",
+          "symbol": "SPROUT",
+          "reason": "thin price only ($0.0070, gecko:$1)",
+          "balanceRaw": "20000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:44.254Z"
+        },
+        {
+          "address": "0xb0992820E760d836549ba69BC7598b4af75dEE03",
+          "symbol": "ORCL",
+          "reason": "firm $0.3957 < $1",
+          "balanceRaw": "3150321638091290",
+          "ignoredAt": "2026-10-22T22:11:44.254Z"
+        },
+        {
+          "address": "0xb630dECa04Ed4e15c5f693Cff0C7004a516Bf8b1",
+          "symbol": "TSLR",
+          "reason": "thin price only ($0.0085, gecko:$14)",
+          "balanceRaw": "7000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:44.254Z"
+        },
+        {
+          "address": "0xBF6295d125b61178aB182bB63875b7Fc2D607A70",
+          "symbol": "USDG",
+          "reason": "thin price only ($0.0104, gecko:$234)",
+          "balanceRaw": "15000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:44.254Z"
+        },
+        {
+          "address": "0xC2378f126167c55b42BA4f49e012D0d9dCDF52E0",
+          "symbol": "USDG",
+          "reason": "thin price only ($0.0457, gecko:$4)",
+          "balanceRaw": "75000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:44.254Z"
+        },
+        {
+          "address": "0xC6aCA22a4FC9bd5a1CB1a35715F6FDD0FC4C3D2d",
+          "symbol": "USGD",
+          "reason": "thin price only ($0.0117, gecko:$2)",
+          "balanceRaw": "4000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:44.254Z"
+        },
+        {
+          "address": "0xC7B3f24983A051231fdf46bcF20A7067019eBb21",
+          "symbol": "UP",
+          "reason": "thin price only ($0.0061, gecko:$1)",
+          "balanceRaw": "2000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:44.254Z"
+        },
+        {
+          "address": "0xcc6A62C2Db8bad11C8E516AB16A437318CB016D8",
+          "symbol": "USDe",
+          "reason": "thin price only ($0.0110, gecko:$2)",
+          "balanceRaw": "11000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:44.254Z"
+        },
+        {
+          "address": "0xCCbfB921b5A5072D083feE774966F3Ca5e667919",
+          "symbol": "USO",
+          "reason": "thin price only ($0.0114, gecko:$25)",
+          "balanceRaw": "8000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:44.254Z"
+        },
+        {
+          "address": "0xce4FAD1Aad37b07AE8d7707de5642e185d9D9019",
+          "symbol": "USDC",
+          "reason": "thin price only ($0.0061, gecko:$7)",
+          "balanceRaw": "25000000000000000000",
+          "ignoredAt": "2026-10-30T14:29:54.403Z"
+        },
+        {
+          "address": "0xcf18caF51BC80b2fa185B60F41e127B6dFF101EA",
+          "symbol": "Euler",
+          "reason": "thin price only ($0.0149, gecko:$0)",
+          "balanceRaw": "250000000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:44.254Z"
+        },
+        {
+          "address": "0xd0F19ce3fa482E26130127491A6815994f22C84c",
+          "symbol": "USDG",
+          "reason": "thin price only ($0.0037, gecko:$1)",
+          "balanceRaw": "5000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:44.254Z"
+        },
+        {
+          "address": "0xd4eFe19DD28A63Ac36Aa8Cf19A939D54B72DEA86",
+          "symbol": "USDG",
+          "reason": "thin price only ($0.0000, gecko:$0)",
+          "balanceRaw": "100000000000000000000",
+          "ignoredAt": "2026-10-30T14:29:54.403Z"
+        },
+        {
+          "address": "0xD5f018a09081d7f75b06B4A3F2afD9bcADC42E03",
+          "symbol": "USDG",
+          "reason": "no price (unpriced:no-market)",
+          "balanceRaw": "4000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:44.254Z"
+        },
+        {
+          "address": "0xD835277EA8875a535737d9A3670c2d77c7D00632",
+          "symbol": "OWOWO",
+          "reason": "thin price only ($0.0048, gecko:$2)",
+          "balanceRaw": "10000000000000000000",
+          "ignoredAt": "2026-10-30T14:29:54.403Z"
+        },
+        {
+          "address": "0xdCd17d5a6727e678E7de1C8E7A153661Ec6Aa17D",
+          "symbol": "UHI",
+          "reason": "thin price only ($0.0025, gecko:$2)",
+          "balanceRaw": "10000000000000000000",
+          "ignoredAt": "2026-10-30T14:29:54.403Z"
+        },
+        {
+          "address": "0xe3FC373Fafb7B57DF1Fed7F9601DcC75Aa782011",
+          "symbol": "CPU",
+          "reason": "thin price only ($0.0300, gecko:$0)",
+          "balanceRaw": "500000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:44.254Z"
+        },
+        {
+          "address": "0xeD173F2D916bd2F4946C3F5a6b41cE44CAFBAc80",
+          "symbol": "USDG",
+          "reason": "thin price only ($0.0061, gecko:$2)",
+          "balanceRaw": "25000000000000000000",
+          "ignoredAt": "2026-10-30T14:29:54.403Z"
+        },
+        {
+          "address": "0xeDBf91223639800BCd5756815CAf908Df3b890bE",
+          "symbol": "PRIORS",
+          "reason": "firm $0.5880 < $1",
+          "balanceRaw": "63338765241147189826",
+          "ignoredAt": "2026-10-22T22:11:44.254Z"
+        },
+        {
+          "address": "0xF0613Be4B92ceCb8524D0Dbc2E124556A4DeC048",
+          "symbol": "HOOKR",
+          "reason": "thin price only ($0.0025, gecko:$33)",
+          "balanceRaw": "2000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:44.254Z"
+        },
+        {
+          "address": "0xF8721eCee2d607865242B357501A8c67a9aADbA9",
+          "symbol": "USDG",
+          "reason": "thin price only ($0.0062, gecko:$9)",
+          "balanceRaw": "10000000000000000000",
+          "ignoredAt": "2026-10-30T14:29:54.403Z"
+        },
+        {
+          "address": "0xfb0Ae5f67284D8069F45294147D104De08317D12",
+          "symbol": "Agrippa",
+          "reason": "thin price only ($0.0299, gecko:$5)",
+          "balanceRaw": "500000000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:44.254Z"
+        },
+        {
+          "address": "0xfe9042Df1583413Fbff16D8211E144215B312A21",
+          "symbol": "URANU5",
+          "reason": "no price (unpriced:no-market)",
+          "balanceRaw": "404466496543441459292",
+          "ignoredAt": "2026-10-22T22:11:44.254Z"
+        }
       ]
     },
     "5000": {
@@ -7951,7 +9292,7 @@
         },
         {
           "address": "0x90700B3FD68021398D09cA97F3E1c72e9177714D",
-          "symbol": "BYBIT\u4eba\u751f",
+          "symbol": "BYBIT人生",
           "decimals": 18,
           "source": "seed",
           "addedAt": "2026-10-16T23:12:10.864Z"
@@ -8265,7 +9606,7 @@
         },
         {
           "address": "0x102d758f688a4C1C5a80b116bD945d4455460282",
-          "symbol": "USD\u20ae0",
+          "symbol": "USD₮0",
           "decimals": 6,
           "source": "seed,swept",
           "addedAt": "2026-10-16T23:12:09.831Z"
@@ -8293,7 +9634,7 @@
         },
         {
           "address": "0x11730cBe129A931Bc7E7092b59A53B444F548B07",
-          "symbol": "\u5b59\u5c0f\u5723",
+          "symbol": "孙小圣",
           "decimals": 18,
           "source": "seed",
           "addedAt": "2026-10-16T23:12:09.831Z"
@@ -8328,7 +9669,7 @@
         },
         {
           "address": "0x13ea5BB744B2710600DCF384D78f74E0cb39BB07",
-          "symbol": "\u725b\u6765",
+          "symbol": "牛来",
           "decimals": 18,
           "source": "seed",
           "addedAt": "2026-10-16T23:12:09.831Z"
@@ -8412,7 +9753,7 @@
         },
         {
           "address": "0x1C4448A3D284200CBcbB28366402d5c039a6dB07",
-          "symbol": "\u5b59\u5c0f\u5723",
+          "symbol": "孙小圣",
           "decimals": 18,
           "source": "seed",
           "addedAt": "2026-10-16T23:12:09.831Z"
@@ -9350,7 +10691,7 @@
         },
         {
           "address": "0x895521F5dB930262516Ba0BDD929B90f4f273b07",
-          "symbol": "\u725b\u6765\u200b",
+          "symbol": "牛来​",
           "decimals": 18,
           "source": "seed",
           "addedAt": "2026-10-16T23:12:09.831Z"
@@ -9448,7 +10789,7 @@
         },
         {
           "address": "0x99e146d35d1cd98D7Fc466c0385bbdd1B64f3b07",
-          "symbol": "\u6211\u7684\u5973\u53cb\u666f\u751c",
+          "symbol": "我的女友景甜",
           "decimals": 18,
           "source": "seed",
           "addedAt": "2026-10-16T23:12:09.831Z"
@@ -9490,7 +10831,7 @@
         },
         {
           "address": "0x9bf2eF5A9f2197b8471dcCE483aEE66c47F6673c",
-          "symbol": "\ud83e\udd16\u267e\ufe0f",
+          "symbol": "🤖♾️",
           "decimals": 18,
           "source": "seed",
           "addedAt": "2026-10-16T23:12:09.831Z"
@@ -9622,8 +10963,15 @@
           "addedAt": "2026-10-16T23:12:09.831Z"
         },
         {
+          "address": "0xAb6363dA0C80cEF3Ae105Bd6241E30872355d021",
+          "symbol": "ROLL",
+          "decimals": 18,
+          "source": "balance-api",
+          "addedAt": "2026-10-22T22:12:10.373Z"
+        },
+        {
           "address": "0xABcAbc399912A612062f6704325909728C0d6B07",
-          "symbol": "\u725b\u6765",
+          "symbol": "牛来",
           "decimals": 18,
           "source": "seed",
           "addedAt": "2026-10-16T23:12:09.831Z"
@@ -9777,7 +11125,7 @@
         },
         {
           "address": "0xb50d938E65aCC66D1a7Bd10Ca07A478d0C0F0b07",
-          "symbol": "\u6211\u7684\u5973\u53cb\u666f\u751c",
+          "symbol": "我的女友景甜",
           "decimals": 18,
           "source": "seed",
           "addedAt": "2026-10-16T23:12:09.831Z"
@@ -9833,7 +11181,7 @@
         },
         {
           "address": "0xbAbE84b6f6e039fad97036Fcf568631082b2cb07",
-          "symbol": "\u6211\u7684\u5973\u53cb\u666f\u751c",
+          "symbol": "我的女友景甜",
           "decimals": 18,
           "source": "seed",
           "addedAt": "2026-10-16T23:12:09.831Z"
@@ -9910,7 +11258,7 @@
         },
         {
           "address": "0xC54dA048a809F29f7eE7EF39d65529d0D9D13b07",
-          "symbol": "\u6211\u7684\u5973\u53cb\u666f\u751c",
+          "symbol": "我的女友景甜",
           "decimals": 18,
           "source": "seed",
           "addedAt": "2026-10-16T23:12:09.831Z"
@@ -9931,7 +11279,7 @@
         },
         {
           "address": "0xc8Cec762b2b43A87E02f1fBC9Ce96DA11C660B07",
-          "symbol": "\u6211\u7684\u5973\u53cb\u666f\u751c",
+          "symbol": "我的女友景甜",
           "decimals": 18,
           "source": "seed",
           "addedAt": "2026-10-16T23:12:09.831Z"
@@ -10036,7 +11384,7 @@
         },
         {
           "address": "0xD696940A9aDcAA876fAe5239F7A8E705Ba8EDB07",
-          "symbol": "\u725b\u6765",
+          "symbol": "牛来",
           "decimals": 18,
           "source": "seed",
           "addedAt": "2026-10-16T23:12:09.831Z"
@@ -10092,7 +11440,7 @@
         },
         {
           "address": "0xDC4F058C103f3879fea72D0FC86EdED309F43b07",
-          "symbol": "\u6211\u7684\u5973\u53cb\u666f\u751c",
+          "symbol": "我的女友景甜",
           "decimals": 18,
           "source": "seed",
           "addedAt": "2026-10-16T23:12:09.831Z"
@@ -10110,6 +11458,13 @@
           "decimals": 18,
           "source": "tokenlist-balance",
           "addedAt": "2026-10-16T23:12:09.831Z"
+        },
+        {
+          "address": "0xE2B1dc2D4A3b4E59FDF0c47B71A7A86391a8B35a",
+          "symbol": "RWA",
+          "decimals": 18,
+          "source": "balance-api",
+          "addedAt": "2026-10-22T22:12:10.373Z"
         },
         {
           "address": "0xE2f9db0186b13668AeC9fe0e15dbD13004ed8d6f",
@@ -10313,6 +11668,1821 @@
           "decimals": 18,
           "source": "seed",
           "addedAt": "2026-10-16T23:12:09.831Z"
+        }
+      ],
+      "ignored": [
+        {
+          "address": "0x0112B1a37167A5dE30A3d3D4D361EfAaEB53edc6",
+          "symbol": "TESLA",
+          "reason": "thin price only ($0.0143, gecko:$0)",
+          "balanceRaw": "25000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x015B4cee63fEAd54820388aED50614c71C27293D",
+          "symbol": "PACT",
+          "reason": "no price (unpriced:no-market)",
+          "balanceRaw": "10000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x01c6f67eb3f4DDCB305DE4123FB400378DD785DB",
+          "symbol": "AAIF",
+          "reason": "thin price only ($0.0148, gecko:$4)",
+          "balanceRaw": "25000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x028E3422399e71AD9C7896425673D7bA17b5169c",
+          "symbol": "MDX",
+          "reason": "thin price only ($0.0095, gecko:$1)",
+          "balanceRaw": "40000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x03ce9F9195396b6393eD3718F182917A8a5b83C8",
+          "symbol": "Amex Trump",
+          "reason": "thin price only ($0.0002, gecko:$9)",
+          "balanceRaw": "5000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x0421001850d38B479EbeD0bE2BFA1E273682E557",
+          "symbol": "NICE",
+          "reason": "thin price only ($0.0057, gecko:$5)",
+          "balanceRaw": "8000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x06f2f0A27EBdeC0a147EcB942B901d1C5E4Fc45b",
+          "symbol": "TRENDS",
+          "reason": "thin price only ($0.0049, gecko:$0)",
+          "balanceRaw": "10000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x07d15798a67253D76cea61F0eA6F57AeDC59DffB",
+          "symbol": "BASED",
+          "reason": "firm $0.0130 < $1",
+          "balanceRaw": "2747630168979255694203",
+          "ignoredAt": "2026-10-30T14:29:54.494Z"
+        },
+        {
+          "address": "0x08FF86Cd3f24B2AE8451E4A7FeF825900F31EE17",
+          "symbol": "Nihilism",
+          "reason": "thin price only ($0.0001, gecko:$5)",
+          "balanceRaw": "5099229862653680717",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x090533c467C5603D796d430eAabd692b1cC21C28",
+          "symbol": "GNAR",
+          "reason": "thin price only ($0.0120, gecko:$3)",
+          "balanceRaw": "50000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x09cF2C39f363bf95522d8F22aA179e53358e7897",
+          "symbol": "USXRP",
+          "reason": "thin price only ($0.0195, gecko:$7)",
+          "balanceRaw": "25000000000000000000",
+          "ignoredAt": "2026-10-30T14:29:54.494Z"
+        },
+        {
+          "address": "0x0b99de82E95bC48a149E444579074eA15Df26dD5",
+          "symbol": "TEEAGOOOSE",
+          "reason": "thin price only ($0.0493, gecko:$0)",
+          "balanceRaw": "200000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x0C10C8eab05b2aB762FF0A39ef27fbF9F4fB31Ed",
+          "symbol": "SOAS",
+          "reason": "thin price only ($0.0002, gecko:$9)",
+          "balanceRaw": "2000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x0E08f94A875e27761a30251CF51be5b98a17E62F",
+          "symbol": "TYRANT",
+          "reason": "thin price only ($0.0025, gecko:$3)",
+          "balanceRaw": "5000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x0EC0f5ea4495D6E441256cDB4ed75273112724C8",
+          "symbol": "BCOP",
+          "reason": "thin price only ($0.0050, gecko:$1)",
+          "balanceRaw": "8000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x11c8D5d7cAAF047dCa3fa1f18b8047b236b9b396",
+          "symbol": "TGAM",
+          "reason": "thin price only ($0.0161, gecko:$0)",
+          "balanceRaw": "25000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x1270383bD13ad4F473AFB876DdA9c6aa8CBCea51",
+          "symbol": "DOM",
+          "reason": "thin price only ($0.0119, gecko:$0)",
+          "balanceRaw": "10000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x14f289694A9D790dA4140173Ac5032De2798545d",
+          "symbol": "USOIL",
+          "reason": "thin price only ($0.0140, gecko:$1)",
+          "balanceRaw": "20000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x151620889eB612C8eF142e509D915229990C76A8",
+          "symbol": "1F916",
+          "reason": "thin price only ($0.0120, gecko:$0)",
+          "balanceRaw": "25000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x158609Cc4E5E1Eb12d8D03329860E597d8048358",
+          "symbol": "ESSE",
+          "reason": "thin price only ($0.0002, gecko:$4)",
+          "balanceRaw": "4000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x16171B069184A1998c8eCDA99f1D941D86cCdC19",
+          "symbol": "ABTC",
+          "reason": "thin price only ($0.0001, gecko:$11)",
+          "balanceRaw": "2000000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x1622FB826BAB55F6e3cC590E4B29bD885aA5d0AF",
+          "symbol": "XDP",
+          "reason": "thin price only ($0.0025, gecko:$2)",
+          "balanceRaw": "25000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x175378B36F91Fc0B108fe98021E99ea798a3A15c",
+          "symbol": "UXOR",
+          "reason": "thin price only ($0.0485, gecko:$0)",
+          "balanceRaw": "200000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x177C232111d5c5FBDeCBD1B8b101CC2907e24539",
+          "symbol": "Bureau of Bagholder Statistics",
+          "reason": "thin price only ($0.0107, gecko:$0)",
+          "balanceRaw": "15000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x178f23D2c6A8336385C72AaCd39a6CE65f851058",
+          "symbol": "XDP",
+          "reason": "thin price only ($0.0025, gecko:$1)",
+          "balanceRaw": "10000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x1a4018bF3036Fb6fD4Dfb0f6fF6866BA9Fbc147C",
+          "symbol": "WALET cas",
+          "reason": "thin price only ($0.0012, gecko:$0)",
+          "balanceRaw": "25000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x1B782c6aB0902f08f60f5B1ACD78d8332512EE22",
+          "symbol": "SPRS",
+          "reason": "no price (unpriced:no-market)",
+          "balanceRaw": "7500000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x1BC86AfF6394021B4293c1cE56B3e0F5f785323a",
+          "symbol": "memestonk",
+          "reason": "thin price only ($0.0025, gecko:$2)",
+          "balanceRaw": "5000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x1c64658Bd02E5f7b117045ef38E9CD488996c80D",
+          "symbol": "AZGO",
+          "reason": "thin price only ($0.0019, gecko:$3)",
+          "balanceRaw": "4000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x1E25C1C67A1De4FC8A602a638355659e36378aAF",
+          "symbol": "MIRROR",
+          "reason": "thin price only ($0.0005, gecko:$2)",
+          "balanceRaw": "1000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x1e91E1c32D00d2f337e223363811abe75b61a60F",
+          "symbol": "BOT",
+          "reason": "no price (unpriced:no-market)",
+          "balanceRaw": "75000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x1f1743E0223e630290A7DC3F740F3b4dbffC13ee",
+          "symbol": "AXIS",
+          "reason": "thin price only ($0.0097, gecko:$4)",
+          "balanceRaw": "3711000000000000000",
+          "ignoredAt": "2026-10-30T14:29:54.494Z"
+        },
+        {
+          "address": "0x1f26Ce617b6fdfAE6F7AB9af51CF35Cd26d524a1",
+          "symbol": "USDOR",
+          "reason": "thin price only ($0.0100, gecko:$0)",
+          "balanceRaw": "20000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x203c7Ac382fE79A8E2fE02bB6aA5e9353f57018D",
+          "symbol": "AEP",
+          "reason": "thin price only ($0.0044, gecko:$0)",
+          "balanceRaw": "7000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x226E27286b12d3bb051aaE78A11fCA64A03AB563",
+          "symbol": "XRPH",
+          "reason": "thin price only ($0.0206, gecko:$0)",
+          "balanceRaw": "85000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x22b5bE55CCE40269d4b94E25CDE350Af71eCd446",
+          "symbol": "STONKSZN",
+          "reason": "thin price only ($0.0075, gecko:$0)",
+          "balanceRaw": "15000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x23645D8E09A372CC04B618B0921D85b775606b71",
+          "symbol": "$SXR",
+          "reason": "thin price only ($0.0345, gecko:$0)",
+          "balanceRaw": "140000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x2385dC31299db959095Cf1B8d2e414e554901F76",
+          "symbol": "GDWR",
+          "reason": "no price (unpriced:no-market)",
+          "balanceRaw": "25000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x240459044E9dA1C971B40385eC5f13875012335d",
+          "symbol": "$RAVE",
+          "reason": "thin price only ($0.0072, gecko:$8)",
+          "balanceRaw": "10000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x2650236724352DFf912Adc1Ea8bcFd4c1b32EfD4",
+          "symbol": "WETH",
+          "reason": "no price (unpriced:no-market)",
+          "balanceRaw": "25000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x26d70b6669A734fd49598625B98eD1d800feFD94",
+          "symbol": "$MS",
+          "reason": "thin price only ($0.0072, gecko:$2)",
+          "balanceRaw": "10000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x2719e6c4EB27f5C1cFdC682cB7dD478e5fA35903",
+          "symbol": "UTOF",
+          "reason": "thin price only ($0.0012, gecko:$6)",
+          "balanceRaw": "4000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x27Acab768149D79Ea0674D75C3A3Fe462d7CFbca",
+          "symbol": "USER",
+          "reason": "thin price only ($0.0478, gecko:$4)",
+          "balanceRaw": "200000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x27fD7CF87B0B15256c88D4dbf95dAaf5a8442EDA",
+          "symbol": "Stryker",
+          "reason": "thin price only ($0.0024, gecko:$2)",
+          "balanceRaw": "5000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x2821d96B5FC81aEC3763340b375a846a89A3Ec1b",
+          "symbol": "BASE",
+          "reason": "thin price only ($0.0012, gecko:$7)",
+          "balanceRaw": "4000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x290059F1dd4CC1528da52856a5581d49C4fb2114",
+          "symbol": "TOR",
+          "reason": "thin price only ($0.0048, gecko:$2)",
+          "balanceRaw": "10000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x2A7CcdEFE814510Af5A8977F37599ebdC48135F1",
+          "symbol": "USWS",
+          "reason": "no price (unpriced:no-market)",
+          "balanceRaw": "55000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x2A970e72A643530b07b8E0EAf4109c1878088636",
+          "symbol": "AAPLc",
+          "reason": "thin price only ($0.0004, gecko:$6)",
+          "balanceRaw": "15000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x2C313DFEF9Ce9212557Fdd2e6880f66dd37403Eb",
+          "symbol": "GOAF",
+          "reason": "thin price only ($0.0023, gecko:$1)",
+          "balanceRaw": "9500000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x2D9EC81f8c8525D94cDF329282Ad06C8e377531D",
+          "symbol": "USCOF",
+          "reason": "thin price only ($0.0023, gecko:$3)",
+          "balanceRaw": "8000000000000000000",
+          "ignoredAt": "2026-10-30T14:29:54.494Z"
+        },
+        {
+          "address": "0x2f9A0a7A8bf45BE129665eDC1e72726D98e70B4a",
+          "symbol": "XDP",
+          "reason": "thin price only ($0.0191, gecko:$3)",
+          "balanceRaw": "25000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x32079780e7cD9231c8608205A2AF51591CdbbB6D",
+          "symbol": "UFGT",
+          "reason": "thin price only ($0.0036, gecko:$7)",
+          "balanceRaw": "15000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x32A2F0A8eb2d82b90178c52e4f04e51D9A73Bc30",
+          "symbol": "AERO",
+          "reason": "no price (unpriced:no-market)",
+          "balanceRaw": "25000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x33b9e1E2AAD57851dA58F2D2E1987330238CdE0F",
+          "symbol": "MUSWORLD",
+          "reason": "thin price only ($0.0059, gecko:$15)",
+          "balanceRaw": "9500000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x34e251539D6b3840fEDcB5896beaa0210edE3B75",
+          "symbol": "DIAMOND",
+          "reason": "thin price only ($0.0037, gecko:$1)",
+          "balanceRaw": "12000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x36e31CB885daFd469f699Be7e85217bfda9772b7",
+          "symbol": "VERSA",
+          "reason": "thin price only ($0.0001, gecko:$0)",
+          "balanceRaw": "1000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x3a2F45B139A05c6Fac96d7c092343B03f6cC4449",
+          "symbol": "BNC",
+          "reason": "thin price only ($0.0116, gecko:$0)",
+          "balanceRaw": "25000000000000000000",
+          "ignoredAt": "2026-10-30T14:29:54.494Z"
+        },
+        {
+          "address": "0x3b9Efc6F8165812C033618F45A5145CB07548712",
+          "symbol": "USGR",
+          "reason": "thin price only ($0.0161, gecko:$48)",
+          "balanceRaw": "25000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x3C7B9D53cD9304AD04DBE1E5aB79d4bfbAD9fD62",
+          "symbol": "STONKEX",
+          "reason": "thin price only ($0.0003, gecko:$0)",
+          "balanceRaw": "7000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x3cB08bc62241EDE8E4d6981713ff6b37002E1322",
+          "symbol": "BOT",
+          "reason": "thin price only ($0.0004, gecko:$0)",
+          "balanceRaw": "9000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x3f5bF3EdAc59d650D8fDf9657a71F2f904A3a4Ee",
+          "symbol": "AERO",
+          "reason": "firm $0.3770 < $1",
+          "balanceRaw": "611711236403389608",
+          "ignoredAt": "2026-10-30T14:29:54.494Z"
+        },
+        {
+          "address": "0x3F8E8721E80c88EC9E816a442f5fD22B71a2717D",
+          "symbol": "STM",
+          "reason": "thin price only ($0.0022, gecko:$14)",
+          "balanceRaw": "3000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x4114E7377bEea5Aab4734bcf59C73895dEc42ED5",
+          "symbol": "BANK OF BENJAMINS",
+          "reason": "no price (unpriced:no-market)",
+          "balanceRaw": "15000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x419fe93616bE2C79AAa95809996D914FFD45695B",
+          "symbol": "AMERIICAN",
+          "reason": "thin price only ($0.0000, gecko:$0)",
+          "balanceRaw": "1000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x41ed8f96A5b5e88D2b1B35D30a85072282dE689B",
+          "symbol": "BLUECHIP",
+          "reason": "thin price only ($0.0099, gecko:$1)",
+          "balanceRaw": "40000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x41f2f07A1a623DB6fb15BD4E153Ce194CB580eD1",
+          "symbol": "WETH",
+          "reason": "no price (unpriced:no-market)",
+          "balanceRaw": "11000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x432555067e7111CC6658943d17F357768804f087",
+          "symbol": "CC",
+          "reason": "thin price only ($0.0078, gecko:$1)",
+          "balanceRaw": "25000000000000000000",
+          "ignoredAt": "2026-10-30T14:29:54.494Z"
+        },
+        {
+          "address": "0x4547aA3D6e1dfEA7826Cb7fCc23dB37D2B240cA7",
+          "symbol": "INVSTMNT",
+          "reason": "no price (unpriced:no-market)",
+          "balanceRaw": "25000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x4756Ea8569f91142E25Cb374694e594f646c0dcB",
+          "symbol": "NNWR",
+          "reason": "thin price only ($0.0211, gecko:$0)",
+          "balanceRaw": "45000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x47B94bD908F0c88F9db82724129b1584391CB423",
+          "symbol": "FART",
+          "reason": "no price (unpriced:no-market)",
+          "balanceRaw": "11000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x4804629054dA6F378E42776de0dE27d452D7c636",
+          "symbol": "MOONBASE",
+          "reason": "no price (unpriced:no-market)",
+          "balanceRaw": "30000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x486F662020286E17e7469df4e5F2cF2415F36662",
+          "symbol": "AI",
+          "reason": "thin price only ($0.0000, gecko:$39)",
+          "balanceRaw": "1000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x49e60De54D731b6985Aa571E145Bb0621d684c8e",
+          "symbol": "BFS",
+          "reason": "no price (unpriced:no-market)",
+          "balanceRaw": "10000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x4a5d095b3DDbf2776E9Bb42c90E51ed96005EF9f",
+          "symbol": "PEPE",
+          "reason": "thin price only ($0.0021, gecko:$10)",
+          "balanceRaw": "6000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x4AbD097bB5BcbDCfcCAE37263b8438efb54A2342",
+          "symbol": "USER",
+          "reason": "no price (unpriced:no-market)",
+          "balanceRaw": "75000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x4aCBe625589982F8807459161dF6bAD3d6910D54",
+          "symbol": "SPOIL",
+          "reason": "thin price only ($0.0029, gecko:$7)",
+          "balanceRaw": "4000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x4b4dA54A80757b4AB3AC4fE11290C71899ECC804",
+          "symbol": "United States Program Dividend",
+          "reason": "thin price only ($0.0012, gecko:$1)",
+          "balanceRaw": "2000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x4bC91289A5CFe428F551a00d57e80Ac7Cbb9aB06",
+          "symbol": "STONKEX",
+          "reason": "thin price only ($0.0050, gecko:$1)",
+          "balanceRaw": "7000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x4C0546c198b5F2134aBe1527F71e9D1f504eDCf4",
+          "symbol": "VROF",
+          "reason": "thin price only ($0.0232, gecko:$5)",
+          "balanceRaw": "35000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x4cDf29BE08749E593984DFd5c385A9602BB71954",
+          "symbol": "TRONK",
+          "reason": "thin price only ($0.0013, gecko:$4)",
+          "balanceRaw": "5000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x4eE2964a04A6ceb680b9519D807AE2318B894079",
+          "symbol": "公牛",
+          "reason": "thin price only ($0.0762, gecko:$11)",
+          "balanceRaw": "155000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x4Ef9f3640F0E346CA4539993b3B82104Bf241D6f",
+          "symbol": "ARB | t.me/s/arb_pool",
+          "reason": "no price (unpriced:no-market)",
+          "balanceRaw": "1",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x4Ff05447732318cD288EB5eED500A69DcdD8f492",
+          "symbol": "ARB | t.me/s/arb_pool",
+          "reason": "no price (unpriced:no-market)",
+          "balanceRaw": "1",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x51ad4369f9014a21275Bd91b76a40d64fB499132",
+          "symbol": "DUCK",
+          "reason": "no price (unpriced:no-market)",
+          "balanceRaw": "8000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x51b92122fe58883601fbA4e99Fc6F7f98ce0D1e0",
+          "symbol": "MAGA",
+          "reason": "no price (unpriced:no-market)",
+          "balanceRaw": "15000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x52ca825d762A97205aEdC0cd8b9509BC03b73543",
+          "symbol": "USWR",
+          "reason": "thin price only ($0.0150, gecko:$1)",
+          "balanceRaw": "25000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x535930aEF284E6e60456CbcA83f8D090214b19CE",
+          "symbol": "AGENT",
+          "reason": "thin price only ($0.0057, gecko:$41)",
+          "balanceRaw": "8000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x538dbC33787c9F12aA824B6597E29a41d644Ca41",
+          "symbol": "GrokBot",
+          "reason": "thin price only ($0.0018, gecko:$15)",
+          "balanceRaw": "3000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x548f93779fBC992010C07467cBaf329DD5F059B7",
+          "symbol": "BMX",
+          "reason": "firm $0.0517 < $1",
+          "balanceRaw": "373450930601829452",
+          "ignoredAt": "2026-10-30T14:29:54.494Z"
+        },
+        {
+          "address": "0x561a9Bd08b36a00a5A368109279fFb14FBe82a01",
+          "symbol": "WOFT",
+          "reason": "thin price only ($0.0025, gecko:$1)",
+          "balanceRaw": "100000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x56342A2cd3c845B0C42034439E6A002f621Afd69",
+          "symbol": "NITTER",
+          "reason": "thin price only ($0.0024, gecko:$6)",
+          "balanceRaw": "2000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x5720Ff9955DC11281b1058c2D33B6C0FCEC80BeE",
+          "symbol": "USWR",
+          "reason": "thin price only ($0.0060, gecko:$0)",
+          "balanceRaw": "9500000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x58DEE905Db7bdA6E2767632daF9D80cD525BEC85",
+          "symbol": "PIPEDOG",
+          "reason": "thin price only ($0.0043, gecko:$1)",
+          "balanceRaw": "7000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x59949333BaaEf945C3E1AA7Df91F8C02447cE9Cd",
+          "symbol": "CRYCATS",
+          "reason": "thin price only ($0.0031, gecko:$14)",
+          "balanceRaw": "10000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x5A2e42C306b58eB694F071841e1dD0AB2F6F0280",
+          "symbol": "HAPPYCAT",
+          "reason": "no price (unpriced:no-market)",
+          "balanceRaw": "20000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x5a4d558cbb29CC68e8d1B950184326f667C462B6",
+          "symbol": "ZCAT",
+          "reason": "no price (unpriced:no-market)",
+          "balanceRaw": "20000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x5ADcBC164742A10000339Ec0741E003A5Fcb31f7",
+          "symbol": "BASED AMERICAN",
+          "reason": "thin price only ($0.0000, gecko:$11)",
+          "balanceRaw": "1000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x5bE75e3b0aFf5D1A042A5363Ae36AcB1d6d755ea",
+          "symbol": "AXIS",
+          "reason": "firm $0.1644 < $1",
+          "balanceRaw": "1200000000000000000",
+          "ignoredAt": "2026-10-30T14:29:54.494Z"
+        },
+        {
+          "address": "0x5e282Ee7d331Aff0206981D1b2892bC245Cd2be7",
+          "symbol": "USDG",
+          "reason": "thin price only ($0.0006, gecko:$5)",
+          "balanceRaw": "25000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x60046C149b7F024D5c5547091ce5BAD0daBB99C8",
+          "symbol": "HUMANITY",
+          "reason": "thin price only ($0.0023, gecko:$2)",
+          "balanceRaw": "9500000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x621b70347CEe0C5Ee4813133667C3bd0BB3CE213",
+          "symbol": "VORF",
+          "reason": "no price (unpriced:no-market)",
+          "balanceRaw": "50000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x6255143e2Cf4859A18df28731438D08E8b315757",
+          "symbol": "GS",
+          "reason": "thin price only ($0.0004, gecko:$1)",
+          "balanceRaw": "2000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x62734A86917a5B818c610F36c2D91a2681D4b5a9",
+          "symbol": "CLAWD",
+          "reason": "thin price only ($0.0024, gecko:$7)",
+          "balanceRaw": "100000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x628062ab5d8A0849106C5c84B0C3f2d89fDcE3e4",
+          "symbol": "LAPTOP",
+          "reason": "thin price only ($0.0118, gecko:$0)",
+          "balanceRaw": "19000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x638336aa8c7330A45D727AB7611e57DA62286f0b",
+          "symbol": "cbFOX",
+          "reason": "thin price only ($0.0213, gecko:$0)",
+          "balanceRaw": "300000000000000000000",
+          "ignoredAt": "2026-10-30T14:29:54.494Z"
+        },
+        {
+          "address": "0x655cEe299832E419EE0af84f22697E12741de069",
+          "symbol": "NVDAc",
+          "reason": "thin price only ($0.0048, gecko:$0)",
+          "balanceRaw": "10000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x65ac2995587EE88cEeadF4735e8e3BB3974E6322",
+          "symbol": "Surplus",
+          "reason": "no price (unpriced:no-market)",
+          "balanceRaw": "25000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x65F39A15eE416847bef0cFf153aE06693670A89e",
+          "symbol": "RUSIAN",
+          "reason": "thin price only ($0.0002, gecko:$1)",
+          "balanceRaw": "8000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x65fe258504c8D7548dfB67c4e21E903E3286C9f9",
+          "symbol": "UOSER",
+          "reason": "no price (unpriced:no-market)",
+          "balanceRaw": "25000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x6782910157b6cA0c2BE7e68937E88d8a43BD4FD5",
+          "symbol": "BSTONK",
+          "reason": "no price (unpriced:no-market)",
+          "balanceRaw": "421000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x68330850DB9b7499739FFf70514b6aFE7a8125b3",
+          "symbol": "STONKFLY",
+          "reason": "thin price only ($0.0045, gecko:$0)",
+          "balanceRaw": "10000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x696b9734318eFD56c8499E46B028FcC071545DE8",
+          "symbol": "BMC",
+          "reason": "thin price only ($0.0048, gecko:$2)",
+          "balanceRaw": "200000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x6Ab0Beb71a0C420035E861Ee6834dB4ccd2fF71f",
+          "symbol": "SXC",
+          "reason": "thin price only ($0.0112, gecko:$122)",
+          "balanceRaw": "15000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x6b8d803d55Ec5cB74f8bb121E01Ff2C49668d620",
+          "symbol": "ANSEM",
+          "reason": "thin price only ($0.0062, gecko:$7)",
+          "balanceRaw": "10000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x6F36A40ef77b4BF9Fe091c18F853e7D950fA53De",
+          "symbol": "UTOOF",
+          "reason": "thin price only ($0.0036, gecko:$8)",
+          "balanceRaw": "7000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x6F5772226e3E6f458ebB29F905B59Eb9a25Bd0EB",
+          "symbol": "ADHC",
+          "reason": "no price (unpriced:no-market)",
+          "balanceRaw": "50000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x6f7a1650E6A801071AdEf850f3755A617BE256B2",
+          "symbol": "AGI",
+          "reason": "no price (unpriced:no-market)",
+          "balanceRaw": "25000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x7063DaD0e5cC6060fa39Ab80b1cFd00D60a7eF6F",
+          "symbol": "USMS",
+          "reason": "thin price only ($0.0054, gecko:$10)",
+          "balanceRaw": "71000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x70F92A7A7Fe11D9f25a9a5418F5123acB0d55d8f",
+          "symbol": "$MS",
+          "reason": "thin price only ($0.0149, gecko:$3)",
+          "balanceRaw": "25000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x71325F84d76E0e263256eca4D654B38F296D1145",
+          "symbol": "USGR",
+          "reason": "thin price only ($0.0016, gecko:$1)",
+          "balanceRaw": "27000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x733e25F7F9bBDE676C38851662212EDC201470b1",
+          "symbol": "BASESTOCK",
+          "reason": "thin price only ($0.0018, gecko:$3)",
+          "balanceRaw": "25000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x740644D7Af50e0e83412EB6271a455C91f412dC7",
+          "symbol": "MSPEED",
+          "reason": "thin price only ($0.0029, gecko:$2)",
+          "balanceRaw": "12000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x74Ce93D4B32e1804FE9d9541D65FEf11A98f42eB",
+          "symbol": "ARB | t.me/s/arb_pool",
+          "reason": "no price (unpriced:no-market)",
+          "balanceRaw": "1",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x753E2908d45a8091e7B93D6f59CBdeE1f64F2AC7",
+          "symbol": "BRAINARM",
+          "reason": "no price (unpriced:no-market)",
+          "balanceRaw": "45000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x764C8993A7dC6648F4f87b02350F895566e97f81",
+          "symbol": "USAS",
+          "reason": "thin price only ($0.0063, gecko:$0)",
+          "balanceRaw": "25000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x76a8b6C755dA2B54DdE756C41B5f89EDF3645C22",
+          "symbol": "SPIKE",
+          "reason": "thin price only ($0.0055, gecko:$2)",
+          "balanceRaw": "112905800000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x777D7eDF7281c68988D9caf158C648C5E95d0eBb",
+          "symbol": "OTC",
+          "reason": "no price (unpriced:no-market)",
+          "balanceRaw": "45000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x781eB1BB0B62088d575b782bd1C9550960743d8b",
+          "symbol": "HIR",
+          "reason": "thin price only ($0.0148, gecko:$7)",
+          "balanceRaw": "25000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x78cdbef65Ede022351F2DD635abc41Ac74788CbD",
+          "symbol": "GENESIS",
+          "reason": "thin price only ($0.0000, gecko:$0)",
+          "balanceRaw": "1000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x795d957332B720D10E82cb1f7B8C65e6E30012d2",
+          "symbol": "GT",
+          "reason": "thin price only ($0.0057, gecko:$5)",
+          "balanceRaw": "12000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x7b808BC3FEae2Db7abd1fE8916F64A8F0e5fB31F",
+          "symbol": "EDEL",
+          "reason": "thin price only ($0.0049, gecko:$1)",
+          "balanceRaw": "10000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x7b8f870A819a3843915165795722B51E387586cb",
+          "symbol": "AGENTAI",
+          "reason": "thin price only ($0.0037, gecko:$5)",
+          "balanceRaw": "12000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x80DfB4654654BC3Cb64BcdEd45E06c9c1dbEC756",
+          "symbol": "NODF",
+          "reason": "thin price only ($0.0058, gecko:$4)",
+          "balanceRaw": "25000000000000000000",
+          "ignoredAt": "2026-10-30T14:29:54.494Z"
+        },
+        {
+          "address": "0x812bADC826fCC301E97A96d69a09505227C8af97",
+          "symbol": "SAOS",
+          "reason": "thin price only ($0.0122, gecko:$0)",
+          "balanceRaw": "50000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x81530Cdbe7797E0AB911a084873D66d721E101ae",
+          "symbol": "Robotaxi",
+          "reason": "thin price only ($0.0046, gecko:$5)",
+          "balanceRaw": "10000000000000000000",
+          "ignoredAt": "2026-10-30T14:29:54.494Z"
+        },
+        {
+          "address": "0x81Efc506F26b7E5824E311537e2cE0AEA726ED11",
+          "symbol": "FOREST",
+          "reason": "thin price only ($0.0012, gecko:$5)",
+          "balanceRaw": "4000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x8242DEDf40d3377CCF74e9A65Cce85147F3306B6",
+          "symbol": "BOT",
+          "reason": "thin price only ($0.0120, gecko:$0)",
+          "balanceRaw": "25000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x83bBec3b499A4ad10Ffc3a075fC90f3207DaAAF5",
+          "symbol": "VDOR",
+          "reason": "thin price only ($0.0071, gecko:$46)",
+          "balanceRaw": "20000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x84836A47aE2D2Ff6D43ec152D6a1CB519d02740C",
+          "symbol": "PONS",
+          "reason": "thin price only ($0.0012, gecko:$4)",
+          "balanceRaw": "25000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x855d041cfF68b51F96bC1715655A5ADaf12614F9",
+          "symbol": "POD",
+          "reason": "thin price only ($0.0027, gecko:$35)",
+          "balanceRaw": "11000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x88f438E063c8A98a4e5Ca64cDdBe9c63D377b0e0",
+          "symbol": "USDG",
+          "reason": "thin price only ($0.0631, gecko:$0)",
+          "balanceRaw": "80000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x89FE034C3048681DC5dd29575817cf8F78E0A84B",
+          "symbol": "AGOR",
+          "reason": "thin price only ($0.0214, gecko:$11)",
+          "balanceRaw": "45000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x8a71084BF82b196b508d6b444998ad42156796e2",
+          "symbol": "NNWR",
+          "reason": "thin price only ($0.0108, gecko:$0)",
+          "balanceRaw": "45000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x8bF79F4D3491168BF34Eb6B8a9da7b351336ECaa",
+          "symbol": "USOH",
+          "reason": "thin price only ($0.0258, gecko:$0)",
+          "balanceRaw": "105000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x8c07Ce38afF790f43B9DB4C4b376d47dD1917111",
+          "symbol": "BOT",
+          "reason": "thin price only ($0.0733, gecko:$0)",
+          "balanceRaw": "150000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x8DB2b2E9327c3DE57802F905298dF69f7A05dD1E",
+          "symbol": "$MIND",
+          "reason": "thin price only ($0.0006, gecko:$0)",
+          "balanceRaw": "20000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x8e07b073476f00F428BaeB9Ef08052b969103dC5",
+          "symbol": "Pnut Token",
+          "reason": "thin price only ($0.0013, gecko:$9)",
+          "balanceRaw": "34000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x8e1dCB875C7F9d1A1DDEaC9041372944ACE350Cd",
+          "symbol": "NOCK.",
+          "reason": "thin price only ($0.0097, gecko:$0)",
+          "balanceRaw": "20000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x8eC67378ea686F83525C90b41Ab777F46902721d",
+          "symbol": "SPACE",
+          "reason": "thin price only ($0.0150, gecko:$0)",
+          "balanceRaw": "25000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x8FD83AEF2F3215C25C7B01533f504cF2c2f4f09c",
+          "symbol": "$ZORA",
+          "reason": "thin price only ($0.0003, gecko:$3)",
+          "balanceRaw": "4000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x8FE1a86AAe0Aad3Bc59a135bb936082888fB64F7",
+          "symbol": "FOMC",
+          "reason": "thin price only ($0.0073, gecko:$0)",
+          "balanceRaw": "6000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x922F686c409E036bcd9d0969fDAEabba230D9461",
+          "symbol": "POD",
+          "reason": "no price (unpriced:no-market)",
+          "balanceRaw": "20000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x924aA8c90ba67CAD4158Dccd2FF01fca4A153BdE",
+          "symbol": "VCAT",
+          "reason": "thin price only ($0.0051, gecko:$1)",
+          "balanceRaw": "7000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x925E72B879743054cD8E1cc0057183fd0D2a5581",
+          "symbol": "ZORA",
+          "reason": "thin price only ($0.0007, gecko:$5)",
+          "balanceRaw": "25000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x9286F0fc8ad73585F9E61996d757799F33d02076",
+          "symbol": "BOA",
+          "reason": "thin price only ($0.0009, gecko:$3)",
+          "balanceRaw": "25000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x92D4e1Ed4BcD5Bb2F9851D654e5DFE953c424B84",
+          "symbol": "biketyson",
+          "reason": "thin price only ($0.0300, gecko:$1)",
+          "balanceRaw": "60000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x9568cA3BB485f0E1582799E5319572987065BfF3",
+          "symbol": "DOLPHIN",
+          "reason": "thin price only ($0.0191, gecko:$9)",
+          "balanceRaw": "25000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x96e7f95Bf40E46bb0f135CFFFbd9fA5aFA091403",
+          "symbol": "VIRTUAL",
+          "reason": "thin price only ($0.0025, gecko:$2)",
+          "balanceRaw": "8000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x97CD10bc801C4Bb9B8FA3fee4c447D30Ed920c02",
+          "symbol": "RSE2",
+          "reason": "thin price only ($0.0074, gecko:$2)",
+          "balanceRaw": "10000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x98E4987ce2884443C3d9d7Cb5371A588B0696d88",
+          "symbol": "BASECAT",
+          "reason": "thin price only ($0.0024, gecko:$11)",
+          "balanceRaw": "2000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x9970A59d5C729163F2f43B35a720c156Ff84e120",
+          "symbol": "Only Trump",
+          "reason": "thin price only ($0.0001, gecko:$11)",
+          "balanceRaw": "4000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x99eD4345b02bF6eF83bc2507E9a9519a5c9AB2F1",
+          "symbol": "DBV",
+          "reason": "thin price only ($0.0123, gecko:$0)",
+          "balanceRaw": "25000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x9A3D72b56ef99Fbb326b5a83C8Ff83EC68ecfd7D",
+          "symbol": "USER",
+          "reason": "no price (unpriced:no-market)",
+          "balanceRaw": "25000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x9bf721B45B3c96dEa361cb4A92Cb8125C5860933",
+          "symbol": "TIBBIR",
+          "reason": "thin price only ($0.0166, gecko:$0)",
+          "balanceRaw": "25000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0x9FfC8B700a311a068887013E9403dF81c9FBDA57",
+          "symbol": "SEEDCOIN",
+          "reason": "thin price only ($0.0005, gecko:$3)",
+          "balanceRaw": "1000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0xa0747468cAcF6B4aee3f81094E734c8b6e36eFC8",
+          "symbol": "STONKEX",
+          "reason": "thin price only ($0.0084, gecko:$0)",
+          "balanceRaw": "1500000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0xa0A0c3B481be4611Dc44a8aCBc11E6B7a4568379",
+          "symbol": "BROKER",
+          "reason": "thin price only ($0.0095, gecko:$4)",
+          "balanceRaw": "20000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0xA123354E9B9F45C17913F7ed35F168D6F52eDB83",
+          "symbol": "APO",
+          "reason": "thin price only ($0.0029, gecko:$1)",
+          "balanceRaw": "8000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0xa310c2116a0B8B1CeC5eb1bfB94efe341445F26F",
+          "symbol": "UGOR",
+          "reason": "thin price only ($0.0222, gecko:$178)",
+          "balanceRaw": "50000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0xA78474aF499f7Cc8BccfDD12426e1946A746122b",
+          "symbol": "JTR",
+          "reason": "no price (unpriced:no-market)",
+          "balanceRaw": "23000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0xA8DEF24B9e5cF402E14D6f94e2e460499377d3aa",
+          "symbol": "CLAUDE",
+          "reason": "thin price only ($0.0014, gecko:$16)",
+          "balanceRaw": "1000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0xa9ad9885EeA3B91c85C2F0B28C4d1f4a89f96A53",
+          "symbol": "BASECAT",
+          "reason": "thin price only ($0.1037, gecko:$0)",
+          "balanceRaw": "210000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0xAa2eF0eD72554b41bd20cfc4f814bc38bbeff8fd",
+          "symbol": "UDR",
+          "reason": "no price (unpriced:no-market)",
+          "balanceRaw": "100000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0xAA981518336ac2121d259D0a938a0b92af10D5f0",
+          "symbol": "LFI",
+          "reason": "thin price only ($0.0105, gecko:$0)",
+          "balanceRaw": "25000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0xAb396D1c975E89A0Bd1f2faA4636275Be5174B27",
+          "symbol": "BCAT",
+          "reason": "thin price only ($0.0010, gecko:$7)",
+          "balanceRaw": "4000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0xAb3FFaECBFBdDed19FdA2752Fb7E0309937f5181",
+          "symbol": "LLM",
+          "reason": "no price (unpriced:no-market)",
+          "balanceRaw": "15000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0xaE39FF05fdB4f0287aa194ad05Ac1A2cBfbE0AdD",
+          "symbol": "REVO",
+          "reason": "thin price only ($0.0002, gecko:$1)",
+          "balanceRaw": "2000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0xaFe019fDF44584327Ab3e5FAac4080F4C5C51846",
+          "symbol": "AOSR",
+          "reason": "thin price only ($0.0126, gecko:$0)",
+          "balanceRaw": "25000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0xb066fE179f7e731b4BcA446c7fB04149Ba9e6F36",
+          "symbol": "TROL",
+          "reason": "thin price only ($0.0086, gecko:$3)",
+          "balanceRaw": "12000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0xB1a33240646e742Fe7EC4d9E6536f9A9CDa01342",
+          "symbol": "World Oil Fund Institution",
+          "reason": "thin price only ($0.0010, gecko:$2)",
+          "balanceRaw": "2000000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0xb2000000000000000000001b0d6290F211117201",
+          "symbol": "BLUECHIP",
+          "reason": "thin price only ($0.2506, gecko:$7k)",
+          "balanceRaw": "25948081745843708852013",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0xb2000000000000000000001cB153A0101E7fA378",
+          "symbol": "PAX",
+          "reason": "thin price only ($0.0070, gecko:$1)",
+          "balanceRaw": "10000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0xb2000000000000000000002877e0F4D702d567F5",
+          "symbol": "GEM",
+          "reason": "thin price only ($0.0003, gecko:$1)",
+          "balanceRaw": "7000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0xb2000000000000000000006B96e07b49964fc43a",
+          "symbol": "HOUSE",
+          "reason": "thin price only ($0.0115, gecko:$0)",
+          "balanceRaw": "20770000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0xb200000000000000000000744308113297f0f386",
+          "symbol": "BOSS",
+          "reason": "thin price only ($0.0035, gecko:$1)",
+          "balanceRaw": "5000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0xB2000000000000000000007cFaA3D74Fe8EB4285",
+          "symbol": "cobee",
+          "reason": "thin price only ($0.0150, gecko:$0)",
+          "balanceRaw": "25000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0xB2000000000000000000008dafb6A23609406C28",
+          "symbol": "BASEDOGWIF",
+          "reason": "no price (unpriced:no-market)",
+          "balanceRaw": "5000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0xB200000000000000000000921eEca350135ba42d",
+          "symbol": "plumber",
+          "reason": "no price (unpriced:no-market)",
+          "balanceRaw": "20000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0xb200000000000000000000AeCA90e212Aac524C6",
+          "symbol": "bGYND",
+          "reason": "no price (unpriced:no-market)",
+          "balanceRaw": "100000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0xB200000000000000000000b23567AB79B58462d3",
+          "symbol": "AROS",
+          "reason": "thin price only ($0.0091, gecko:$4)",
+          "balanceRaw": "13000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0xB200000000000000000000B2C8403b2952D9Af6F",
+          "symbol": "LAPTOP B20",
+          "reason": "thin price only ($0.0098, gecko:$10)",
+          "balanceRaw": "20000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0xb200000000000000000000BB6650663DdF713f98",
+          "symbol": "worth",
+          "reason": "thin price only ($0.0033, gecko:$0)",
+          "balanceRaw": "10000000000000000000",
+          "ignoredAt": "2026-10-30T14:29:54.494Z"
+        },
+        {
+          "address": "0xb200000000000000000000c75C6eF257fee580B7",
+          "symbol": "XDP",
+          "reason": "thin price only ($0.0011, gecko:$9)",
+          "balanceRaw": "10000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0xB200000000000000000000E079Ad25B65b1CB5ac",
+          "symbol": "TRUMPFIFA",
+          "reason": "thin price only ($0.0091, gecko:$0)",
+          "balanceRaw": "13000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0xB200000000000000000000E6fcc33529006d665b",
+          "symbol": "BRAINARM",
+          "reason": "no price (unpriced:no-market)",
+          "balanceRaw": "20000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0xb200000000000000000000eBa813ccf2776C4524",
+          "symbol": "GOMO",
+          "reason": "thin price only ($0.0071, gecko:$0)",
+          "balanceRaw": "10000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0xB200000000000000000000F15E2f103D2AEc6ccC",
+          "symbol": "USOTF",
+          "reason": "thin price only ($0.0098, gecko:$0)",
+          "balanceRaw": "14000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0xB283bd2eE27E7544ff7de60A3E2A1Ae8Aab38793",
+          "symbol": "PHP-UP-2026",
+          "reason": "thin price only ($0.0047, gecko:$2)",
+          "balanceRaw": "10000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0xB33af28579e86C8884e6872287ce74AF6B3d01c9",
+          "symbol": "AMERICAN 250",
+          "reason": "thin price only ($0.0001, gecko:$263)",
+          "balanceRaw": "50000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0xb3c5F31Ec130640f971FD5B9CF78690b7Eb2d9b2",
+          "symbol": "USDF",
+          "reason": "thin price only ($0.0133, gecko:$0)",
+          "balanceRaw": "20000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0xb64B5606Fa7a338d52f352d1946eD63977482748",
+          "symbol": "ETHY",
+          "reason": "thin price only ($0.0308, gecko:$0)",
+          "balanceRaw": "50511000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0xB8A768c457D2B7dd2622B055294dFe32e81fB0df",
+          "symbol": "DOCT",
+          "reason": "thin price only ($0.0060, gecko:$1)",
+          "balanceRaw": "10000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0xB8bdd7427e1Bd38a5e4f5bB486759e4203ee60C8",
+          "symbol": "AWSR",
+          "reason": "thin price only ($0.0157, gecko:$4)",
+          "balanceRaw": "25500000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0xB8Cb9F0630fc8C956B6461A8425097230B1E0aCa",
+          "symbol": "ASOS",
+          "reason": "thin price only ($0.0119, gecko:$13)",
+          "balanceRaw": "20000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0xba12BC7B210E61e5D3110B997A63Ea216e0E18F7",
+          "symbol": "C",
+          "reason": "firm $0.2375 < $1",
+          "balanceRaw": "3282859094200302284",
+          "ignoredAt": "2026-10-30T14:29:54.494Z"
+        },
+        {
+          "address": "0xbA2690b7eF02c274bb66845C5df4C40C713c0aD4",
+          "symbol": "apesemonfone",
+          "reason": "no price (unpriced:no-market)",
+          "balanceRaw": "20000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0xbA42a3f0b0dBaDEeaa974C1D30dd46aBc7845468",
+          "symbol": "ZORRA",
+          "reason": "thin price only ($0.0017, gecko:$4)",
+          "balanceRaw": "26000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0xbb809BFE4c9D230E793F95FB2d17Ae20e53225DB",
+          "symbol": "FACY",
+          "reason": "thin price only ($0.0048, gecko:$6)",
+          "balanceRaw": "25000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0xBC7D2cE645565de0461E6F66AA7C0A6AA6380dB6",
+          "symbol": "USER",
+          "reason": "no price (unpriced:no-market)",
+          "balanceRaw": "10000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0xBd7EB1472dDCc6EfA4E05Cc8aE052a30e19c58C8",
+          "symbol": "UNOIL",
+          "reason": "thin price only ($0.0076, gecko:$0)",
+          "balanceRaw": "8000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0xBDBb6f98E981Ce7F2D0C4A2ABBed4Cf650B0Cc2B",
+          "symbol": "NTDA",
+          "reason": "thin price only ($0.0099, gecko:$0)",
+          "balanceRaw": "20000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0xBec0c62384DE58cd1336897236cf71BFd6883b07",
+          "symbol": "Paper",
+          "reason": "thin price only ($0.0001, gecko:$0)",
+          "balanceRaw": "662800000000000000",
+          "ignoredAt": "2026-10-30T14:29:54.494Z"
+        },
+        {
+          "address": "0xC16829EdedCac987f15a7b3b4bD018C226D00627",
+          "symbol": "SCAF",
+          "reason": "no price (unpriced:no-market)",
+          "balanceRaw": "35000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0xC31e46f96C933F9D284dC356691a59E17c52a43B",
+          "symbol": "BANK OF DIAMONDS",
+          "reason": "thin price only ($0.0024, gecko:$6)",
+          "balanceRaw": "10000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0xc3c49edB33df49F8d875F326a3b735689730A749",
+          "symbol": "WESTERN GOLD RESERVE",
+          "reason": "thin price only ($0.0117, gecko:$7)",
+          "balanceRaw": "500000000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0xC3d06CAbf1582bB6a2C50dC18E8cA1544e0D456c",
+          "symbol": "USOL",
+          "reason": "thin price only ($0.0025, gecko:$162)",
+          "balanceRaw": "20000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0xc59CC6f070F9DF8F4bDC3d5034fEF7f72E0A3c5A",
+          "symbol": "STONKEX",
+          "reason": "no price (unpriced:no-market)",
+          "balanceRaw": "25000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0xc5bBC4BAcB40b5D4cB359D4cf83e0C9e61E753cD",
+          "symbol": "KIRK",
+          "reason": "thin price only ($0.0019, gecko:$17)",
+          "balanceRaw": "20000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0xc8A71d1217328e591012dC16999e09021FB01D2C",
+          "symbol": "TBCB",
+          "reason": "no price (unpriced:no-market)",
+          "balanceRaw": "100000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0xC8dB8Ee82b5B23DbE74198B3Cba8fe517905128D",
+          "symbol": "SAIF",
+          "reason": "thin price only ($0.0060, gecko:$1)",
+          "balanceRaw": "25000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0xC9DC9cA94560520488FB291A7BebDfA656a405cc",
+          "symbol": "SCAT",
+          "reason": "thin price only ($0.0018, gecko:$1)",
+          "balanceRaw": "25000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0xc9DfC0775F6de9BAa98fC91B31b42B54282fA627",
+          "symbol": "Basecat",
+          "reason": "thin price only ($0.0000, gecko:$3)",
+          "balanceRaw": "2000000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0xCa0b05744f39E532E0d18c4Aa7385ff0df6cf23f",
+          "symbol": "USOIL",
+          "reason": "thin price only ($0.0029, gecko:$9)",
+          "balanceRaw": "4000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0xCA6a49144F6c636393a25E91932e13701009EB07",
+          "symbol": "OpenAI",
+          "reason": "no price (unpriced:no-market)",
+          "balanceRaw": "898800000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0xCadF6A8FaB845bD71FA6CE7BB87C1f1f0ec658d4",
+          "symbol": "DOLPHIN",
+          "reason": "thin price only ($0.0158, gecko:$0)",
+          "balanceRaw": "25000000000000000000",
+          "ignoredAt": "2026-10-30T14:29:54.494Z"
+        },
+        {
+          "address": "0xd32036c15eDB548b7D03ee0B264AC989Be8c4589",
+          "symbol": "NTDA",
+          "reason": "thin price only ($0.0084, gecko:$7)",
+          "balanceRaw": "12000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0xD3c89EB7b90c965861c880d8Ad12ECbD9E6B57EB",
+          "symbol": "CYBERLEAK GTA 6",
+          "reason": "no price (unpriced:no-market)",
+          "balanceRaw": "12000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0xd3D99F5719Da3dE512Cb27B978f4bF076750297b",
+          "symbol": "UGORE",
+          "reason": "thin price only ($0.0122, gecko:$0)",
+          "balanceRaw": "17000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0xd3E118bd1B2dAD22bA6309f776eE69767Df731Cd",
+          "symbol": "Fine",
+          "reason": "thin price only ($0.0024, gecko:$2)",
+          "balanceRaw": "5000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0xD71bf6257E58fe65663f4B9fcc4Df67B850aA92c",
+          "symbol": "XRP",
+          "reason": "thin price only ($0.0164, gecko:$8)",
+          "balanceRaw": "25000000000000000000",
+          "ignoredAt": "2026-10-30T14:29:54.494Z"
+        },
+        {
+          "address": "0xd7CB132e23b10B8c4aF1Ff07640aEFc32da1E767",
+          "symbol": "KUPO",
+          "reason": "thin price only ($0.0020, gecko:$2)",
+          "balanceRaw": "3000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0xD8860c4A780D9B1C8f972A025304d143681B8519",
+          "symbol": "USWR",
+          "reason": "thin price only ($0.0022, gecko:$1)",
+          "balanceRaw": "3000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0xD906b27BeC1e211E67654e5d1f894420c2C88BdD",
+          "symbol": "MERLIN",
+          "reason": "thin price only ($0.0024, gecko:$1)",
+          "balanceRaw": "5000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0xdb5e9c3e82c3a3E74fc661a9eF533CCEEEA8D247",
+          "symbol": "Zcat",
+          "reason": "thin price only ($0.0060, gecko:$0)",
+          "balanceRaw": "25000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0xDd2fc771dDAB2b787AEDFd100a67d8a4754A380c",
+          "symbol": "TREB",
+          "reason": "firm $0.1214 < $1",
+          "balanceRaw": "12054590679565539477",
+          "ignoredAt": "2026-10-30T14:29:54.494Z"
+        },
+        {
+          "address": "0xDdb781ee071742C6B3D42964ED1aa2303eCfA6F9",
+          "symbol": "QUID",
+          "reason": "thin price only ($0.0075, gecko:$1)",
+          "balanceRaw": "50000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0xdE0dF9869185e19148944F367c9B5888fde42Be8",
+          "symbol": "TOSHI",
+          "reason": "thin price only ($0.0145, gecko:$0)",
+          "balanceRaw": "60000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0xe0C66373f8301F526d1a1Ddfe55618540Cc92934",
+          "symbol": "VV",
+          "reason": "thin price only ($0.0118, gecko:$0)",
+          "balanceRaw": "20000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0xE1Cb5716544658e38D49a10d14a084A51916649a",
+          "symbol": "ADP",
+          "reason": "thin price only ($0.0055, gecko:$3)",
+          "balanceRaw": "25000000000000000000",
+          "ignoredAt": "2026-10-30T14:29:54.494Z"
+        },
+        {
+          "address": "0xe22A56f5d94E7E0919D14CbFecFe4B96AA1e1800",
+          "symbol": "AnthropicAI",
+          "reason": "thin price only ($0.0066, gecko:$0)",
+          "balanceRaw": "10000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0xe4Ccddd4bde05c7670E0fD2Ce938F6ac89a434CD",
+          "symbol": "basenoun",
+          "reason": "no price (unpriced:no-market)",
+          "balanceRaw": "10000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0xE784ff6b57b8e8FEAf2DcAF9cAE2D6cb928893cF",
+          "symbol": "DOCT",
+          "reason": "thin price only ($0.0050, gecko:$10)",
+          "balanceRaw": "10000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0xeAE5d78E8E94B54A632B96B51318e629666A6133",
+          "symbol": "ISOR",
+          "reason": "no price (unpriced:no-market)",
+          "balanceRaw": "20000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0xEB34555a131B101c475F6255ACD8e989aD5B1DAf",
+          "symbol": "Super Inu",
+          "reason": "thin price only ($0.0024, gecko:$1)",
+          "balanceRaw": "10000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0xef35739d959A3e7e7a931776f4B6428AE3F35fe4",
+          "symbol": "SPCX",
+          "reason": "thin price only ($0.0018, gecko:$4)",
+          "balanceRaw": "25000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0xEf64B08c2E2b215CbC8Cd5a5D25Df7b0FEdE6677",
+          "symbol": "POPEYE gas",
+          "reason": "thin price only ($0.0012, gecko:$1)",
+          "balanceRaw": "26000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0xf0713CE1AaE74adC9d75cb64520DE4393829e7D8",
+          "symbol": "STONKER",
+          "reason": "no price (unpriced:no-market)",
+          "balanceRaw": "25000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0xf41ed45cDa7e0C8fAFD23d1778f465Eb0f747d01",
+          "symbol": "I DAO",
+          "reason": "thin price only ($0.0060, gecko:$0)",
+          "balanceRaw": "10000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0xf475E0f3eb811f1a47E0796328Ba4d377db80152",
+          "symbol": "USXR",
+          "reason": "thin price only ($0.0050, gecko:$0)",
+          "balanceRaw": "20000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0xF4e960EB06e607B403B3C4556D219a52f2812cE9",
+          "symbol": "Basecat",
+          "reason": "no price (unpriced:no-market)",
+          "balanceRaw": "202000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0xF9e885416B7D89a6aEd0B05034D86Ca1d010290B",
+          "symbol": "USWR",
+          "reason": "no price (unpriced:no-market)",
+          "balanceRaw": "25000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0xFAeE9B7933Fe3b09cEcd7d5Ab7Ba9647D14CD676",
+          "symbol": "BOXER",
+          "reason": "thin price only ($0.0051, gecko:$5)",
+          "balanceRaw": "7000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0xFbC2051AE2265686a469421b2C5A2D5462FbF5eB",
+          "symbol": "OPG",
+          "reason": "firm $0.1132 < $1",
+          "balanceRaw": "937504515564390880",
+          "ignoredAt": "2026-10-30T14:29:54.494Z"
+        },
+        {
+          "address": "0xFBdA4Cd440C739AC7347F4604f34A4aca78E2bc7",
+          "symbol": "Jessky",
+          "reason": "thin price only ($0.0335, gecko:$1)",
+          "balanceRaw": "50000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0xFD0738AbE065DA07d5D7259b582657802825Ec98",
+          "symbol": "SAOR",
+          "reason": "thin price only ($0.0057, gecko:$9)",
+          "balanceRaw": "10000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0xfE21F0FFB5455a24a3D8B316E5345d89B9FE44DA",
+          "symbol": "KAI",
+          "reason": "no price (unpriced:no-market)",
+          "balanceRaw": "50000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0xfE9eDe4478AD200a2186175a81f9CE9F0E679270",
+          "symbol": "propaganda",
+          "reason": "firm $0.0033 < $1",
+          "balanceRaw": "104164601022374893523",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0xFf1B5BE9FE78Ec54A0c7F18D96e37930487Dc31D",
+          "symbol": "DOODLE",
+          "reason": "thin price only ($0.0000, gecko:$9)",
+          "balanceRaw": "2000000000000000000000",
+          "ignoredAt": "2026-10-22T22:11:45.408Z"
+        },
+        {
+          "address": "0xfF33Bb4f2c728Ae65f3707878F1959954F4d5cfc",
+          "symbol": "AXIS",
+          "reason": "thin price only ($0.0174, gecko:$5)",
+          "balanceRaw": "75000000000000000000",
+          "ignoredAt": "2026-10-30T14:29:54.494Z"
         }
       ]
     },
@@ -11048,7 +14218,7 @@
         },
         {
           "address": "0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9",
-          "symbol": "USD\u20ae0",
+          "symbol": "USD₮0",
           "decimals": 6,
           "source": "chain-config,seed,swept,tokenlist-balance",
           "addedAt": "2026-10-16T23:12:12.833Z"
@@ -11073,6 +14243,29 @@
           "decimals": 6,
           "source": "chain-config,seed,swept,tokenlist-balance",
           "addedAt": "2026-10-16T23:12:12.833Z"
+        }
+      ],
+      "ignored": [
+        {
+          "address": "0x440017A1b021006d556d7fc06A54c32E42Eb745B",
+          "symbol": "@G",
+          "reason": "firm $0.9766 < $1",
+          "balanceRaw": "126466716576656102625",
+          "ignoredAt": "2026-10-22T22:11:45.886Z"
+        },
+        {
+          "address": "0x6ab707Aca953eDAeFBc4fD23bA73294241490620",
+          "symbol": "aArbUSDT",
+          "reason": "firm $0.0100 < $1",
+          "balanceRaw": "10003",
+          "ignoredAt": "2026-10-30T14:29:54.690Z"
+        },
+        {
+          "address": "0xd09ACb80C1E8f2291862c4978A008791c9167003",
+          "symbol": "tETH",
+          "reason": "firm $0.6269 < $1",
+          "balanceRaw": "207940463702856",
+          "ignoredAt": "2026-10-22T22:11:45.886Z"
         }
       ]
     },
@@ -11104,7 +14297,7 @@
         },
         {
           "address": "0x48065fbBE25f71C9282ddf5e1cD6D6A887483D5e",
-          "symbol": "USD\u20ae",
+          "symbol": "USD₮",
           "decimals": 6,
           "source": "chain-config,seed,swept,tokenlist-balance",
           "addedAt": "2026-10-16T23:12:10.310Z"
@@ -11595,6 +14788,22 @@
           "decimals": 18,
           "source": "seed,swept",
           "addedAt": "2026-10-16T23:12:13.666Z"
+        }
+      ],
+      "ignored": [
+        {
+          "address": "0x06d47F3fb376649c3A9Dafe069B3D6E35572219E",
+          "symbol": "savUSD",
+          "reason": "firm $0.0236 < $1",
+          "balanceRaw": "19574604005664573",
+          "ignoredAt": "2026-10-30T14:29:54.724Z"
+        },
+        {
+          "address": "0x24dE8771bC5DdB3362Db529Fc3358F2df3A0E346",
+          "symbol": "avUSD",
+          "reason": "firm $0.0338 < $1",
+          "balanceRaw": "33981857376818883",
+          "ignoredAt": "2026-10-30T14:29:54.724Z"
         }
       ]
     },
