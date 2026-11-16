@@ -1,0 +1,88 @@
+{
+  "kind": "oku-fee-sweep",
+  "schemaVersion": 1,
+  "mode": "execution",
+  "bundle": "sweep-2026-10-30",
+  "network": "redbelly",
+  "chainId": 151,
+  "router": "0x44a81236E892faEdc1f7c08362a4A0eC90dDd203",
+  "safe": "0x37333A9626E99eC2012F3cC47a062649CF741303",
+  "recipient": "0x7C547b4760feC978a26c76FE451BA3F5B00237C6",
+  "date": "2026-10-30",
+  "isoWeek": "2026-W44",
+  "generatedAt": "2026-10-30T16:43:33.232Z",
+  "execution": {
+    "txHash": "0x87e03dcbae4f3ec49791dae7448bad60522206061c6902318d1da15de314551d",
+    "blockNumber": 3244755,
+    "blockTimestamp": "2026-10-30T16:43:28.000Z",
+    "relayer": "0x3CB68a6762041aA05E762814A8791CA9d98E79A0",
+    "safeNonce": "1",
+    "safeTxHash": "0x604dd8e27fb12d1cdbcfb79b2b9ca057a01c90915f8f5e7a00c02c5e3e301ccf",
+    "signers": [
+      "0x46e9CF7694535b4Ba5a7ba09f6c54B05CE7A85E3",
+      "0x5348bb6318f5Dc05C4501BA8D9b543666ec772e8"
+    ],
+    "gasUsed": "196581",
+    "effectiveGasPrice": "313902752927143",
+    "gasCostWei": "61707317073170698083",
+    "gasCostNative": "61.707317073170698083",
+    "gasCostUsd": 0.09349408036288233,
+    "status": "success"
+  },
+  "assets": [
+    {
+      "token": "0x8201c02d4AB2214471E8C3AD6475C8b0CD9F2D06",
+      "symbol": "USDC.e",
+      "decimals": 6,
+      "amountRaw": "1301000",
+      "amount": "1.301",
+      "eventAmountRaw": "1301000",
+      "routerBalanceBefore": "1301000",
+      "routerBalanceAfter": "0",
+      "recipientBalanceBefore": "0",
+      "recipientBalanceAfter": "1301000",
+      "recipientDeltaRaw": "1301000",
+      "deltaMatchesEvent": true,
+      "usdPrice": 0.979332738148124,
+      "usdValueThin": 1.2741118923307093,
+      "priceTier": "thin",
+      "liquidityUsd": 9630.003677171391,
+      "priceSource": "gecko-current:$10k"
+    },
+    {
+      "token": "native",
+      "symbol": "RBNT",
+      "decimals": 18,
+      "amountRaw": "24497225236597123373689",
+      "amount": "24497.225236597123373689",
+      "eventAmountRaw": "24497225236597123373689",
+      "routerBalanceBefore": "24497225236597123373689",
+      "routerBalanceAfter": "0",
+      "recipientBalanceBefore": "0",
+      "recipientBalanceAfter": "24497225236597123373689",
+      "recipientDeltaRaw": "24497225236597123373689",
+      "deltaMatchesEvent": true,
+      "usdPrice": 0.0015151214604261572,
+      "usdValue": 37.116271676861544,
+      "priceTier": "firm",
+      "priceSource": "alias:coingecko:redbelly-network-token@1793377375"
+    }
+  ],
+  "totals": {
+    "assetCount": 2,
+    "usdNotional": 37.116271676861544,
+    "unpricedCount": 0,
+    "thinUsd": 1.2741118923307093,
+    "thinCount": 1,
+    "nativeUsdPrice": 0.0015151214604261572
+  },
+  "reconciliation": {
+    "allRouterBalancesZero": true,
+    "eventsMatchBalanceDeltas": true,
+    "residuals": [],
+    "discrepancies": []
+  },
+  "warnings": [
+    "redbelly: 1 thin price(s) shown but not counted, 0 asset(s) unpriced"
+  ]
+}

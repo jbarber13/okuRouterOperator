@@ -1,0 +1,101 @@
+{
+  "kind": "oku-fee-sweep",
+  "schemaVersion": 1,
+  "mode": "execution",
+  "bundle": "sweep-2026-10-30",
+  "network": "linea",
+  "chainId": 59144,
+  "router": "0xb1f3a7B816B0681188F54dFa400991B93ADf00ed",
+  "safe": "0x37333A9626E99eC2012F3cC47a062649CF741303",
+  "recipient": "0x7C547b4760feC978a26c76FE451BA3F5B00237C6",
+  "date": "2026-10-30",
+  "isoWeek": "2026-W44",
+  "generatedAt": "2026-10-30T16:47:07.725Z",
+  "execution": {
+    "txHash": "0x24d59787af21c0b84323698c12f9c153b7859ce877e7ad486855bf9a0a9b175f",
+    "blockNumber": 32476348,
+    "blockTimestamp": "2026-10-30T16:47:02.000Z",
+    "relayer": "0x3CB68a6762041aA05E762814A8791CA9d98E79A0",
+    "safeNonce": "2",
+    "safeTxHash": "0xf3d80bbe1493d07290a52ba464c87c4fcdba4b30ef9e57466b677a96846e5044",
+    "signers": [
+      "0x46e9CF7694535b4Ba5a7ba09f6c54B05CE7A85E3",
+      "0x5348bb6318f5Dc05C4501BA8D9b543666ec772e8"
+    ],
+    "gasUsed": "330172",
+    "effectiveGasPrice": "76416000",
+    "gasCostWei": "25230423552000",
+    "gasCostNative": "0.000025230423552",
+    "gasCostUsd": 0.05640088714174821,
+    "status": "success"
+  },
+  "assets": [
+    {
+      "token": "0x176211869cA2b568f2A7D4EE941E073a821EE1ff",
+      "symbol": "USDC",
+      "decimals": 6,
+      "amountRaw": "20000",
+      "amount": "0.02",
+      "eventAmountRaw": "20000",
+      "routerBalanceBefore": "20000",
+      "routerBalanceAfter": "0",
+      "recipientBalanceBefore": "0",
+      "recipientBalanceAfter": "20000",
+      "recipientDeltaRaw": "20000",
+      "deltaMatchesEvent": true,
+      "usdPrice": 0.9997644630331088,
+      "usdValue": 0.01999528926066218,
+      "priceTier": "firm",
+      "priceSource": "llama-historical@1793377375"
+    },
+    {
+      "token": "0xA219439258ca9da29E9Cc4cE5596924745e12B93",
+      "symbol": "USDT",
+      "decimals": 6,
+      "amountRaw": "8265",
+      "amount": "0.008265",
+      "eventAmountRaw": "8265",
+      "routerBalanceBefore": "8265",
+      "routerBalanceAfter": "0",
+      "recipientBalanceBefore": "0",
+      "recipientBalanceAfter": "8265",
+      "recipientDeltaRaw": "8265",
+      "deltaMatchesEvent": true,
+      "usdPrice": 0.9992146089807785,
+      "usdValue": 0.008258508743226135,
+      "priceTier": "firm",
+      "priceSource": "llama-historical@1793377375"
+    },
+    {
+      "token": "native",
+      "symbol": "ETH",
+      "decimals": 18,
+      "amountRaw": "309672954670407",
+      "amount": "0.000309672954670407",
+      "eventAmountRaw": "309672954670407",
+      "routerBalanceBefore": "309672954670407",
+      "routerBalanceAfter": "0",
+      "recipientBalanceBefore": "0",
+      "recipientBalanceAfter": "309672954670407",
+      "recipientDeltaRaw": "309672954670407",
+      "deltaMatchesEvent": true,
+      "usdPrice": 2235.4316417045384,
+      "usdValue": 0.692252721450363,
+      "priceTier": "firm",
+      "priceSource": "llama-historical@1793377375"
+    }
+  ],
+  "totals": {
+    "assetCount": 3,
+    "usdNotional": 0.7205065194542513,
+    "unpricedCount": 0,
+    "nativeUsdPrice": 2235.4316417045384
+  },
+  "reconciliation": {
+    "allRouterBalancesZero": true,
+    "eventsMatchBalanceDeltas": true,
+    "residuals": [],
+    "discrepancies": []
+  },
+  "warnings": []
+}

@@ -1,0 +1,65 @@
+{
+  "kind": "oku-fee-sweep",
+  "schemaVersion": 1,
+  "mode": "execution",
+  "bundle": "sweep-2026-10-30",
+  "network": "filecoin",
+  "chainId": 314,
+  "router": "0x4Ae4041BFa135413A845b803226943198a2F1BeE",
+  "safe": "0x37333A9626E99eC2012F3cC47a062649CF741303",
+  "recipient": "0x7C547b4760feC978a26c76FE451BA3F5B00237C6",
+  "date": "2026-10-30",
+  "isoWeek": "2026-W44",
+  "generatedAt": "2026-10-30T16:44:34.026Z",
+  "execution": {
+    "txHash": "0x9f83e4e487998dfa003ac0e695f154da6dc8226d308b3a38ccfd3138ecfd0b48",
+    "blockNumber": 6502408,
+    "blockTimestamp": "2026-10-30T16:44:00.000Z",
+    "relayer": "0x3CB68a6762041aA05E762814A8791CA9d98E79A0",
+    "safeNonce": "1",
+    "safeTxHash": "0xc0eb8330a086a7b366056c980e53c4877ca414457a4279a81d9e6f78fd24e895",
+    "signers": [
+      "0x46e9CF7694535b4Ba5a7ba09f6c54B05CE7A85E3",
+      "0x5348bb6318f5Dc05C4501BA8D9b543666ec772e8"
+    ],
+    "gasUsed": "50377542",
+    "effectiveGasPrice": "350056",
+    "gasCostWei": "17634960842352",
+    "gasCostNative": "0.000017634960842352",
+    "gasCostUsd": 0.00001531868595822537,
+    "status": "success"
+  },
+  "assets": [
+    {
+      "token": "native",
+      "symbol": "FIL",
+      "decimals": 18,
+      "amountRaw": "278645841786758551",
+      "amount": "0.278645841786758551",
+      "eventAmountRaw": "278645841786758551",
+      "routerBalanceBefore": "278645841786758551",
+      "routerBalanceAfter": "0",
+      "recipientBalanceBefore": "0",
+      "recipientBalanceAfter": "278645841786758551",
+      "recipientDeltaRaw": "278645841786758551",
+      "deltaMatchesEvent": true,
+      "usdPrice": 0.8686543789445861,
+      "usdValue": 0.24204693064276814,
+      "priceTier": "firm",
+      "priceSource": "alias:coingecko:filecoin@1793378635"
+    }
+  ],
+  "totals": {
+    "assetCount": 1,
+    "usdNotional": 0.24204693064276814,
+    "unpricedCount": 0,
+    "nativeUsdPrice": 0.8686543789445861
+  },
+  "reconciliation": {
+    "allRouterBalancesZero": true,
+    "eventsMatchBalanceDeltas": true,
+    "residuals": [],
+    "discrepancies": []
+  },
+  "warnings": []
+}

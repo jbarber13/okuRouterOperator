@@ -1,0 +1,101 @@
+{
+  "kind": "oku-fee-sweep",
+  "schemaVersion": 1,
+  "mode": "execution",
+  "bundle": "sweep-2026-10-30",
+  "network": "plasma",
+  "chainId": 9745,
+  "router": "0xb1f3a7B816B0681188F54dFa400991B93ADf00ed",
+  "safe": "0x37333A9626E99eC2012F3cC47a062649CF741303",
+  "recipient": "0x7C547b4760feC978a26c76FE451BA3F5B00237C6",
+  "date": "2026-10-30",
+  "isoWeek": "2026-W44",
+  "generatedAt": "2026-10-30T16:46:21.818Z",
+  "execution": {
+    "txHash": "0xceaa67fd9ced9db4927f32528cbfb1fdad5a774f118f7b6cbd4536ffae9cc415",
+    "blockNumber": 36436842,
+    "blockTimestamp": "2026-10-30T16:46:17.000Z",
+    "relayer": "0x3CB68a6762041aA05E762814A8791CA9d98E79A0",
+    "safeNonce": "3",
+    "safeTxHash": "0xc684e54cd3ed2035259933d9019789fde4218c0dad4c83c8aac539aa7b8ff5f0",
+    "signers": [
+      "0x46e9CF7694535b4Ba5a7ba09f6c54B05CE7A85E3",
+      "0x5348bb6318f5Dc05C4501BA8D9b543666ec772e8"
+    ],
+    "gasUsed": "328324",
+    "effectiveGasPrice": "9",
+    "gasCostWei": "2954916",
+    "gasCostNative": "0.000000000002954916",
+    "gasCostUsd": 2.2952089712297953e-13,
+    "status": "success"
+  },
+  "assets": [
+    {
+      "token": "0x6100E367285b01F48D07953803A2d8dCA5D19873",
+      "symbol": "WXPL",
+      "decimals": 18,
+      "amountRaw": "39909001467698958468",
+      "amount": "39.909001467698958468",
+      "eventAmountRaw": "39909001467698958468",
+      "routerBalanceBefore": "39909001467698958468",
+      "routerBalanceAfter": "0",
+      "recipientBalanceBefore": "0",
+      "recipientBalanceAfter": "39909001467698958468",
+      "recipientDeltaRaw": "39909001467698958468",
+      "deltaMatchesEvent": true,
+      "usdPrice": 0.07767425440282551,
+      "usdValue": 3.0999019329647854,
+      "priceTier": "firm",
+      "priceSource": "llama-historical@1793377375"
+    },
+    {
+      "token": "0xb77E872A68C62CfC0dFb02C067Ecc3DA23B4bbf3",
+      "symbol": "GHO",
+      "decimals": 18,
+      "amountRaw": "238130514182237148",
+      "amount": "0.238130514182237148",
+      "eventAmountRaw": "238130514182237148",
+      "routerBalanceBefore": "238130514182237148",
+      "routerBalanceAfter": "0",
+      "recipientBalanceBefore": "0",
+      "recipientBalanceAfter": "238130514182237148",
+      "recipientDeltaRaw": "238130514182237148",
+      "deltaMatchesEvent": true,
+      "usdPrice": 0.9984061879215292,
+      "usdValue": 0.23775097889248106,
+      "priceTier": "firm",
+      "priceSource": "llama-historical@1793378510"
+    },
+    {
+      "token": "native",
+      "symbol": "XPL",
+      "decimals": 18,
+      "amountRaw": "8360951831185385200",
+      "amount": "8.3609518311853852",
+      "eventAmountRaw": "8360951831185385200",
+      "routerBalanceBefore": "8360951831185385200",
+      "routerBalanceAfter": "0",
+      "recipientBalanceBefore": "999998998682135000",
+      "recipientBalanceAfter": "9360950829867520200",
+      "recipientDeltaRaw": "8360951831185385200",
+      "deltaMatchesEvent": true,
+      "usdPrice": 0.07767425440282551,
+      "usdValue": 0.6494306995852634,
+      "priceTier": "firm",
+      "priceSource": "llama-historical@1793377375"
+    }
+  ],
+  "totals": {
+    "assetCount": 3,
+    "usdNotional": 3.9870836114425297,
+    "unpricedCount": 0,
+    "nativeUsdPrice": 0.07767425440282551
+  },
+  "reconciliation": {
+    "allRouterBalancesZero": true,
+    "eventsMatchBalanceDeltas": true,
+    "residuals": [],
+    "discrepancies": []
+  },
+  "warnings": []
+}

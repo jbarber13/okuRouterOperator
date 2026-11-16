@@ -1,0 +1,88 @@
+{
+  "kind": "oku-fee-sweep",
+  "schemaVersion": 1,
+  "mode": "execution",
+  "bundle": "sweep-2026-10-30",
+  "network": "nibiru",
+  "chainId": 6900,
+  "router": "0x7B060A98BA242Ae42D6027a60937787eBe33DEBe",
+  "safe": "0x37333A9626E99eC2012F3cC47a062649CF741303",
+  "recipient": "0x7C547b4760feC978a26c76FE451BA3F5B00237C6",
+  "date": "2026-10-30",
+  "isoWeek": "2026-W44",
+  "generatedAt": "2026-10-30T16:45:56.955Z",
+  "execution": {
+    "txHash": "0x423650fbfd81d429c6aa7a10becf65829ad4471585c82247f5a9ffa5193d6a1b",
+    "blockNumber": 48781820,
+    "blockTimestamp": "2026-10-30T16:45:51.000Z",
+    "relayer": "0x3CB68a6762041aA05E762814A8791CA9d98E79A0",
+    "safeNonce": "1",
+    "safeTxHash": "0x64029cca4db7a9b9374d4d87b7ba107ea09be9af4c407ec44c0cc534e585b21a",
+    "signers": [
+      "0x46e9CF7694535b4Ba5a7ba09f6c54B05CE7A85E3",
+      "0x5348bb6318f5Dc05C4501BA8D9b543666ec772e8"
+    ],
+    "gasUsed": "161933",
+    "effectiveGasPrice": "0",
+    "gasCostWei": "0",
+    "gasCostNative": "0.0",
+    "gasCostUsd": 0,
+    "status": "success"
+  },
+  "assets": [
+    {
+      "token": "0xcA0a9Fb5FBF692fa12fD13c0A900EC56Bb3f0a7b",
+      "symbol": "stNIBI",
+      "decimals": 6,
+      "amountRaw": "312939225",
+      "amount": "312.939225",
+      "eventAmountRaw": "312939225",
+      "routerBalanceBefore": "312939225",
+      "routerBalanceAfter": "0",
+      "recipientBalanceBefore": "0",
+      "recipientBalanceAfter": "312939225",
+      "recipientDeltaRaw": "312939225",
+      "deltaMatchesEvent": true,
+      "usdPrice": 0.000697659182121417,
+      "usdValueThin": 0.2183249237672101,
+      "priceTier": "thin",
+      "liquidityUsd": 4.6985831065770585,
+      "priceSource": "gecko-current:$5"
+    },
+    {
+      "token": "native",
+      "symbol": "NIBI",
+      "decimals": 18,
+      "amountRaw": "933116866205382459029",
+      "amount": "933.116866205382459029",
+      "eventAmountRaw": "933116866205382459029",
+      "routerBalanceBefore": "933116866205382459029",
+      "routerBalanceAfter": "0",
+      "recipientBalanceBefore": "0",
+      "recipientBalanceAfter": "933116866205382459029",
+      "recipientDeltaRaw": "933116866205382459029",
+      "deltaMatchesEvent": true,
+      "usdPrice": 0.0004315744307814485,
+      "usdValue": 0.40270938038515697,
+      "priceTier": "firm",
+      "priceSource": "alias:coingecko:nibiru@1793376475"
+    }
+  ],
+  "totals": {
+    "assetCount": 2,
+    "usdNotional": 0.40270938038515697,
+    "unpricedCount": 0,
+    "thinUsd": 0.2183249237672101,
+    "thinCount": 1,
+    "nativeUsdPrice": 0.0004315744307814485
+  },
+  "reconciliation": {
+    "allRouterBalancesZero": true,
+    "eventsMatchBalanceDeltas": true,
+    "residuals": [],
+    "discrepancies": []
+  },
+  "warnings": [
+    "nibiru: 1 thin price(s) shown but not counted, 0 asset(s) unpriced"
+  ]
+}
