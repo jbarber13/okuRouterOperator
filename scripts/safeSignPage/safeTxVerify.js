@@ -284,6 +284,63 @@
     };
   }
 
+  var MULTISEND_SELECTOR = "0x8d80ff0a";
+  var UPDATE_SWAP_TARGETS_SELECTOR = "0x97bbda0e";
+
+  /**
+   * Strictly decode multiSend(bytes): canonical ABI wrapper, then the packed
+   * entries (uint8 op | address to | uint256 value | uint256 len | data).
+   */
+  function decodeMultiSend(dataHex) {
+    var b = hexToBytes(dataHex);
+    if (b.length < 4 || bytesToHex(b.slice(0, 4)) !== MULTISEND_SELECTOR) throw new Error("selector is not multiSend");
+    var w = words(dataHex);
+    if (w.length < 2 || toBig(w[0]) !== 32n) throw new Error("multiSend bytes offset is not 0x20");
+    var len = Number(toBig(w[1]));
+    var start = 4 + 64;
+    if (start + len > b.length || b.length - (start + len) >= 32) throw new Error("multiSend length does not match calldata");
+    for (var z = start + len; z < b.length; z++) if (b[z] !== 0) throw new Error("multiSend padding is not zero");
+    var packed = b.slice(start, start + len);
+    var out = [], o = 0;
+    while (o < packed.length) {
+      if (o + 85 > packed.length) throw new Error("truncated multiSend entry");
+      var op = packed[o];
+      var to = checksum(bytesToHex(packed.slice(o + 1, o + 21)));
+      var value = toBig(bytesToHex(packed.slice(o + 21, o + 53)));
+      var dlen = Number(toBig(bytesToHex(packed.slice(o + 53, o + 85))));
+      if (o + 85 + dlen > packed.length) throw new Error("truncated multiSend data");
+      out.push({ operation: op, to: to, value: value, data: bytesToHex(packed.slice(o + 85, o + 85 + dlen)) });
+      o += 85 + dlen;
+    }
+    return out;
+  }
+
+  /** Strictly decode updateSwapTargets(address,bool). */
+  function decodeUpdateSwapTargets(dataHex) {
+    var b = hexToBytes(dataHex);
+    if (b.length !== 68 || bytesToHex(b.slice(0, 4)) !== UPDATE_SWAP_TARGETS_SELECTOR) throw new Error("not updateSwapTargets");
+    var w = words(dataHex);
+    if (!/^0x0{24}/.test(w[0])) throw new Error("target word has dirty high bytes");
+    var f = toBig(w[1]);
+    if (f !== 0n && f !== 1n) throw new Error("add flag is not a clean bool");
+    return { target: checksum("0x" + w[0].slice(26)), add: f === 1n };
+  }
+
+  /** Human description of one router call, decoded from bytes. */
+  function describeCall(to, data, router) {
+    var sel = String(data).slice(0, 10).toLowerCase();
+    var where = eqAddr(to, router) ? "router" : checksum(to);
+    if (sel === UPDATE_SWAP_TARGETS_SELECTOR) {
+      var u = decodeUpdateSwapTargets(data);
+      return { text: (u.add ? "ADD    " : "REVOKE ") + u.target, kind: "updateSwapTargets", where: where, decoded: u };
+    }
+    if (sel === SWEEP_ALL_SELECTOR) {
+      var sw = decodeSweepAll(data);
+      return { text: "sweepAll " + sw.tokens.length + " token(s) -> " + sw.to, kind: "sweepAll", where: where, decoded: sw };
+    }
+    return { text: "selector " + sel + " (" + (hexToBytes(data).length) + " bytes, not decoded)", kind: "unknown", where: where };
+  }
+
   /* ------------------------------ verification -------------------------- */
 
   /**
@@ -336,9 +393,30 @@
     var op = Number(toBig(m.operation));
     var calls = c.calls || [];
     var isMultiSend = op === 1 && eqAddr(m.to, MULTISEND_CALL_ONLY);
+    view.inner = [];
     if (op === 1) {
       need(isMultiSend, "DELEGATECALL to " + m.to + " (only MultiSendCallOnly is ever acceptable)");
-      if (isMultiSend) warnings.push("DELEGATECALL to MultiSendCallOnly: batched admin calls, inner calls are plain CALLs");
+      if (isMultiSend) {
+        warnings.push("DELEGATECALL to MultiSendCallOnly: " + calls.length + " batched call(s), each a plain CALL — listed in section 3");
+        try {
+          var entries = decodeMultiSend(m.data);
+          need(entries.length === calls.length, "multiSend has " + entries.length + " call(s), bundle lists " + calls.length);
+          entries.forEach(function (e, k) {
+            need(e.operation === 0, "multiSend call " + k + " is not a plain CALL");
+            need(eqAddr(e.to, c.router), "multiSend call " + k + " targets " + e.to + ", not this chain's router");
+            need(e.value === 0n, "multiSend call " + k + " sends value");
+            var bc = calls[k];
+            if (bc) {
+              need(eqAddr(bc.to, e.to) && String(bc.data).toLowerCase() === e.data.toLowerCase(),
+                "multiSend call " + k + " differs from the bundle's call " + k);
+            }
+            try { view.inner.push(describeCall(e.to, e.data, c.router)); }
+            catch (err) { errors.push("multiSend call " + k + ": " + (err && err.message ? err.message : err)); }
+          });
+        } catch (e2) {
+          errors.push("multiSend: " + (e2 && e2.message ? e2.message : e2));
+        }
+      }
     } else {
       need(op === 0, "operation " + op + " is neither CALL(0) nor DELEGATECALL(1)");
       if (calls.length === 1) {
@@ -346,9 +424,16 @@
         need(String(m.data).toLowerCase() === String(calls[0].data).toLowerCase(),
           "payload data differs from the bundle's call data");
         need(toBig(m.value) === toBig(calls[0].value || 0), "payload value differs from the bundle's call value");
+        try { view.inner.push(describeCall(m.to, m.data, c.router)); }
+        catch (err) { errors.push("calldata: " + (err && err.message ? err.message : err)); }
       } else {
         errors.push("a direct CALL must carry exactly one bundle call (has " + calls.length + ")");
       }
+    }
+
+    if (bundle.intent === "swap-targets") {
+      need(view.inner.length === calls.length && view.inner.every(function (x) { return x.kind === "updateSwapTargets" && x.where === "router"; }),
+        "a swap-targets bundle may only call updateSwapTargets on this chain's router");
     }
 
     if (bundle.intent === "sweep") {
@@ -406,6 +491,8 @@
     checksum: checksum,
     hashSafeTxPayload: hashSafeTxPayload,
     decodeSweepAll: decodeSweepAll,
+    decodeMultiSend: decodeMultiSend,
+    decodeUpdateSwapTargets: decodeUpdateSwapTargets,
     verifyChain: verifyChain,
     constants: { MULTISEND_CALL_ONLY: MULTISEND_CALL_ONLY, SWEEP_ALL_SELECTOR: SWEEP_ALL_SELECTOR },
   };

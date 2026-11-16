@@ -39,13 +39,14 @@ async function main() {
     network: string;
     configured: number;
     missing: { name: string; address: string; code: boolean }[];
+    revoke: { name: string; address: string }[];
     skippedNoCode: string[];
     owner: string;
     err?: string;
   };
 
   const rows: Row[] = await mapLimit(chains, 4, async (c) => {
-    const row: Row = { network: c.network, configured: 0, missing: [], skippedNoCode: [], owner: "?" };
+    const row: Row = { network: c.network, configured: 0, missing: [], revoke: [], skippedNoCode: [], owner: "?" };
     try {
       const p = makeProvider(c.rpcUrl, c.chainId);
       row.owner = getAddress(
@@ -70,6 +71,13 @@ async function main() {
         if (!code) { row.skippedNoCode.push(`${t.name} ${t.address}`); continue; }
         row.missing.push({ name: t.name, address: getAddress(t.address), code });
       }
+      for (const t of cfg.retiredSwapTargets ?? []) {
+        const on = ROUTER.decodeFunctionResult(
+          "swapTargets",
+          await p.call({ to: c.router!, data: ROUTER.encodeFunctionData("swapTargets", [t.address]) }),
+        )[0] as boolean;
+        if (on) row.revoke.push({ name: t.name, address: getAddress(t.address) });
+      }
     } catch (e) {
       row.err = (e as Error).message.slice(0, 60);
     }
@@ -81,8 +89,8 @@ async function main() {
   const errs: Row[] = [];
   for (const r of rows) {
     if (r.err) { errs.push(r); continue; }
-    totalCalls += r.missing.length;
-    if (r.missing.length || r.skippedNoCode.length) withWork.push(r);
+    totalCalls += r.missing.length + r.revoke.length;
+    if (r.missing.length || r.revoke.length || r.skippedNoCode.length) withWork.push(r);
   }
 
   console.log(`\nchains checked: ${rows.length}\n`);
@@ -90,13 +98,14 @@ async function main() {
   for (const r of withWork) {
     console.log(`${r.network}  (${r.configured} configured, owner ${r.owner})`);
     for (const m of r.missing) console.log(`    + ${m.name.padEnd(14)} ${m.address}`);
+    for (const m of r.revoke) console.log(`    - ${m.name.padEnd(14)} ${m.address}  (revoke)`);
     for (const s of r.skippedNoCode) console.log(`    ~ SKIPPED (no bytecode): ${s}`);
   }
   if (errs.length) {
     console.log("\nchains that could not be read (NOT proven clean):");
     for (const r of errs) console.log(`    ! ${r.network}: ${r.err}`);
   }
-  console.log(`\nbundle would contain ${totalCalls} call(s) across ${withWork.filter((r) => r.missing.length).length} chain(s).`);
+  console.log(`\nbundle would contain ${totalCalls} call(s) across ${withWork.filter((r) => r.missing.length || r.revoke.length).length} chain(s).`);
   if (errs.length) process.exitCode = 1;
 }
 

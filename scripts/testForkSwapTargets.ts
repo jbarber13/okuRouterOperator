@@ -18,9 +18,9 @@
  *      enforcement, the nonce, the MultiSendCallOnly delegatecall where the
  *      bundle batches, and the router's onlyOwner gate end to end.
  *   5. Asserts ExecutionSuccess was emitted, the Safe nonce advanced by one,
- *      every bundled target now reads true, and every address previously
- *      whitelisted in chain-config for that chain is still true (the bundle
- *      must be strictly additive).
+ *      every added target now reads true, every revoked target (which must be
+ *      in the chain's retiredSwapTargets) now reads false, and every other
+ *      configured target that was on is still on.
  *
  * Usage:
  *   BUNDLE=<name> npx hardhat run scripts/testForkSwapTargets.ts
@@ -85,15 +85,23 @@ function loadBundle(name: string) {
   return b as { name: string; safe: string; threshold: number; owners: string[]; chains: BundleChain[] };
 }
 
-/** Targets the bundle sets to true, decoded from calldata rather than labels. */
-function bundledTargets(chain: BundleChain): string[] {
+/**
+ * Targets the bundle sets, decoded from calldata rather than labels:
+ * additions (true) and revocations (false). Revocations must be in the
+ * chain's configured retire list -- the rehearsal refuses to turn off
+ * anything that is not explicitly retired.
+ */
+function bundledTargets(chain: BundleChain): { add: string[]; revoke: string[] } {
   const out: string[] = [];
+  const revoke: string[] = [];
+  const retired = new Set((NETWORK_CONFIGS[chain.network]?.retiredSwapTargets ?? []).map((r) => getAddress(r.address)));
   for (const c of chain.calls) {
     if (getAddress(c.to) !== getAddress(chain.router)) throw new Error(`call to ${c.to} is not the router`);
     if (BigInt(c.value) !== 0n) throw new Error(`call carries value ${c.value}`);
     const [target, add] = ROUTER.decodeFunctionData("updateSwapTargets", c.data);
-    if (add !== true) throw new Error(`call sets ${target} to ${add}; this rehearsal expects additions only`);
-    out.push(getAddress(target));
+    if (add === true) out.push(getAddress(target));
+    else if (retired.has(getAddress(target))) revoke.push(getAddress(target));
+    else throw new Error(`call revokes ${target}, which is not in retiredSwapTargets for ${chain.network}`);
   }
   // The signed tx must encode exactly these calls.
   if (chain.tx.operation === 0) {
@@ -118,7 +126,7 @@ function bundledTargets(chain: BundleChain): string[] {
       throw new Error("multisend payload does not match the bundle's call list");
     }
   }
-  return out;
+  return { add: out, revoke };
 }
 
 async function call(provider: JsonRpcProvider, iface: Interface, to: string, fn: string, args: unknown[] = []) {
@@ -132,7 +140,7 @@ async function rehearseOne(bundleName: string, network: string) {
   if (!chain) throw new Error(`bundle has no chain ${network}`);
   const safe = getAddress(bundle.safe);
   const router = getAddress(chain.router);
-  const targets = bundledTargets(chain);
+  const { add: targets, revoke } = bundledTargets(chain);
 
   const forkRpc = (hre.config.networks as Record<string, { url?: string }>)[network]?.url;
   if (!forkRpc) throw new Error(`no RPC for ${network}`);
@@ -159,6 +167,10 @@ async function rehearseOne(bundleName: string, network: string) {
   for (const a of targets) {
     const [on] = await call(provider, ROUTER, router, "swapTargets", [a]);
     if (on) throw new Error(`${a} is already whitelisted; bundle would be a no-op for it`);
+  }
+  for (const a of revoke) {
+    const [on] = await call(provider, ROUTER, router, "swapTargets", [a]);
+    if (!on) throw new Error(`${a} is already off; revocation would be a no-op`);
   }
   // Every other configured target that is currently on must stay on.
   const cfg = NETWORK_CONFIGS[network];
@@ -217,9 +229,14 @@ async function rehearseOne(bundleName: string, network: string) {
     const [on] = await call(provider, ROUTER, router, "swapTargets", [a]);
     if (!on) throw new Error(`pre-existing target ${a} was turned off`);
   }
+  for (const a of revoke) {
+    const [on] = await call(provider, ROUTER, router, "swapTargets", [a]);
+    if (on) throw new Error(`${a} still whitelisted after revocation`);
+  }
   console.log(
     `[${network}] PASS  nonce ${nonce}->${nonceAfter}  gasUsed ${rc.gasUsed}  ` +
-      `+${targets.length} target(s) [${targets.join(", ")}]  ${preexisting.length} pre-existing intact`,
+      `+${targets.length} target(s) [${targets.join(", ")}]  ` +
+      `-${revoke.length} revoked [${revoke.join(", ")}]  ${preexisting.length} pre-existing intact`,
   );
 }
 

@@ -413,7 +413,9 @@ async function callsForIntent(
       const cfg = NETWORK_CONFIGS[chain.network];
       if (!cfg) return { calls: [], note: "NO_NETWORK_CONFIG" };
       const targets: readonly SwapTarget[] = cfg.knownSwapTargets;
-      if (targets.length === 0) return { calls: [], note: "NO_TARGETS_IN_CHAIN_CONFIG" };
+      if (targets.length === 0 && !cfg.retiredSwapTargets?.length) {
+        return { calls: [], note: "NO_TARGETS_IN_CHAIN_CONFIG" };
+      }
 
       const calls: BundleCall[] = [];
       const skipped: string[] = [];
@@ -431,6 +433,16 @@ async function callsForIntent(
           data: ROUTER_IFACE.encodeFunctionData("updateSwapTargets", [t.address, true]),
           value: "0",
           label: `updateSwapTargets(${t.address}, true)  ${t.name} [${t.protocol}]`,
+        });
+      }
+      // Revocations: retired addresses that are still on.
+      for (const r of cfg.retiredSwapTargets ?? []) {
+        if (!(await router.swapTargets(r.address))) continue;
+        calls.push({
+          to: chain.router!,
+          data: ROUTER_IFACE.encodeFunctionData("updateSwapTargets", [r.address, false]),
+          value: "0",
+          label: `updateSwapTargets(${r.address}, false)  REVOKE ${r.name}: ${r.reason}`,
         });
       }
       return {

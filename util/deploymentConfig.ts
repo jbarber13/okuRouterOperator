@@ -60,6 +60,13 @@ import {
   networkByName,
 } from "@gfxlabs/oku-chains";
 
+export interface RetiredSwapTarget {
+  address: string;
+  name: string;
+  /** Why, with a citable source. Shown in bundle labels. */
+  reason: string;
+}
+
 export interface SwapTarget {
   address: string;
   name: string;
@@ -75,6 +82,13 @@ export interface NetworkConfig {
   nativeSymbol: string;
   supportedRouters: string[];
   knownSwapTargets: SwapTarget[];
+  /**
+   * Addresses that must NOT be whitelisted on this chain. Excluded from
+   * knownSwapTargets even if chain-config still lists them, and revoked
+   * (updateSwapTargets(addr, false)) by `safe:build --intent swap-targets`
+   * wherever they are currently on.
+   */
+  retiredSwapTargets: RetiredSwapTarget[];
   ownerAddress: string;
   permit2Address: string;
   canonicalPermit2: boolean;
@@ -116,6 +130,55 @@ interface DeploymentOverride {
    * named it.
    */
   extraSwapTargets?: SwapTarget[];
+  /** See NetworkConfig.retiredSwapTargets. */
+  retiredSwapTargets?: RetiredSwapTarget[];
+}
+
+/**
+ * TychoRouterV3 rotation, 2026-11-16.
+ *
+ * PropellerHeads patched a TychoRouterV3 vulnerability ("reverts on
+ * out-of-range delta casts"), redeployed the router on every chain, and
+ * PAUSED the previous routers. Source: their notice to Oku, and
+ * propeller-heads/tycho commit 8aab8905 ("list the redeployed TychoRouterV3
+ * on every chain", 2026-11-16T17:41Z), which replaced each chain's router in
+ * deployment_registry.json, router_addresses.json and the contract-address
+ * docs. Verified on chain 2026-11-16: every `next` has code and
+ * paused() == false; every `prev` and `aug` has paused() == true.
+ *
+ * This is a deliberate, user-approved exception to the extraSwapTargets rule
+ * above (backend-named addresses only): the source is the vendor's own
+ * versioned registry plus a direct security notice, cross-checked on chain.
+ *
+ *   prev : the vulnerable router (whitelisted on every chain below) -> revoke
+ *   aug  : the 2026-08-01 router it superseded, also paused, still listed in
+ *          chain-config `fynd` -> revoke
+ *   next : the patched router -> whitelist
+ *
+ * chain-config 1.23.0 still carries prev/aug under `marketRouters.fynd`;
+ * the retire list keeps them out of knownSwapTargets until upstream updates.
+ */
+const TYCHO_ROTATION_2026_11_16: Record<string, { prev: string; aug: string; next: string }> = {
+  mainnet: { prev: "0x1644D2477f809cc2C71bCCFd6Dc9497E3F83210d", aug: "0xea290cE3Eae57BdB37E57872a5a14DC0d2f6e614", next: "0xe41c726421007e133a59365432fE886a73B45126" },
+  base: { prev: "0xAbA5B53b03eAfaD1C5fc8BD5Fc765fC85Bb3de67", aug: "0x9bA632d83e9eF57571256Cf4cc951b8aF1158e9C", next: "0xd374c00614f95492D816b5957E3797ce3f0c445C" },
+  unichain: { prev: "0xCba5574597Ad00EA250Fd106DAB4Fc7461949635", aug: "0xa0498D0Fa4081c9a735b137a2E6A1910FaA0E0bC", next: "0x556dff14e4A42259ebCE4fa087323c1047e9a55A" },
+  arbitrum: { prev: "0x924F147c50eA59f5180a26031A8b65B2aA1e81Cd", aug: "0x8A8Ba3973C84252BF7D357E4C0244b7EedB8B658", next: "0x1B82e8C16Ce8E17535C9B6b8AD107f61b0b192B5" },
+  bsc: { prev: "0x7f3D12BBaFb8955E51B3ab9588b34c8ad95BDA4e", aug: "0x712d0213439d99e56eFe5453253C12131C4019C9", next: "0xEe7eCe626064BDA1c6aFDb8A281afe44Eabd3242" },
+  polygon: { prev: "0xbd4e6011F03355C2A377Fd9Af939322A7d0A1bC1", aug: "0x0C85409014d6c8cAEF60C837198c931246BD6296", next: "0x4dB0B661dc706f7e09e54273028B22f61f8F94C2" },
+  plasma: { prev: "0x0953c7E23B44259e5e5630e9b97C31D7278C4c85", aug: "0xa7df4a8EeCA477c8A869fB5A6578A3D39AbE9A18", next: "0x43c747a86e84CE280c4c41909E6e4A5adC3A0BEf" },
+  robinhood: { prev: "0x09215a470bD585E59EB3F4B612fBD2678131fF9e", aug: "0x345e48768a65Ae596ac6A2Aee71202753C4866F5", next: "0x6F460540B03651d2Ad0ec28f777e4A0480A756a5" },
+};
+
+function tychoRotation(network: string): { add: SwapTarget[]; retire: RetiredSwapTarget[] } {
+  const r = TYCHO_ROTATION_2026_11_16[network];
+  if (!r) return { add: [], retire: [] };
+  return {
+    add: [{ address: r.next, name: "tycho", protocol: "fynd" }],
+    retire: [
+      { address: r.prev, name: "tycho", reason: "TychoRouterV3 vulnerable+paused, replaced 2026-11-16 (tycho 8aab8905)" },
+      { address: r.aug, name: "tycho", reason: "TychoRouterV3 superseded 2026-09-01, paused" },
+    ],
+  };
 }
 
 // Every chain shares the same Oku Router constructor owner.
@@ -484,7 +547,9 @@ function resolvePermit2Address(
 function buildKnownSwapTargets(
   chain: IChainInfo,
   extra: SwapTarget[] = [],
+  retired: RetiredSwapTarget[] = [],
 ): SwapTarget[] {
+  const retiredSet = new Set(retired.map((r) => r.address.toLowerCase()));
   // Annotated explicitly: without it TS infers `name`/`protocol` as
   // `keyof MarketRouters` from chain-config's `market` field, which then
   // rejects the plain-string names carried by `extraSwapTargets`.
@@ -507,7 +572,8 @@ function buildKnownSwapTargets(
     seen.add(address.toLowerCase());
     targets.push({ ...t, address });
   }
-  return targets;
+  // Retired addresses never count as desired, whatever chain-config says.
+  return targets.filter((t) => !retiredSet.has(t.address.toLowerCase()));
 }
 
 function resolveNetworkConfig(
@@ -516,6 +582,10 @@ function resolveNetworkConfig(
 ): NetworkConfig {
   const internalName = override.internalName ?? networkName;
   const chain = networkByName(internalName);
+  const rotation = tychoRotation(networkName);
+  const retired: RetiredSwapTarget[] = [...(override.retiredSwapTargets ?? []), ...rotation.retire].map(
+    (r) => ({ ...r, address: getAddress(r.address.toLowerCase()) }),
+  );
 
   return {
     networkName,
@@ -525,7 +595,12 @@ function resolveNetworkConfig(
     usdcAddress: chain.token.usdcAddress,
     nativeSymbol: chain.nativeCurrency.symbol,
     supportedRouters: override.supportedRouters,
-    knownSwapTargets: buildKnownSwapTargets(chain, override.extraSwapTargets),
+    knownSwapTargets: buildKnownSwapTargets(
+      chain,
+      [...(override.extraSwapTargets ?? []), ...rotation.add],
+      retired,
+    ),
+    retiredSwapTargets: retired,
     ownerAddress: OWNER_ADDRESS,
     permit2Address: resolvePermit2Address(chain, override.canonicalPermit2),
     canonicalPermit2: override.canonicalPermit2,

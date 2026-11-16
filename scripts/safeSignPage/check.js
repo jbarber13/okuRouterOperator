@@ -236,6 +236,11 @@ check("verifier refuses non-zero gas/refund fields",
   /refundReceiver must be the zero address/.test(codeBare) && /must be 0/.test(codeBare));
 check("verifier refuses DELEGATECALL except MultiSendCallOnly",
   /only MultiSendCallOnly is ever acceptable/.test(codeBare));
+check("verifier decodes MultiSend batches and checks each entry against the bundle",
+  /function decodeMultiSend\(/.test(codeBare) && /differs from the bundle's call/.test(codeBare));
+check("verifier restricts swap-targets bundles to updateSwapTargets on the router",
+  /may only call updateSwapTargets on this chain's router/.test(codeBare));
+check("review card lists decoded inner calls", /v\.view\.inner\.map/.test(mainBare));
 check("verifier requires a sweep to be one plain CALL to the router",
   /a sweep must be a plain CALL/.test(codeBare) && /a sweep must call this chain's router/.test(codeBare));
 

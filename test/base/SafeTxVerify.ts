@@ -185,6 +185,57 @@ describe("safeTxVerify: verifyChain refusals", () => {
     });
   }
 
+  function swapTargetsBundle(entries: [string, boolean][], mutate?: (calls: { to: string; data: string; value: bigint }[]) => void) {
+    const { Interface } = require("ethers");
+    const iface = new Interface(["function updateSwapTargets(address,bool)"]);
+    const calls = entries.map(([a, add]) => ({ to: ROUTER, data: iface.encodeFunctionData("updateSwapTargets", [a, add]), value: 0n }));
+    const tx = buildBatchedSafeTx(calls, 3n);
+    const bundleCalls = calls.map((c) => ({ ...c, value: "0", label: "" }));
+    mutate?.(bundleCalls as never);
+    const chain = {
+      network: "mainnet", chainId: 1, router: ROUTER, nonce: "3", calls: bundleCalls,
+      tx: { to: tx.to, value: "0", data: tx.data, operation: Number(tx.operation), safeTxGas: "0", baseGas: "0", gasPrice: "0", gasToken: tx.gasToken, refundReceiver: tx.refundReceiver, nonce: "3" },
+      safeTxHash: hashSafeTx(1, SAFE, tx),
+      eip712: JSON.parse(JSON.stringify(TypedDataEncoder.getPayload(safeDomain(1, SAFE), SAFE_TX_TYPES, tx))),
+    };
+    return { bundle: { intent: "swap-targets", safe: SAFE, params: {} }, chain };
+  }
+
+  it("decodes a swap-targets MultiSend batch into ADD / REVOKE entries", () => {
+    const { bundle, chain } = swapTargetsBundle([[TOKENS[0], true], [TOKENS[1], false]]);
+    const r = V.verifyChain(bundle, chain);
+    expect(r.errors).to.deep.equal([]);
+    expect(r.view.inner.map((x: { text: string }) => x.text)).to.deep.equal([`ADD    ${TOKENS[0]}`, `REVOKE ${TOKENS[1]}`]);
+  });
+
+  it("decodes a single swap-targets call", () => {
+    const { bundle, chain } = swapTargetsBundle([[TOKENS[0], true]]);
+    const r = V.verifyChain(bundle, chain);
+    expect(r.ok).to.equal(true);
+    expect(r.view.inner[0].text).to.equal(`ADD    ${TOKENS[0]}`);
+  });
+
+  it("refuses a MultiSend batch whose entries differ from the bundle's calls", () => {
+    const { bundle, chain } = swapTargetsBundle([[TOKENS[0], true], [TOKENS[1], false]], (calls) => calls.reverse());
+    const r = V.verifyChain(bundle, chain);
+    expect(r.ok).to.equal(false);
+    expect(r.errors.join()).to.match(/differs from the bundle's call/);
+  });
+
+  it("refuses a swap-targets bundle that calls anything else", () => {
+    const calls = [{ to: ROUTER, data: encodeSweepAll(TOKENS, true, RECIPIENT), value: 0n }];
+    const tx = buildBatchedSafeTx(calls, 1n);
+    const chain = {
+      network: "mainnet", chainId: 1, router: ROUTER, nonce: "1", calls: calls.map((c) => ({ ...c, value: "0", label: "" })),
+      tx: { to: tx.to, value: "0", data: tx.data, operation: 0, safeTxGas: "0", baseGas: "0", gasPrice: "0", gasToken: tx.gasToken, refundReceiver: tx.refundReceiver, nonce: "1" },
+      safeTxHash: hashSafeTx(1, SAFE, tx),
+      eip712: JSON.parse(JSON.stringify(TypedDataEncoder.getPayload(safeDomain(1, SAFE), SAFE_TX_TYPES, tx))),
+    };
+    const r = V.verifyChain({ intent: "swap-targets", safe: SAFE, params: {} }, chain);
+    expect(r.ok).to.equal(false);
+    expect(r.errors.join()).to.match(/may only call updateSwapTargets/);
+  });
+
   it("allows a non-sweep MultiSendCallOnly batch, with a warning", () => {
     const calls = [
       { to: ROUTER, data: "0x1234", value: 0n },
@@ -198,7 +249,7 @@ describe("safeTxVerify: verifyChain refusals", () => {
       safeTxHash: hashSafeTx(10, SAFE, tx),
       eip712: JSON.parse(JSON.stringify(TypedDataEncoder.getPayload(safeDomain(10, SAFE), SAFE_TX_TYPES, tx))),
     };
-    const r = V.verifyChain({ intent: "swap-targets", safe: SAFE, params: {} }, chain);
+    const r = V.verifyChain({ intent: "pause", safe: SAFE, params: {} }, chain);
     expect(r.errors).to.deep.equal([]);
     expect(r.warnings.join()).to.match(/MultiSendCallOnly/);
     // ...but never for a sweep

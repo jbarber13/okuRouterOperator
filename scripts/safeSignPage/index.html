@@ -458,8 +458,14 @@ function payloadSummary(c, v) {
       (c.sweep && c.sweep.mode ? ' <span class="pill">' + esc(c.sweep.mode) + "</span>" : "");
   }
   var to = v.view.fields[2], op = v.view.fields[5];
-  return "to " + esc(to.value) + (to.note ? " (" + esc(to.note) + ")" : "") +
+  var head = "to " + esc(to.value) + (to.note ? " (" + esc(to.note) + ")" : "") +
     "<br>op " + esc(op.value) + ", data " + esc(v.view.fields[4].value.split(",")[0]);
+  if (v.view.inner && v.view.inner.length) {
+    head += '<div class="mono" style="margin-top:4px">' + v.view.inner.map(function (x) {
+      return (/^REVOKE/.test(x.text) ? '<span class="warn">' : '<span class="ok">') + esc(x.text) + "</span>";
+    }).join("<br>") + "</div>";
+  }
+  return head;
 }
 
 function fieldRows(fields, group) {
@@ -514,7 +520,16 @@ function renderCard(c, v) {
           esc(sym[t.toLowerCase()] || "?") + "</td></tr>";
       }).join("") + "</tbody></table></div>";
   } else {
-    h += '<div class="dim">not a sweep — raw 32-byte words after the 4-byte selector ' +
+    if (v.view.inner && v.view.inner.length) {
+      h += '<div class="dim">' + (v.view.inner.length > 1
+        ? "MultiSendCallOnly batch — each entry below is a plain CALL, decoded from the packed bytes and checked against the bundle:"
+        : "one call, decoded:") + "</div>";
+      h += '<table><thead><tr><th>#</th><th>to</th><th>call</th></tr></thead><tbody>' +
+        v.view.inner.map(function (x, i) {
+          return "<tr><td>" + i + "</td><td>" + esc(x.where) + '</td><td class="mono">' + esc(x.text) + "</td></tr>";
+        }).join("") + "</tbody></table>";
+    }
+    h += '<div class="dim">raw 32-byte words after the 4-byte selector ' +
       esc(data.slice(0, 10)) + ":</div>";
   }
   h += '<details style="margin-top:6px"><summary class="dim">raw words (' + v.view.words.length + ")</summary>" +
